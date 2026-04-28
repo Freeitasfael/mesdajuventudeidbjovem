@@ -99,13 +99,12 @@ export const HeroRifa = ({
       <div className="relative mx-auto flex min-h-[90vh] max-w-6xl flex-col items-center justify-center gap-10 px-4 py-16 sm:px-6 sm:py-20">
         {/* Logo no topo */}
         <div className="animate-fade-in flex flex-col items-center">
-          <div className="rounded-2xl bg-white/95 p-4 shadow-xl ring-1 ring-white/20 transition-transform hover:scale-105">
-            <img
-              src={logoIdb}
-              alt="IDB Jovem Oficial"
-              className="h-auto w-40 sm:w-52 lg:w-64"
-            />
-          </div>
+          <img
+            src={logoIdb}
+            alt="IDB Jovem Oficial"
+            className="h-auto w-48 sm:w-64 lg:w-80 drop-shadow-2xl transition-transform hover:scale-105"
+            style={{ filter: "drop-shadow(0 8px 24px hsl(var(--hero-gold) / 0.35))" }}
+          />
         </div>
 
         {/* Headline */}
