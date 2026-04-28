@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Shield, CheckCircle, Heart, Calendar, Users, Map, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TransparentLogo } from "@/components/TransparentLogo";
 import heroBg from "@/assets/hero-rifa-bg.jpg";
 import logoIdb from "@/assets/idb-jovem-logo.png";
 import prizeIphone from "@/assets/prize-iphone.jpg";
@@ -97,12 +98,12 @@ export const HeroRifa = ({
       </div>
 
       <div className="relative mx-auto flex min-h-[90vh] max-w-6xl flex-col items-center justify-center gap-10 px-4 py-16 sm:px-6 sm:py-20">
-        {/* Logo no topo */}
+        {/* Logo no topo (fundo transparente garantido) */}
         <div className="animate-fade-in flex flex-col items-center">
-          <img
+          <TransparentLogo
             src={logoIdb}
             alt="IDB Jovem Oficial"
-            className="h-auto w-48 sm:w-64 lg:w-80 drop-shadow-2xl transition-transform hover:scale-105"
+            className="h-auto w-48 sm:w-64 lg:w-80 transition-transform hover:scale-105"
             style={{ filter: "drop-shadow(0 8px 24px hsl(var(--hero-gold) / 0.35))" }}
           />
         </div>
