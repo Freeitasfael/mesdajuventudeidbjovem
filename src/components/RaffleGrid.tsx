@@ -115,13 +115,13 @@ export const RaffleGrid = ({ pricePerNumber }: Props) => {
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2">
-          {Array.from({ length: 60 }).map((_, i) => (
-            <Skeleton key={i} className="aspect-square rounded-md" />
+        <div className="grid grid-cols-6 sm:grid-cols-10 md:grid-cols-12 lg:grid-cols-16 gap-1.5">
+          {Array.from({ length: 96 }).map((_, i) => (
+            <Skeleton key={i} className="aspect-square rounded-lg" />
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2">
+        <div className="grid grid-cols-6 sm:grid-cols-10 md:grid-cols-12 lg:grid-cols-16 gap-1.5">
           {numbers.map((n) => {
             const isSelected = selected.includes(n.number);
             const disabled = n.status !== "available";
@@ -131,15 +131,15 @@ export const RaffleGrid = ({ pricePerNumber }: Props) => {
                 onClick={() => !disabled && toggle(n.number)}
                 disabled={disabled}
                 className={cn(
-                  "aspect-square rounded-md font-mono text-xs sm:text-sm font-semibold",
-                  "transition-all duration-150 select-none",
+                  "aspect-square rounded-lg text-[11px] sm:text-xs font-bold tabular-nums tracking-tight",
+                  "transition-all duration-150 select-none shadow-sm",
                   "flex items-center justify-center relative",
                   n.status === "available" &&
                     !isSelected &&
-                    "bg-number-available text-number-available-foreground hover:bg-number-available-hover hover:scale-105 active:scale-95 cursor-pointer",
+                    "bg-number-available text-number-available-foreground hover:bg-number-available-hover hover:scale-110 hover:shadow-md active:scale-95 cursor-pointer",
                   n.status === "available" &&
                     isSelected &&
-                    "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2 ring-offset-background scale-105 cursor-pointer",
+                    "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2 ring-offset-background scale-110 shadow-[var(--shadow-glow)] cursor-pointer",
                   n.status === "reserved" &&
                     "bg-number-reserved text-number-reserved-foreground cursor-not-allowed opacity-90",
                   n.status === "paid" &&
