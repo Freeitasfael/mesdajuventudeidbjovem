@@ -405,6 +405,119 @@ const Admin = () => {
               <Button onClick={saveSettings}>Salvar</Button>
             </Card>
           </TabsContent>
+
+          {/* HERO */}
+          <TabsContent value="hero" className="mt-6">
+            <Card className="max-w-3xl space-y-6 p-6">
+              <div>
+                <h3 className="font-semibold">Estatísticas do Hero</h3>
+                <p className="text-xs text-muted-foreground">
+                  Aparecem em destaque acima dos prêmios.
+                </p>
+                <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                  <div className="space-y-1">
+                    <Label>Anos</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      value={heroStats.years}
+                      onChange={(e) =>
+                        setHeroStats({ ...heroStats, years: Number(e.target.value) || 0 })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label>Pessoas impactadas</Label>
+                    <Input
+                      value={heroStats.people}
+                      onChange={(e) => setHeroStats({ ...heroStats, people: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label>Alcance</Label>
+                    <Input
+                      value={heroStats.coverage}
+                      onChange={(e) =>
+                        setHeroStats({ ...heroStats, coverage: e.target.value })
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <h3 className="font-semibold">Prêmios</h3>
+                  <p className="text-xs text-muted-foreground">
+                    Deixe a URL da imagem em branco para usar a imagem padrão.
+                  </p>
+                </div>
+                {heroPrizes.map((p, idx) => (
+                  <div key={idx} className="grid gap-2 rounded-md border border-border p-3 sm:grid-cols-3">
+                    <div className="space-y-1">
+                      <Label>Posição</Label>
+                      <Input
+                        value={p.position}
+                        onChange={(e) => {
+                          const next = [...heroPrizes];
+                          next[idx] = { ...next[idx], position: e.target.value };
+                          setHeroPrizes(next);
+                        }}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label>Nome do prêmio</Label>
+                      <Input
+                        value={p.name}
+                        onChange={(e) => {
+                          const next = [...heroPrizes];
+                          next[idx] = { ...next[idx], name: e.target.value };
+                          setHeroPrizes(next);
+                        }}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label>URL da imagem (opcional)</Label>
+                      <Input
+                        placeholder="https://..."
+                        value={p.image}
+                        onChange={(e) => {
+                          const next = [...heroPrizes];
+                          next[idx] = { ...next[idx], image: e.target.value };
+                          setHeroPrizes(next);
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      setHeroPrizes([
+                        ...heroPrizes,
+                        { position: `${heroPrizes.length + 1}º PRÊMIO`, name: "", image: "" },
+                      ])
+                    }
+                  >
+                    <Plus className="mr-2 h-4 w-4" /> Adicionar prêmio
+                  </Button>
+                  {heroPrizes.length > 1 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setHeroPrizes(heroPrizes.slice(0, -1))}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4 text-destructive" /> Remover último
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              <Button onClick={saveHero}>Salvar Hero</Button>
+            </Card>
+          </TabsContent>
         </Tabs>
       </section>
     </main>
