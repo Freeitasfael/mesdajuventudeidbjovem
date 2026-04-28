@@ -8,6 +8,7 @@ import Checkout from "./pages/Checkout.tsx";
 import Pagamento from "./pages/Pagamento.tsx";
 import Ranking from "./pages/Ranking.tsx";
 import Vendedor from "./pages/Vendedor.tsx";
+import Afiliacao from "./pages/Afiliacao.tsx";
 import Auth from "./pages/Auth.tsx";
 import Admin from "./pages/Admin.tsx";
 import { RequireAdmin } from "./components/RequireAdmin";
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/pagamento/:orderId" element={<Pagamento />} />
           <Route path="/ranking" element={<Ranking />} />
           <Route path="/v/:refCode" element={<Vendedor />} />
+          <Route path="/afiliacao" element={<Afiliacao />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/admin" element={<RequireAdmin><Admin /></RequireAdmin>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
