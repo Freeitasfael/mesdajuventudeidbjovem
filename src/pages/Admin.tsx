@@ -246,6 +246,7 @@ const Admin = () => {
             <TabsTrigger value="orders">Pedidos</TabsTrigger>
             <TabsTrigger value="sellers">Vendedores</TabsTrigger>
             <TabsTrigger value="settings">Configurações</TabsTrigger>
+            <TabsTrigger value="hero">Hero</TabsTrigger>
           </TabsList>
 
           {/* DASHBOARD */}
