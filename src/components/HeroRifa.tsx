@@ -100,11 +100,14 @@ export const HeroRifa = ({
       <div className="relative mx-auto flex min-h-[90vh] max-w-6xl flex-col items-center justify-center gap-10 px-4 py-16 sm:px-6 sm:py-20">
         {/* Logo no topo (fundo transparente garantido) */}
         <div className="animate-fade-in flex flex-col items-center">
-          <TransparentLogo
+          <img
             src={logoIdb}
             alt="IDB Jovem Oficial"
             className="h-auto w-48 sm:w-64 lg:w-80 transition-transform hover:scale-105"
-            style={{ filter: "drop-shadow(0 8px 24px hsl(var(--hero-gold) / 0.35))" }}
+            style={{
+              backgroundColor: "transparent",
+              filter: "drop-shadow(0 8px 24px hsl(var(--hero-gold) / 0.35))",
+            }}
           />
         </div>
 
