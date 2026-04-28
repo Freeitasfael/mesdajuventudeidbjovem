@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { RaffleGrid } from "@/components/RaffleGrid";
+import { HeroRifa } from "@/components/HeroRifa";
 import { Button } from "@/components/ui/button";
 import { Handshake } from "lucide-react";
 
@@ -59,6 +60,7 @@ const Rifa = () => {
 
   return (
     <main className="min-h-screen bg-background">
+      <HeroRifa pricePerNumber={pricePerNumber} />
       <header
         className="relative overflow-hidden border-b border-border text-white"
         style={{ background: "var(--gradient-hero)" }}
@@ -111,7 +113,7 @@ const Rifa = () => {
         </div>
       </div>
 
-      <section className="container py-8">
+      <section id="rifa-grid" className="container py-8 scroll-mt-4">
         <RaffleGrid pricePerNumber={pricePerNumber} />
       </section>
 
