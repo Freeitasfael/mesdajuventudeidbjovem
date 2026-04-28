@@ -272,6 +272,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_dashboard_stats: {
+        Args: never
+        Returns: {
+          numbers_available: number
+          numbers_paid: number
+          numbers_reserved: number
+          paid_orders: number
+          pending_orders: number
+          sellers_count: number
+          total_revenue_cents: number
+        }[]
+      }
       confirm_payment: { Args: { _order_id: string }; Returns: undefined }
       expire_reservations: {
         Args: never
