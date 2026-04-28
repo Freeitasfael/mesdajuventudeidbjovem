@@ -164,6 +164,11 @@ const Admin = () => {
           </div>
           <div className="flex gap-2">
             <Button variant="outline" asChild>
+              <Link to="/admin/ranking">
+                <Trophy className="mr-2 h-4 w-4" /> Ranking
+              </Link>
+            </Button>
+            <Button variant="outline" asChild>
               <Link to="/rifa">Ver rifa</Link>
             </Button>
             <Button variant="outline" onClick={handleLogout}>
