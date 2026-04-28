@@ -39,38 +39,23 @@ const Pagamento = () => {
 
   const loadStatus = useCallback(async () => {
     if (!orderId) return;
-    const { data: res, error: err } = await supabase.functions.invoke(
-      "order-status",
-      {
-        method: "GET",
-        body: undefined,
-        headers: {},
-      },
-    );
-    // The supabase-js invoke doesn't pass query params; call directly via URL
-    if (err || !res) {
-      // Fallback to direct fetch with query string
-      try {
-        const SUPA_URL = import.meta.env.VITE_SUPABASE_URL as string;
-        const KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
-        const r = await fetch(
-          `${SUPA_URL}/functions/v1/order-status?order_id=${orderId}`,
-          { headers: { Authorization: `Bearer ${KEY}`, apikey: KEY } },
-        );
-        const json = (await r.json()) as OrderStatus | { error: string };
-        if ("error" in json) {
-          setError(json.error);
-        } else {
-          setData(json);
-          setError(null);
-        }
-      } catch (e) {
-        console.log("[Pagamento] status error", e);
-        setError("Não foi possível consultar o pedido");
+    try {
+      const SUPA_URL = import.meta.env.VITE_SUPABASE_URL as string;
+      const KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+      const r = await fetch(
+        `${SUPA_URL}/functions/v1/order-status?order_id=${orderId}`,
+        { headers: { Authorization: `Bearer ${KEY}`, apikey: KEY } },
+      );
+      const json = (await r.json()) as OrderStatus | { error: string };
+      if ("error" in json) {
+        setError(json.error);
+      } else {
+        setData(json);
+        setError(null);
       }
-    } else {
-      setData(res as OrderStatus);
-      setError(null);
+    } catch (e) {
+      console.log("[Pagamento] status error", e);
+      setError("Não foi possível consultar o pedido");
     }
   }, [orderId]);
 
