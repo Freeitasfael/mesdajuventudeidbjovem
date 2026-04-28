@@ -67,7 +67,7 @@ const Rifa = () => {
       </header>
 
       <section className="container py-8">
-        <RaffleGrid />
+        <RaffleGrid pricePerNumber={pricePerNumber} />
       </section>
 
       <footer className="container py-8 text-center text-xs text-muted-foreground">

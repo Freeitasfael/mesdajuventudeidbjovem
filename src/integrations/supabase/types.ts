@@ -279,6 +279,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      reserve_numbers: {
+        Args: { _numbers: number[]; _order_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "seller"
