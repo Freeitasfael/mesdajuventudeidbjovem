@@ -273,6 +273,13 @@ export type Database = {
     }
     Functions: {
       confirm_payment: { Args: { _order_id: string }; Returns: undefined }
+      expire_reservations: {
+        Args: never
+        Returns: {
+          expired_orders: number
+          freed_numbers: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
