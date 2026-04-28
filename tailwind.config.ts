@@ -47,6 +47,21 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        number: {
+          available: {
+            DEFAULT: "hsl(var(--number-available))",
+            foreground: "hsl(var(--number-available-foreground))",
+            hover: "hsl(var(--number-available-hover))",
+          },
+          reserved: {
+            DEFAULT: "hsl(var(--number-reserved))",
+            foreground: "hsl(var(--number-reserved-foreground))",
+          },
+          paid: {
+            DEFAULT: "hsl(var(--number-paid))",
+            foreground: "hsl(var(--number-paid-foreground))",
+          },
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
