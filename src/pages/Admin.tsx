@@ -137,6 +137,45 @@ const Admin = () => {
     }
   };
 
+  const saveHero = async () => {
+    const cleanedPrizes = heroPrizes
+      .map((p) => ({
+        position: p.position.trim(),
+        name: p.name.trim(),
+        image: p.image.trim(),
+      }))
+      .filter((p) => p.name.length > 0);
+    const years = Number(heroStats.years);
+    if (!Number.isFinite(years) || years <= 0) {
+      toast.error("Anos de história inválido");
+      return;
+    }
+    const cleanedStats = {
+      years,
+      people: heroStats.people.trim() || "MILHARES",
+      coverage: heroStats.coverage.trim() || "TODO O PAÍS",
+    };
+    const nowIso = new Date().toISOString();
+    const { error: e1 } = await supabase
+      .from("app_settings")
+      .upsert(
+        { key: "hero_prizes", value: cleanedPrizes, updated_at: nowIso },
+        { onConflict: "key" },
+      );
+    const { error: e2 } = await supabase
+      .from("app_settings")
+      .upsert(
+        { key: "hero_stats", value: cleanedStats, updated_at: nowIso },
+        { onConflict: "key" },
+      );
+    if (e1 || e2) {
+      toast.error("Erro ao salvar Hero");
+      console.log("[Admin] saveHero", e1, e2);
+    } else {
+      toast.success("Hero atualizado");
+    }
+  };
+
   const createSeller = async () => {
     const name = newSellerName.trim();
     const ref = newSellerRef.trim().toLowerCase().replace(/[^a-z0-9-]/g, "");
