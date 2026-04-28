@@ -38,6 +38,15 @@ All colors MUST be HSL.
 
     --radius: 0.5rem;
 
+    /* Raffle number status tokens */
+    --number-available: 142 71% 45%;
+    --number-available-foreground: 0 0% 100%;
+    --number-available-hover: 142 71% 38%;
+    --number-reserved: 45 93% 47%;
+    --number-reserved-foreground: 26 83% 14%;
+    --number-paid: 0 72% 51%;
+    --number-paid-foreground: 0 0% 100%;
+
     --sidebar-background: 0 0% 98%;
 
     --sidebar-foreground: 240 5.3% 26.1%;
