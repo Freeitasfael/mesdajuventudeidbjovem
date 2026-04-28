@@ -117,7 +117,7 @@ export const RaffleGrid = ({ pricePerNumber }: Props) => {
       {loading ? (
         <div className="grid grid-cols-6 sm:grid-cols-10 md:grid-cols-12 lg:grid-cols-16 gap-1.5">
           {Array.from({ length: 96 }).map((_, i) => (
-            <Skeleton key={i} className="aspect-square rounded-lg" />
+            <Skeleton key={i} className="aspect-square rounded-lg bg-white/10" />
           ))}
         </div>
       ) : (
@@ -139,12 +139,21 @@ export const RaffleGrid = ({ pricePerNumber }: Props) => {
                     "bg-number-available text-number-available-foreground hover:bg-number-available-hover hover:scale-110 hover:shadow-md active:scale-95 cursor-pointer",
                   n.status === "available" &&
                     isSelected &&
-                    "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2 ring-offset-background scale-110 shadow-[var(--shadow-glow)] cursor-pointer",
+                    "scale-110 shadow-gold-glow cursor-pointer ring-2 ring-offset-2 ring-offset-transparent",
                   n.status === "reserved" &&
                     "bg-number-reserved text-number-reserved-foreground cursor-not-allowed opacity-90",
                   n.status === "paid" &&
                     "bg-number-paid text-number-paid-foreground cursor-not-allowed opacity-90",
                 )}
+                style={
+                  n.status === "available" && isSelected
+                    ? {
+                        backgroundColor: "hsl(var(--hero-gold))",
+                        color: "hsl(var(--hero-bg))",
+                        boxShadow: "var(--shadow-gold-glow)",
+                      }
+                    : undefined
+                }
                 aria-label={`Número ${n.number} - ${n.status}`}
                 aria-pressed={isSelected}
               >
@@ -156,27 +165,49 @@ export const RaffleGrid = ({ pricePerNumber }: Props) => {
       )}
 
       {selected.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 border-t border-border bg-card/95 backdrop-blur-sm z-40 animate-in slide-in-from-bottom-2">
+        <div className="fixed bottom-0 left-0 right-0 border-t z-40 animate-in slide-in-from-bottom-2"
+          style={{
+            backgroundColor: "hsl(var(--hero-bg) / 0.95)",
+            borderColor: "hsl(var(--hero-gold) / 0.4)",
+            backdropFilter: "blur(8px)",
+          }}
+        >
           <div className="container py-3 sm:py-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 text-white">
               <p className="text-sm font-medium">
                 {selected.length}{" "}
                 {selected.length === 1 ? "número selecionado" : "números selecionados"}
               </p>
               {pricePerNumber !== null && (
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-white/70">
                   Total:{" "}
-                  <span className="font-semibold text-foreground">
+                  <span
+                    className="font-bold"
+                    style={{ color: "hsl(var(--hero-gold))" }}
+                  >
                     R$ {(totalCents / 100).toFixed(2).replace(".", ",")}
                   </span>
                 </p>
               )}
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={clear}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={clear}
+                className="border-white/20 bg-transparent text-white hover:bg-white/10 hover:text-white"
+              >
                 Limpar
               </Button>
-              <Button size="sm" onClick={goToCheckout}>
+              <Button
+                size="sm"
+                onClick={goToCheckout}
+                className="font-bold"
+                style={{
+                  backgroundColor: "hsl(var(--hero-gold))",
+                  color: "hsl(var(--hero-bg))",
+                }}
+              >
                 Continuar
               </Button>
             </div>
@@ -190,6 +221,6 @@ export const RaffleGrid = ({ pricePerNumber }: Props) => {
 const LegendDot = ({ className, label }: { className: string; label: string }) => (
   <div className="flex items-center gap-2">
     <span className={cn("h-3 w-3 rounded-sm", className)} />
-    <span className="text-muted-foreground">{label}</span>
+    <span className="text-white/75">{label}</span>
   </div>
 );

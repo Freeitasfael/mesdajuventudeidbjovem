@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Shield, CheckCircle, Heart, Calendar, Users, Map, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import heroBg from "@/assets/hero-rifa-bg.jpg";
 import logoIdb from "@/assets/idb-jovem-logo.png";
 import prizeIphone from "@/assets/prize-iphone.jpg";
@@ -10,43 +11,60 @@ import prizeMoto from "@/assets/prize-moto.jpg";
 export type Prize = {
   position: string;
   name: string;
-  image: string;
+  image?: string | null;
+};
+
+export type HeroStats = {
+  years: number;
+  people: string;
+  coverage: string;
 };
 
 export type HeroRifaProps = {
-  pricePerNumber: number | null; // in cents
-  prizes?: Prize[];
-  stats?: { years: number; people: string; coverage: string };
+  pricePerNumber: number | null;
+  prizes?: Prize[] | null;
+  stats?: HeroStats | null;
+  loading?: boolean;
   onCtaClick?: () => void;
 };
 
-const DEFAULT_PRIZES: Prize[] = [
-  { position: "1º PRÊMIO", name: "iPhone 15", image: prizeIphone },
-  { position: "2º PRÊMIO", name: "PlayStation 5", image: prizePs5 },
-  { position: "3º PRÊMIO", name: "Moto CG 160", image: prizeMoto },
-];
+const FALLBACK_IMAGES = [prizeIphone, prizePs5, prizeMoto];
 
-const DEFAULT_STATS = { years: 16, people: "MILHARES", coverage: "TODO O PAÍS" };
-
-const formatPrice = (cents: number | null) => {
-  const value = typeof cents === "number" && cents > 0 ? cents : 500; // fallback R$ 5,00
+const formatPrice = (cents: number | null | undefined) => {
+  const value = typeof cents === "number" && cents > 0 ? cents : 500;
   return `R$ ${(value / 100).toFixed(2).replace(".", ",")}`;
 };
 
+const isValidPrizes = (p: unknown): p is Prize[] =>
+  Array.isArray(p) && p.every((x) => x && typeof (x as Prize).name === "string");
+
+const isValidStats = (s: unknown): s is HeroStats =>
+  !!s &&
+  typeof (s as HeroStats).years === "number" &&
+  typeof (s as HeroStats).people === "string" &&
+  typeof (s as HeroStats).coverage === "string";
+
 export const HeroRifa = ({
   pricePerNumber,
-  prizes = DEFAULT_PRIZES,
-  stats = DEFAULT_STATS,
+  prizes,
+  stats,
+  loading = false,
   onCtaClick,
 }: HeroRifaProps) => {
   useEffect(() => {
-    console.log("[HeroRifa]", { pricePerNumber, prizes, stats });
-  }, [pricePerNumber, prizes, stats]);
+    console.log("[HeroRifa]", { pricePerNumber, prizes, stats, loading });
+  }, [pricePerNumber, prizes, stats, loading]);
+
+  const safePrizes = isValidPrizes(prizes) ? prizes : null;
+  const safeStats = isValidStats(stats) ? stats : null;
 
   const handleCta = () => {
     if (onCtaClick) return onCtaClick();
     const target = document.getElementById("rifa-grid");
-    if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (!target) return;
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
+    target.classList.add("ring-highlight");
+    window.setTimeout(() => target.classList.remove("ring-highlight"), 2200);
   };
 
   return (
@@ -69,7 +87,6 @@ export const HeroRifa = ({
           className="absolute inset-0"
           style={{ background: "var(--gradient-hero-dark)", backdropFilter: "blur(2px)" }}
         />
-        {/* gold radial glow */}
         <div
           className="pointer-events-none absolute inset-0 opacity-60"
           style={{
@@ -85,10 +102,7 @@ export const HeroRifa = ({
           <h1 className="text-4xl font-extrabold leading-[1.05] tracking-tight md:text-6xl lg:text-7xl">
             ESTA RIFA CUSTEIA O
             <br />
-            <span
-              className="text-glow-gold"
-              style={{ color: "hsl(var(--hero-gold))" }}
-            >
+            <span className="text-glow-gold" style={{ color: "hsl(var(--hero-gold))" }}>
               MÊS DA JUVENTUDE
             </span>
           </h1>
@@ -108,7 +122,7 @@ export const HeroRifa = ({
           </p>
         </div>
 
-        {/* Price card — most important element */}
+        {/* Price card */}
         <div
           className="animate-fade-in-up relative w-full max-w-xl rounded-3xl border px-6 py-8 text-center shadow-gold-glow backdrop-blur-md sm:px-10 sm:py-10"
           style={{
@@ -119,12 +133,18 @@ export const HeroRifa = ({
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-white/70 sm:text-base">
             Por apenas
           </p>
-          <p
-            className="mt-3 font-extrabold leading-none tracking-tight text-glow-gold text-6xl sm:text-7xl lg:text-8xl"
-            style={{ color: "hsl(var(--hero-gold))" }}
-          >
-            {formatPrice(pricePerNumber)}
-          </p>
+          {loading || pricePerNumber === null ? (
+            <div className="mt-4 flex justify-center">
+              <Skeleton className="h-20 w-64 rounded-xl bg-white/10 sm:h-24 sm:w-80" />
+            </div>
+          ) : (
+            <p
+              className="mt-3 font-extrabold leading-none tracking-tight text-glow-gold text-6xl sm:text-7xl lg:text-8xl"
+              style={{ color: "hsl(var(--hero-gold))" }}
+            >
+              {formatPrice(pricePerNumber)}
+            </p>
+          )}
           <p className="mt-3 text-sm font-semibold uppercase tracking-[0.3em] text-white/70 sm:text-base">
             Por número
           </p>
@@ -163,9 +183,7 @@ export const HeroRifa = ({
 
         {/* Logo */}
         <div className="animate-fade-in flex flex-col items-center">
-          <div
-            className="rounded-2xl bg-white/95 p-4 shadow-xl ring-1 ring-white/20 transition-transform hover:scale-105"
-          >
+          <div className="rounded-2xl bg-white/95 p-4 shadow-xl ring-1 ring-white/20 transition-transform hover:scale-105">
             <img
               src={logoIdb}
               alt="IDB Jovem Oficial"
@@ -177,28 +195,32 @@ export const HeroRifa = ({
 
         {/* Stats */}
         <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-3">
-          {[
-            { icon: Calendar, value: `${stats.years} ANOS`, label: "de história" },
-            { icon: Users, value: stats.people, label: "de jovens impactados" },
-            { icon: Map, value: stats.coverage, label: "alcançado" },
-          ].map(({ icon: Icon, value, label }) => (
-            <div
-              key={label}
-              className="rounded-2xl border border-white/10 bg-white/5 p-5 text-center backdrop-blur-sm"
-            >
-              <Icon
-                className="mx-auto mb-2 h-6 w-6"
-                style={{ color: "hsl(var(--hero-gold))" }}
-              />
-              <p
-                className="text-xl font-extrabold tracking-wide sm:text-2xl"
-                style={{ color: "hsl(var(--hero-gold))" }}
-              >
-                {value}
-              </p>
-              <p className="text-xs text-white/75 sm:text-sm">{label}</p>
-            </div>
-          ))}
+          {loading || !safeStats
+            ? Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} className="h-28 rounded-2xl bg-white/10" />
+              ))
+            : [
+                { icon: Calendar, value: `${safeStats.years} ANOS`, label: "de história" },
+                { icon: Users, value: safeStats.people, label: "de jovens impactados" },
+                { icon: Map, value: safeStats.coverage, label: "alcançado" },
+              ].map(({ icon: Icon, value, label }) => (
+                <div
+                  key={label}
+                  className="rounded-2xl border border-white/10 bg-white/5 p-5 text-center backdrop-blur-sm"
+                >
+                  <Icon
+                    className="mx-auto mb-2 h-6 w-6"
+                    style={{ color: "hsl(var(--hero-gold))" }}
+                  />
+                  <p
+                    className="text-xl font-extrabold tracking-wide sm:text-2xl"
+                    style={{ color: "hsl(var(--hero-gold))" }}
+                  >
+                    {value}
+                  </p>
+                  <p className="text-xs text-white/75 sm:text-sm">{label}</p>
+                </div>
+              ))}
         </div>
 
         {/* Prizes */}
@@ -213,33 +235,41 @@ export const HeroRifa = ({
             </h2>
           </div>
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-            {prizes.map((prize) => (
-              <article
-                key={prize.position}
-                className="group overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm transition-all hover:scale-[1.03] hover:shadow-gold-glow"
-              >
-                <div className="relative aspect-square w-full overflow-hidden">
-                  <img
-                    src={prize.image}
-                    alt={prize.name}
-                    loading="lazy"
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                  <span
-                    className="absolute left-3 top-3 rounded-full px-3 py-1 text-xs font-extrabold uppercase tracking-wider shadow-md"
-                    style={{
-                      backgroundColor: "hsl(var(--hero-gold))",
-                      color: "hsl(var(--hero-bg))",
-                    }}
+            {loading || !safePrizes
+              ? Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} className="aspect-[4/5] rounded-2xl bg-white/10" />
+                ))
+              : safePrizes.map((prize, idx) => (
+                  <article
+                    key={`${prize.position}-${idx}`}
+                    className="group overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm transition-all hover:scale-[1.03] hover:shadow-gold-glow"
                   >
-                    {prize.position}
-                  </span>
-                </div>
-                <div className="p-4 text-center">
-                  <h3 className="text-lg font-bold text-white">{prize.name}</h3>
-                </div>
-              </article>
-            ))}
+                    <div className="relative aspect-square w-full overflow-hidden">
+                      <img
+                        src={prize.image || FALLBACK_IMAGES[idx] || FALLBACK_IMAGES[0]}
+                        alt={prize.name}
+                        loading="lazy"
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).src =
+                            FALLBACK_IMAGES[idx] || FALLBACK_IMAGES[0];
+                        }}
+                      />
+                      <span
+                        className="absolute left-3 top-3 rounded-full px-3 py-1 text-xs font-extrabold uppercase tracking-wider shadow-md"
+                        style={{
+                          backgroundColor: "hsl(var(--hero-gold))",
+                          color: "hsl(var(--hero-bg))",
+                        }}
+                      >
+                        {prize.position}
+                      </span>
+                    </div>
+                    <div className="p-4 text-center">
+                      <h3 className="text-lg font-bold text-white">{prize.name}</h3>
+                    </div>
+                  </article>
+                ))}
           </div>
         </div>
       </div>

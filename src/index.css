@@ -142,6 +142,15 @@ All colors MUST be HSL.
   .animate-fade-in {
     animation: fade-in 1s ease-out both;
   }
+  .ring-highlight {
+    animation: ring-pulse 2s ease-out;
+    border-radius: 1.25rem;
+  }
+  @keyframes ring-pulse {
+    0% { box-shadow: 0 0 0 0 hsl(48 100% 50% / 0.55); }
+    40% { box-shadow: 0 0 0 18px hsl(48 100% 50% / 0.18); }
+    100% { box-shadow: 0 0 0 0 hsl(48 100% 50% / 0); }
+  }
   @keyframes fade-in-up {
     from { opacity: 0; transform: translateY(16px); }
     to { opacity: 1; transform: translateY(0); }

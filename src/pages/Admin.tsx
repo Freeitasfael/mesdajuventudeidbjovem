@@ -56,6 +56,14 @@ const Admin = () => {
   const [title, setTitle] = useState("");
   const [priceReais, setPriceReais] = useState("");
 
+  // Hero settings
+  const [heroPrizes, setHeroPrizes] = useState<{ position: string; name: string; image: string }[]>([
+    { position: "1º PRÊMIO", name: "", image: "" },
+    { position: "2º PRÊMIO", name: "", image: "" },
+    { position: "3º PRÊMIO", name: "", image: "" },
+  ]);
+  const [heroStats, setHeroStats] = useState({ years: 16, people: "MILHARES", coverage: "TODO O PAÍS" });
+
   // New seller form
   const [newSellerName, setNewSellerName] = useState("");
   const [newSellerRef, setNewSellerRef] = useState("");
@@ -72,7 +80,15 @@ const Admin = () => {
       supabase.from("orders").select("*").order("created_at", { ascending: false }).limit(100),
       supabase.from("buyers").select("*"),
       supabase.from("sellers").select("*").order("created_at", { ascending: false }),
-      supabase.from("app_settings").select("key,value").in("key", ["raffle_title", "price_per_number_cents"]),
+      supabase
+        .from("app_settings")
+        .select("key,value")
+        .in("key", [
+          "raffle_title",
+          "price_per_number_cents",
+          "hero_prizes",
+          "hero_stats",
+        ]),
     ]);
     if (s.data && Array.isArray(s.data) && s.data[0]) setStats(s.data[0] as Stats);
     if (o.data) setOrders(o.data as OrderRow[]);
@@ -86,6 +102,12 @@ const Admin = () => {
       if (row.key === "raffle_title" && typeof row.value === "string") setTitle(row.value);
       if (row.key === "price_per_number_cents" && typeof row.value === "number")
         setPriceReais((row.value / 100).toFixed(2));
+      if (row.key === "hero_prizes" && Array.isArray(row.value)) {
+        setHeroPrizes(row.value as typeof heroPrizes);
+      }
+      if (row.key === "hero_stats" && row.value && typeof row.value === "object") {
+        setHeroStats(row.value as typeof heroStats);
+      }
     }
   };
 
@@ -112,6 +134,45 @@ const Admin = () => {
       toast.error("Erro ao salvar configurações");
     } else {
       toast.success("Configurações salvas");
+    }
+  };
+
+  const saveHero = async () => {
+    const cleanedPrizes = heroPrizes
+      .map((p) => ({
+        position: p.position.trim(),
+        name: p.name.trim(),
+        image: p.image.trim(),
+      }))
+      .filter((p) => p.name.length > 0);
+    const years = Number(heroStats.years);
+    if (!Number.isFinite(years) || years <= 0) {
+      toast.error("Anos de história inválido");
+      return;
+    }
+    const cleanedStats = {
+      years,
+      people: heroStats.people.trim() || "MILHARES",
+      coverage: heroStats.coverage.trim() || "TODO O PAÍS",
+    };
+    const nowIso = new Date().toISOString();
+    const { error: e1 } = await supabase
+      .from("app_settings")
+      .upsert(
+        { key: "hero_prizes", value: cleanedPrizes, updated_at: nowIso },
+        { onConflict: "key" },
+      );
+    const { error: e2 } = await supabase
+      .from("app_settings")
+      .upsert(
+        { key: "hero_stats", value: cleanedStats, updated_at: nowIso },
+        { onConflict: "key" },
+      );
+    if (e1 || e2) {
+      toast.error("Erro ao salvar Hero");
+      console.log("[Admin] saveHero", e1, e2);
+    } else {
+      toast.success("Hero atualizado");
     }
   };
 
@@ -185,6 +246,7 @@ const Admin = () => {
             <TabsTrigger value="orders">Pedidos</TabsTrigger>
             <TabsTrigger value="sellers">Vendedores</TabsTrigger>
             <TabsTrigger value="settings">Configurações</TabsTrigger>
+            <TabsTrigger value="hero">Hero</TabsTrigger>
           </TabsList>
 
           {/* DASHBOARD */}
@@ -341,6 +403,119 @@ const Admin = () => {
                 />
               </div>
               <Button onClick={saveSettings}>Salvar</Button>
+            </Card>
+          </TabsContent>
+
+          {/* HERO */}
+          <TabsContent value="hero" className="mt-6">
+            <Card className="max-w-3xl space-y-6 p-6">
+              <div>
+                <h3 className="font-semibold">Estatísticas do Hero</h3>
+                <p className="text-xs text-muted-foreground">
+                  Aparecem em destaque acima dos prêmios.
+                </p>
+                <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                  <div className="space-y-1">
+                    <Label>Anos</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      value={heroStats.years}
+                      onChange={(e) =>
+                        setHeroStats({ ...heroStats, years: Number(e.target.value) || 0 })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label>Pessoas impactadas</Label>
+                    <Input
+                      value={heroStats.people}
+                      onChange={(e) => setHeroStats({ ...heroStats, people: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label>Alcance</Label>
+                    <Input
+                      value={heroStats.coverage}
+                      onChange={(e) =>
+                        setHeroStats({ ...heroStats, coverage: e.target.value })
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <h3 className="font-semibold">Prêmios</h3>
+                  <p className="text-xs text-muted-foreground">
+                    Deixe a URL da imagem em branco para usar a imagem padrão.
+                  </p>
+                </div>
+                {heroPrizes.map((p, idx) => (
+                  <div key={idx} className="grid gap-2 rounded-md border border-border p-3 sm:grid-cols-3">
+                    <div className="space-y-1">
+                      <Label>Posição</Label>
+                      <Input
+                        value={p.position}
+                        onChange={(e) => {
+                          const next = [...heroPrizes];
+                          next[idx] = { ...next[idx], position: e.target.value };
+                          setHeroPrizes(next);
+                        }}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label>Nome do prêmio</Label>
+                      <Input
+                        value={p.name}
+                        onChange={(e) => {
+                          const next = [...heroPrizes];
+                          next[idx] = { ...next[idx], name: e.target.value };
+                          setHeroPrizes(next);
+                        }}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label>URL da imagem (opcional)</Label>
+                      <Input
+                        placeholder="https://..."
+                        value={p.image}
+                        onChange={(e) => {
+                          const next = [...heroPrizes];
+                          next[idx] = { ...next[idx], image: e.target.value };
+                          setHeroPrizes(next);
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      setHeroPrizes([
+                        ...heroPrizes,
+                        { position: `${heroPrizes.length + 1}º PRÊMIO`, name: "", image: "" },
+                      ])
+                    }
+                  >
+                    <Plus className="mr-2 h-4 w-4" /> Adicionar prêmio
+                  </Button>
+                  {heroPrizes.length > 1 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setHeroPrizes(heroPrizes.slice(0, -1))}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4 text-destructive" /> Remover último
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              <Button onClick={saveHero}>Salvar Hero</Button>
             </Card>
           </TabsContent>
         </Tabs>
