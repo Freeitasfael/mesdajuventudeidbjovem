@@ -117,7 +117,7 @@ export const RaffleGrid = ({ pricePerNumber }: Props) => {
       {loading ? (
         <div className="grid grid-cols-6 sm:grid-cols-10 md:grid-cols-12 lg:grid-cols-16 gap-1.5">
           {Array.from({ length: 96 }).map((_, i) => (
-            <Skeleton key={i} className="aspect-square rounded-lg" />
+            <Skeleton key={i} className="aspect-square rounded-lg bg-white/10" />
           ))}
         </div>
       ) : (
@@ -139,12 +139,21 @@ export const RaffleGrid = ({ pricePerNumber }: Props) => {
                     "bg-number-available text-number-available-foreground hover:bg-number-available-hover hover:scale-110 hover:shadow-md active:scale-95 cursor-pointer",
                   n.status === "available" &&
                     isSelected &&
-                    "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2 ring-offset-background scale-110 shadow-[var(--shadow-glow)] cursor-pointer",
+                    "scale-110 shadow-gold-glow cursor-pointer ring-2 ring-offset-2 ring-offset-transparent",
                   n.status === "reserved" &&
                     "bg-number-reserved text-number-reserved-foreground cursor-not-allowed opacity-90",
                   n.status === "paid" &&
                     "bg-number-paid text-number-paid-foreground cursor-not-allowed opacity-90",
                 )}
+                style={
+                  n.status === "available" && isSelected
+                    ? {
+                        backgroundColor: "hsl(var(--hero-gold))",
+                        color: "hsl(var(--hero-bg))",
+                        boxShadow: "var(--shadow-gold-glow)",
+                      }
+                    : undefined
+                }
                 aria-label={`Número ${n.number} - ${n.status}`}
                 aria-pressed={isSelected}
               >
