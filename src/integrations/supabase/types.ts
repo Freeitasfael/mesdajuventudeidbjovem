@@ -280,6 +280,25 @@ export type Database = {
           freed_numbers: number
         }[]
       }
+      get_seller_by_ref: {
+        Args: { _ref_code: string }
+        Returns: {
+          id: string
+          name: string
+          ref_code: string
+        }[]
+      }
+      get_seller_ranking: {
+        Args: never
+        Returns: {
+          ref_code: string
+          seller_id: string
+          seller_name: string
+          total_cents: number
+          total_numbers: number
+          total_orders: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

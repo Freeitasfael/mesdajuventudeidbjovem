@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { RaffleGrid } from "@/components/RaffleGrid";
+import { Button } from "@/components/ui/button";
+import { Trophy } from "lucide-react";
 
 const REF_STORAGE_KEY = "raffle_ref_code";
 
@@ -9,14 +11,23 @@ const Rifa = () => {
   const [searchParams] = useSearchParams();
   const [title, setTitle] = useState("Rifa Digital");
   const [pricePerNumber, setPricePerNumber] = useState<number | null>(null);
+  const [sellerName, setSellerName] = useState<string | null>(null);
 
-  // Capture ?ref=CODE and persist for checkout
+  // Capture ?ref=CODE and persist; lookup seller name
   useEffect(() => {
     const ref = searchParams.get("ref");
     if (ref) {
       localStorage.setItem(REF_STORAGE_KEY, ref);
       console.log("[Rifa] ref_code captured:", ref);
     }
+    const stored = ref ?? localStorage.getItem(REF_STORAGE_KEY);
+    if (!stored) return;
+    supabase
+      .rpc("get_seller_by_ref", { _ref_code: stored })
+      .then(({ data }) => {
+        const row = Array.isArray(data) ? data[0] : null;
+        if (row?.name) setSellerName(row.name);
+      });
   }, [searchParams]);
 
   // Load public settings
@@ -49,20 +60,32 @@ const Rifa = () => {
   return (
     <main className="min-h-screen bg-background">
       <header className="border-b border-border bg-card">
-        <div className="container py-6 sm:py-8">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{title}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Escolha seu número da sorte e pague via PIX.
-            {pricePerNumber !== null && (
-              <>
-                {" "}
-                <span className="font-medium text-foreground">
-                  R$ {(pricePerNumber / 100).toFixed(2).replace(".", ",")}
-                </span>{" "}
-                por número.
-              </>
+        <div className="container flex flex-col gap-4 py-6 sm:flex-row sm:items-center sm:justify-between sm:py-8">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{title}</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Escolha seu número da sorte e pague via PIX.
+              {pricePerNumber !== null && (
+                <>
+                  {" "}
+                  <span className="font-medium text-foreground">
+                    R$ {(pricePerNumber / 100).toFixed(2).replace(".", ",")}
+                  </span>{" "}
+                  por número.
+                </>
+              )}
+            </p>
+            {sellerName && (
+              <p className="mt-2 text-xs text-muted-foreground">
+                Indicado por <span className="font-semibold text-foreground">{sellerName}</span>
+              </p>
             )}
-          </p>
+          </div>
+          <Button variant="outline" asChild>
+            <Link to="/ranking">
+              <Trophy className="mr-2 h-4 w-4" /> Ranking
+            </Link>
+          </Button>
         </div>
       </header>
 
