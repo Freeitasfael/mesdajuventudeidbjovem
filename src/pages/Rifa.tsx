@@ -59,16 +59,22 @@ const Rifa = () => {
 
   return (
     <main className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card">
-        <div className="container flex flex-col gap-4 py-6 sm:flex-row sm:items-center sm:justify-between sm:py-8">
+      <header
+        className="relative overflow-hidden border-b border-border text-white"
+        style={{ background: "var(--gradient-hero)" }}
+      >
+        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(circle at 20% 20%, white 1px, transparent 1px), radial-gradient(circle at 80% 60%, white 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
+        <div className="container relative flex flex-col gap-4 py-8 sm:flex-row sm:items-center sm:justify-between sm:py-10">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{title}</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Escolha seu número da sorte e pague via PIX.
+            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight drop-shadow-sm">
+              {title}
+            </h1>
+            <p className="mt-2 text-sm sm:text-base text-white/90">
+              Escolha seu número da sorte e pague via PIX. ✨
               {pricePerNumber !== null && (
                 <>
                   {" "}
-                  <span className="font-medium text-foreground">
+                  <span className="font-bold text-white">
                     R$ {(pricePerNumber / 100).toFixed(2).replace(".", ",")}
                   </span>{" "}
                   por número.
@@ -76,13 +82,13 @@ const Rifa = () => {
               )}
             </p>
             {sellerName && (
-              <p className="mt-2 text-xs text-muted-foreground">
-                Indicado por <span className="font-semibold text-foreground">{sellerName}</span>
+              <p className="mt-2 inline-flex items-center gap-1 rounded-full bg-white/15 px-3 py-1 text-xs backdrop-blur-sm">
+                Indicado por <span className="font-semibold">{sellerName}</span>
               </p>
             )}
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button variant="default" asChild>
+            <Button variant="secondary" asChild className="shadow-md">
               <Link to="/afiliacao">
                 <Handshake className="mr-2 h-4 w-4" /> Afiliação
               </Link>
