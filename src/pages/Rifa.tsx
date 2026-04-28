@@ -3,7 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { RaffleGrid } from "@/components/RaffleGrid";
 import { Button } from "@/components/ui/button";
-import { Trophy, Handshake } from "lucide-react";
+import { Handshake } from "lucide-react";
 
 const REF_STORAGE_KEY = "raffle_ref_code";
 
@@ -85,11 +85,6 @@ const Rifa = () => {
             <Button variant="default" asChild>
               <Link to="/afiliacao">
                 <Handshake className="mr-2 h-4 w-4" /> Afiliação
-              </Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link to="/ranking">
-                <Trophy className="mr-2 h-4 w-4" /> Ranking
               </Link>
             </Button>
           </div>
