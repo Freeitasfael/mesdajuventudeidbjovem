@@ -192,17 +192,7 @@ export const HeroRifa = ({
           </li>
         </ul>
 
-        {/* Logo */}
-        <div className="animate-fade-in flex flex-col items-center">
-          <div className="rounded-2xl bg-white/95 p-4 shadow-xl ring-1 ring-white/20 transition-transform hover:scale-105">
-            <img
-              src={logoIdb}
-              alt="IDB Jovem Oficial"
-              className="h-auto w-48 sm:w-56 lg:w-64"
-              loading="lazy"
-            />
-          </div>
-        </div>
+
 
         {/* Stats */}
         <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-3">
