@@ -62,7 +62,7 @@ const Ranking = () => {
             </p>
           </div>
           <Button variant="outline" asChild>
-            <Link to="/rifa">
+            <Link to="/admin">
               <ArrowLeft className="mr-2 h-4 w-4" /> Voltar
             </Link>
           </Button>

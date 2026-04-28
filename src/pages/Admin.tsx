@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LogOut, Plus, Trash2, Copy } from "lucide-react";
+import { LogOut, Plus, Trash2, Copy, Trophy } from "lucide-react";
 import { toast } from "sonner";
 
 interface Stats {
@@ -163,6 +163,11 @@ const Admin = () => {
             <p className="text-xs text-muted-foreground">Gerencie sua rifa</p>
           </div>
           <div className="flex gap-2">
+            <Button variant="outline" asChild>
+              <Link to="/admin/ranking">
+                <Trophy className="mr-2 h-4 w-4" /> Ranking
+              </Link>
+            </Button>
             <Button variant="outline" asChild>
               <Link to="/rifa">Ver rifa</Link>
             </Button>

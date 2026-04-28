@@ -27,7 +27,7 @@ const App = () => (
           <Route path="/rifa" element={<Rifa />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/pagamento/:orderId" element={<Pagamento />} />
-          <Route path="/ranking" element={<Ranking />} />
+          <Route path="/admin/ranking" element={<RequireAdmin><Ranking /></RequireAdmin>} />
           <Route path="/v/:refCode" element={<Vendedor />} />
           <Route path="/afiliacao" element={<Afiliacao />} />
           <Route path="/auth" element={<Auth />} />
