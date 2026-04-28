@@ -70,9 +70,6 @@ const Afiliacao = () => {
           <Button size="lg" asChild>
             <Link to="/auth">Quero ser revendedor</Link>
           </Button>
-          <Button variant="link" asChild>
-            <Link to="/ranking">Ver ranking de vendedores</Link>
-          </Button>
         </Card>
       </section>
     </main>
