@@ -56,6 +56,14 @@ const Admin = () => {
   const [title, setTitle] = useState("");
   const [priceReais, setPriceReais] = useState("");
 
+  // Hero settings
+  const [heroPrizes, setHeroPrizes] = useState<{ position: string; name: string; image: string }[]>([
+    { position: "1º PRÊMIO", name: "", image: "" },
+    { position: "2º PRÊMIO", name: "", image: "" },
+    { position: "3º PRÊMIO", name: "", image: "" },
+  ]);
+  const [heroStats, setHeroStats] = useState({ years: 16, people: "MILHARES", coverage: "TODO O PAÍS" });
+
   // New seller form
   const [newSellerName, setNewSellerName] = useState("");
   const [newSellerRef, setNewSellerRef] = useState("");
@@ -72,7 +80,15 @@ const Admin = () => {
       supabase.from("orders").select("*").order("created_at", { ascending: false }).limit(100),
       supabase.from("buyers").select("*"),
       supabase.from("sellers").select("*").order("created_at", { ascending: false }),
-      supabase.from("app_settings").select("key,value").in("key", ["raffle_title", "price_per_number_cents"]),
+      supabase
+        .from("app_settings")
+        .select("key,value")
+        .in("key", [
+          "raffle_title",
+          "price_per_number_cents",
+          "hero_prizes",
+          "hero_stats",
+        ]),
     ]);
     if (s.data && Array.isArray(s.data) && s.data[0]) setStats(s.data[0] as Stats);
     if (o.data) setOrders(o.data as OrderRow[]);
@@ -86,6 +102,12 @@ const Admin = () => {
       if (row.key === "raffle_title" && typeof row.value === "string") setTitle(row.value);
       if (row.key === "price_per_number_cents" && typeof row.value === "number")
         setPriceReais((row.value / 100).toFixed(2));
+      if (row.key === "hero_prizes" && Array.isArray(row.value)) {
+        setHeroPrizes(row.value as typeof heroPrizes);
+      }
+      if (row.key === "hero_stats" && row.value && typeof row.value === "object") {
+        setHeroStats(row.value as typeof heroStats);
+      }
     }
   };
 
