@@ -3,7 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { RaffleGrid } from "@/components/RaffleGrid";
 import { Button } from "@/components/ui/button";
-import { Trophy } from "lucide-react";
+import { Trophy, Handshake } from "lucide-react";
 
 const REF_STORAGE_KEY = "raffle_ref_code";
 
@@ -81,13 +81,34 @@ const Rifa = () => {
               </p>
             )}
           </div>
-          <Button variant="outline" asChild>
-            <Link to="/ranking">
-              <Trophy className="mr-2 h-4 w-4" /> Ranking
-            </Link>
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="default" asChild>
+              <Link to="/afiliacao">
+                <Handshake className="mr-2 h-4 w-4" /> Afiliação
+              </Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link to="/ranking">
+                <Trophy className="mr-2 h-4 w-4" /> Ranking
+              </Link>
+            </Button>
+          </div>
         </div>
       </header>
+
+      <div className="border-b border-border bg-primary/5">
+        <div className="container flex flex-col items-start gap-2 py-3 text-sm sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-muted-foreground">
+            Quer se tornar um revendedor e ganhar com cada número vendido?
+          </p>
+          <Link
+            to="/afiliacao"
+            className="font-semibold text-primary underline-offset-4 hover:underline"
+          >
+            Clique aqui para participar →
+          </Link>
+        </div>
+      </div>
 
       <section className="container py-8">
         <RaffleGrid pricePerNumber={pricePerNumber} />
