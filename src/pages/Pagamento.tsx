@@ -66,31 +66,43 @@ const Pagamento = () => {
     loadStatus().finally(() => setLoading(false));
   }, [loadStatus]);
 
-  // Auto-create payment if order is pending and has none yet
-  useEffect(() => {
-    const ensurePayment = async () => {
-      if (!data || creating) return;
-      if (data.order.status !== "pending") return;
-      if (data.payment) return;
+  const createPayment = useCallback(async () => {
+    if (!data) return;
+    if (data.order.status !== "pending") return;
+    if (data.payment) return;
 
-      setCreating(true);
-      const { data: res, error: err } = await supabase.functions.invoke(
-        "create-payment",
-        { body: { order_id: data.order.id } },
-      );
-      setCreating(false);
+    setCreating(true);
+    setError(null);
 
+    const timeoutMs = 20000;
+    const timeoutPromise = new Promise<{ timeout: true }>((resolve) =>
+      setTimeout(() => resolve({ timeout: true }), timeoutMs),
+    );
+
+    try {
+      const result = await Promise.race([
+        supabase.functions.invoke("create-payment", {
+          body: { order_id: data.order.id },
+        }),
+        timeoutPromise,
+      ]);
+
+      if ("timeout" in result) {
+        setError(
+          "O Mercado Pago está demorando para responder. Tente novamente.",
+        );
+        return;
+      }
+
+      const { data: res, error: err } = result;
       if (err) {
         console.log("[Pagamento] create-payment error", err);
         const ctx = (err as { context?: Response }).context;
-        let msg = "Não foi possível gerar o PIX.";
+        let msg = "Não foi possível gerar o PIX. Tente novamente.";
         try {
           const body = ctx ? await ctx.json() : null;
-          if (body?.error === "mp_not_configured") {
-            msg = body.message;
-          } else if (body?.message) {
-            msg = body.message;
-          }
+          if (body?.error === "mp_not_configured") msg = body.message;
+          else if (body?.message) msg = body.message;
         } catch {
           // ignore
         }
@@ -99,10 +111,24 @@ const Pagamento = () => {
       }
       if (res?.qr_code) {
         await loadStatus();
+      } else {
+        setError("Resposta inválida do servidor. Tente novamente.");
       }
-    };
-    ensurePayment();
-  }, [data, creating, loadStatus]);
+    } catch (e) {
+      console.log("[Pagamento] create-payment exception", e);
+      setError("Falha de conexão ao gerar o PIX. Tente novamente.");
+    } finally {
+      setCreating(false);
+    }
+  }, [data, loadStatus]);
+
+  // Auto-create payment if order is pending and has none yet
+  useEffect(() => {
+    if (!data || creating || error) return;
+    if (data.order.status !== "pending") return;
+    if (data.payment) return;
+    createPayment();
+  }, [data, creating, error, createPayment]);
 
   // Poll while pending
   useEffect(() => {
@@ -255,6 +281,9 @@ const Pagamento = () => {
                   <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-6 text-center space-y-3">
                     <AlertCircle className="h-8 w-8 mx-auto text-destructive" />
                     <p className="text-sm">{error}</p>
+                    <Button variant="outline" onClick={createPayment}>
+                      Tentar novamente
+                    </Button>
                   </div>
                 ) : data.payment?.qr_code_base64 ? (
                   <div className="rounded-lg border border-border bg-card p-6 space-y-4">
