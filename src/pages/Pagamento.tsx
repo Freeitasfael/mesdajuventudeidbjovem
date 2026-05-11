@@ -281,6 +281,9 @@ const Pagamento = () => {
                   <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-6 text-center space-y-3">
                     <AlertCircle className="h-8 w-8 mx-auto text-destructive" />
                     <p className="text-sm">{error}</p>
+                    <Button variant="outline" onClick={createPayment}>
+                      Tentar novamente
+                    </Button>
                   </div>
                 ) : data.payment?.qr_code_base64 ? (
                   <div className="rounded-lg border border-border bg-card p-6 space-y-4">
