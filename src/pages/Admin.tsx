@@ -152,12 +152,63 @@ const Admin = () => {
     }
   };
 
+  const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
+
+  const handleHeroUpload = async (idx: number, file: File) => {
+    const isImage = file.type.startsWith("image/");
+    const isVideo = file.type.startsWith("video/");
+    if (!isImage && !isVideo) {
+      toast.error("Envie uma imagem ou vídeo/GIF");
+      return;
+    }
+    if (file.size > 50 * 1024 * 1024) {
+      toast.error("Arquivo maior que 50MB");
+      return;
+    }
+    setUploadingIdx(idx);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || (isVideo ? "mp4" : "jpg");
+      const path = `prizes/${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error } = await supabase.storage.from("hero-media").upload(path, file, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: file.type,
+      });
+      if (error) throw error;
+      const { data } = supabase.storage.from("hero-media").getPublicUrl(path);
+      const next = [...heroPrizes];
+      next[idx] = {
+        ...next[idx],
+        image: data.publicUrl,
+        mediaType: isVideo ? "video" : "image",
+      };
+      setHeroPrizes(next);
+      toast.success("Mídia enviada");
+    } catch (e) {
+      console.log("[Admin] upload hero media error", e);
+      toast.error("Falha ao enviar mídia");
+    } finally {
+      setUploadingIdx(null);
+    }
+  };
+
+  const updatePrize = (idx: number, patch: Partial<HeroPrize>) => {
+    const next = [...heroPrizes];
+    next[idx] = { ...next[idx], ...patch };
+    setHeroPrizes(next);
+  };
+
   const saveHero = async () => {
     const cleanedPrizes = heroPrizes
       .map((p) => ({
         position: p.position.trim(),
         name: p.name.trim(),
         image: p.image.trim(),
+        mediaType: p.mediaType ?? (/(\.mp4|\.webm|\.mov|\.m4v)(\?|$)/i.test(p.image) ? "video" : "image"),
+        fit: p.fit ?? "cover",
+        scale: clamp(typeof p.scale === "number" ? p.scale : 1, 0.6, 1.6),
+        posX: clamp(typeof p.posX === "number" ? p.posX : 0, -50, 50),
+        posY: clamp(typeof p.posY === "number" ? p.posY : 0, -50, 50),
       }))
       .filter((p) => p.name.length > 0);
     const years = Number(heroStats.years);
