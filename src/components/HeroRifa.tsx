@@ -280,28 +280,13 @@ export const HeroRifa = ({
                       className="group overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm transition-all hover:scale-[1.03] hover:shadow-gold-glow"
                     >
                       <div className="relative aspect-square w-full overflow-hidden bg-black/30">
-                        {type === "video" ? (
-                          <video
-                            src={src}
-                            autoPlay
-                            muted
-                            loop
-                            playsInline
-                            className="h-full w-full transition-transform duration-500 group-hover:scale-110"
-                            style={mediaStyle}
-                          />
-                        ) : (
-                          <img
-                            src={src}
-                            alt={prize.name}
-                            loading="lazy"
-                            className="h-full w-full transition-transform duration-500 group-hover:scale-110"
-                            style={mediaStyle}
-                            onError={(e) => {
-                              (e.currentTarget as HTMLImageElement).src = fallback;
-                            }}
-                          />
-                        )}
+                        <PrizeMedia
+                          src={src}
+                          type={type}
+                          fallback={fallback}
+                          alt={prize.name}
+                          style={mediaStyle}
+                        />
                         <span
                           className="absolute left-3 top-3 rounded-full px-3 py-1 text-xs font-extrabold uppercase tracking-wider shadow-md"
                           style={{
@@ -318,6 +303,63 @@ export const HeroRifa = ({
                     </article>
                   );
                 })}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+type PrizeMediaProps = {
+  src: string;
+  type: "image" | "video";
+  fallback: string;
+  alt: string;
+  style: React.CSSProperties;
+};
+
+const PrizeMedia = ({ src, type, fallback, alt, style }: PrizeMediaProps) => {
+  const [videoFailed, setVideoFailed] = useState(false);
+  const [imgSrc, setImgSrc] = useState(src);
+
+  useEffect(() => {
+    setVideoFailed(false);
+    setImgSrc(src);
+  }, [src]);
+
+  if (type === "video" && !videoFailed) {
+    return (
+      <video
+        src={src}
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="metadata"
+        className="h-full w-full transition-transform duration-500 group-hover:scale-110"
+        style={style}
+        onError={() => {
+          console.log("[HeroRifa] video failed, falling back to image", src);
+          setVideoFailed(true);
+        }}
+      />
+    );
+  }
+
+  const finalSrc = type === "video" && videoFailed ? fallback : imgSrc;
+  return (
+    <img
+      src={finalSrc}
+      alt={alt}
+      loading="lazy"
+      className="h-full w-full transition-transform duration-500 group-hover:scale-110"
+      style={style}
+      onError={() => {
+        if (imgSrc !== fallback) setImgSrc(fallback);
+      }}
+    />
+  );
+};
           </div>
         </div>
       </div>
