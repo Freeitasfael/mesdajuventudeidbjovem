@@ -223,7 +223,12 @@ const Admin = () => {
             <h1 className="text-xl font-bold">Painel Admin</h1>
             <p className="text-xs text-muted-foreground">Gerencie sua rifa</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
+            <Button variant="outline" asChild>
+              <Link to="/admin/alertas">
+                <Bell className="mr-2 h-4 w-4" /> Alertas
+              </Link>
+            </Button>
             <Button variant="outline" asChild>
               <Link to="/admin/ranking">
                 <Trophy className="mr-2 h-4 w-4" /> Ranking
