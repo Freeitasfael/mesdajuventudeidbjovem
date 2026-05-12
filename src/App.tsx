@@ -9,6 +9,7 @@ import Pagamento from "./pages/Pagamento.tsx";
 import Acompanhar from "./pages/Acompanhar.tsx";
 import Ranking from "./pages/Ranking.tsx";
 import Vendedor from "./pages/Vendedor.tsx";
+import Seller from "./pages/Seller.tsx";
 import Afiliacao from "./pages/Afiliacao.tsx";
 import Auth from "./pages/Auth.tsx";
 import Admin from "./pages/Admin.tsx";
