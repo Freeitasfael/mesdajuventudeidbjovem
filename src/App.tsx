@@ -14,6 +14,7 @@ import Auth from "./pages/Auth.tsx";
 import Admin from "./pages/Admin.tsx";
 import Eventos from "./pages/admin/Eventos.tsx";
 import Reconciliacao from "./pages/admin/Reconciliacao.tsx";
+import Alertas from "./pages/admin/Alertas.tsx";
 import { RequireAdmin } from "./components/RequireAdmin";
 import NotFound from "./pages/NotFound.tsx";
 
