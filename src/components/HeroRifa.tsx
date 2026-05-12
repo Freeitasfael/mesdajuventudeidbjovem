@@ -13,7 +13,22 @@ export type Prize = {
   position: string;
   name: string;
   image?: string | null;
+  /** Tipo de mídia. Se omitido, é inferido pela extensão. */
+  mediaType?: "image" | "video" | null;
+  /** Como a mídia preenche o card: cover (preenche, pode cortar) ou contain (mostra inteira). */
+  fit?: "cover" | "contain" | null;
+  /** Zoom da mídia. Limitado entre 0.6 e 1.6 para não desproporcional. */
+  scale?: number | null;
+  /** Posição horizontal em %. Entre -50 e 50. */
+  posX?: number | null;
+  /** Posição vertical em %. Entre -50 e 50. */
+  posY?: number | null;
 };
+
+const VIDEO_EXT = /\.(mp4|webm|mov|m4v|ogg)(\?|$)/i;
+const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
+const inferType = (url?: string | null): "image" | "video" =>
+  url && VIDEO_EXT.test(url) ? "video" : "image";
 
 export type HeroStats = {
   years: number;
