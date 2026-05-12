@@ -491,14 +491,21 @@ const OrderRow = ({ order }: { order: SellerOrder }) => {
       </div>
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3">
         <p className="font-semibold">{formatBRL(order.total_cents)}</p>
-        {order.status === "pending" && (
-          <Button asChild size="sm" variant="outline">
-            <a href={waLink} target="_blank" rel="noreferrer">
-              <MessageCircle className="mr-2 h-4 w-4" />
-              Falar com cliente
-            </a>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button asChild size="sm" variant="ghost">
+            <Link to={`/seller/pedido/${order.order_id}`}>
+              <Eye className="mr-2 h-4 w-4" /> Ver detalhes
+            </Link>
           </Button>
-        )}
+          {order.status === "pending" && (
+            <Button asChild size="sm" variant="outline">
+              <a href={waLink} target="_blank" rel="noreferrer">
+                <MessageCircle className="mr-2 h-4 w-4" />
+                Falar com cliente
+              </a>
+            </Button>
+          )}
+        </div>
       </div>
     </article>
   );
