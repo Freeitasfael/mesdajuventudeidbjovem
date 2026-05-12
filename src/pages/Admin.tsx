@@ -65,6 +65,16 @@ interface OrderRow {
   seller_id: string | null;
 }
 
+interface PaymentRow {
+  id: string;
+  order_id: string;
+  status: string;
+  amount_cents: number;
+  provider_payment_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 interface BuyerRow {
   id: string;
   name: string;
