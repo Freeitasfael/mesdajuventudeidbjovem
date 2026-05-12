@@ -560,7 +560,36 @@ const Admin = () => {
           </TabsContent>
 
           {/* HERO */}
-          <TabsContent value="hero" className="mt-6">
+          <TabsContent value="hero" className="mt-6 space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-semibold">Prévia da HeroSection pública</h3>
+                <p className="text-xs text-muted-foreground">
+                  Atualiza em tempo real conforme você edita.
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowPreview((v) => !v)}
+              >
+                <Eye className="mr-2 h-4 w-4" />
+                {showPreview ? "Ocultar prévia" : "Mostrar prévia"}
+              </Button>
+            </div>
+            {showPreview && (
+              <Card className="overflow-hidden p-0">
+                <div className="max-h-[560px] overflow-auto">
+                  <HeroRifa
+                    pricePerNumber={previewPrice}
+                    prizes={previewPrizes}
+                    stats={heroStats}
+                    onCtaClick={() => toast.info("Prévia: botão desativado no admin")}
+                  />
+                </div>
+              </Card>
+            )}
             <Card className="max-w-3xl space-y-6 p-6">
               <div>
                 <h3 className="font-semibold">Estatísticas do Hero</h3>
