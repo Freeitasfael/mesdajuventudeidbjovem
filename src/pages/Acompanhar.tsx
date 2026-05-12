@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertCircle, Check, Clock, Search, RefreshCw } from "lucide-react";
+import { SiteHeader } from "@/components/SiteHeader";
 
 interface OrderRow {
   id: string;
