@@ -83,8 +83,11 @@ export const HeroRifa = ({
     console.log("[HeroRifa]", { pricePerNumber, prizes, stats, loading });
   }, [pricePerNumber, prizes, stats, loading]);
 
-  const safePrizes = isValidPrizes(prizes) ? prizes : null;
-  const safeStats = isValidStats(stats) ? stats : null;
+  const safePrizes = isValidPrizes(prizes) && prizes.length > 0 ? prizes : (loading ? null : FALLBACK_PRIZES);
+  const safeStats = isValidStats(stats) ? stats : (loading ? null : FALLBACK_STATS);
+  const safePrice = typeof pricePerNumber === "number" && pricePerNumber > 0
+    ? pricePerNumber
+    : (loading ? null : 500);
 
   const handleCta = () => {
     if (onCtaClick) return onCtaClick();
