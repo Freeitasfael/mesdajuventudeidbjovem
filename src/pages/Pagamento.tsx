@@ -267,9 +267,14 @@ const Pagamento = () => {
     <main className="min-h-screen bg-background">
       <header className="border-b border-border bg-card">
         <div className="container py-6">
-          <Link to="/rifa" className="text-sm text-muted-foreground hover:text-foreground">
-            ← Voltar para rifa
-          </Link>
+          <div className="flex items-center justify-between gap-3">
+            <Link to="/rifa" className="text-sm text-muted-foreground hover:text-foreground">
+              ← Voltar para rifa
+            </Link>
+            <Link to="/acompanhar" className="text-sm font-medium text-primary hover:underline">
+              Acompanhar minhas compras
+            </Link>
+          </div>
           <h1 className="mt-2 text-2xl font-bold">Pagamento PIX</h1>
         </div>
       </header>
@@ -424,6 +429,57 @@ const Pagamento = () => {
           </>
         )}
       </section>
+
+      {/* Comprovante oculto (renderizado para PDF/imagem) */}
+      {data && (
+        <div
+          ref={receiptRef}
+          style={{ display: "none", position: "absolute", left: -9999, top: 0, width: 640, padding: 40, background: "#ffffff", color: "#111", fontFamily: "system-ui, -apple-system, sans-serif" }}
+        >
+          <div style={{ borderBottom: "2px solid #0ea5e9", paddingBottom: 16, marginBottom: 24 }}>
+            <h2 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>Comprovante de pagamento</h2>
+            <p style={{ fontSize: 12, color: "#666", margin: "4px 0 0" }}>Rifa Digital · PIX</p>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "140px 1fr", gap: "12px 16px", fontSize: 14 }}>
+            <span style={{ color: "#666" }}>Status</span>
+            <span style={{ fontWeight: 700, color: data.order.status === "paid" ? "#16a34a" : "#666" }}>
+              {data.order.status === "paid" ? "✓ PAGO" : data.order.status.toUpperCase()}
+            </span>
+            <span style={{ color: "#666" }}>Pedido</span>
+            <span style={{ fontFamily: "monospace" }}>{data.order.id}</span>
+            <span style={{ color: "#666" }}>Comprador</span>
+            <span>{data.order.buyer_name ?? "—"}</span>
+            <span style={{ color: "#666" }}>Data</span>
+            <span>{data.order.created_at ? new Date(data.order.created_at).toLocaleString("pt-BR") : "—"}</span>
+            <span style={{ color: "#666" }}>Valor</span>
+            <span style={{ fontSize: 18, fontWeight: 700 }}>{formatBRL(data.order.total_cents)}</span>
+            {data.payment?.provider_payment_id && (
+              <>
+                <span style={{ color: "#666" }}>ID Mercado Pago</span>
+                <span style={{ fontFamily: "monospace", fontSize: 12 }}>{data.payment.provider_payment_id}</span>
+              </>
+            )}
+          </div>
+          <div style={{ marginTop: 24 }}>
+            <p style={{ fontSize: 12, color: "#666", margin: "0 0 8px" }}>
+              Números ({data.order.numbers?.length ?? 0})
+            </p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {(data.order.numbers ?? []).map((n) => (
+                <span key={n} style={{
+                  display: "inline-block", padding: "4px 10px", background: "#f1f5f9",
+                  borderRadius: 6, fontFamily: "monospace", fontSize: 13, fontWeight: 600,
+                }}>
+                  {n.toString().padStart(3, "0")}
+                </span>
+              ))}
+            </div>
+          </div>
+          <p style={{ marginTop: 32, paddingTop: 16, borderTop: "1px solid #e5e7eb", fontSize: 11, color: "#999", textAlign: "center" }}>
+            Documento gerado em {new Date().toLocaleString("pt-BR")} · Guarde este comprovante.
+          </p>
+        </div>
+      )}
     </main>
   );
 };
