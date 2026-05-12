@@ -124,6 +124,28 @@ const Admin = () => {
     loadAll();
   }, []);
 
+  useEffect(() => {
+    const cents = Math.round(parseFloat(priceReais.replace(",", ".")) * 100);
+    setPreviewPrice(Number.isFinite(cents) && cents > 0 ? cents : null);
+  }, [priceReais]);
+
+  const previewPrizes = useMemo(
+    () =>
+      heroPrizes
+        .filter((p) => p.name.trim().length > 0)
+        .map((p) => ({
+          position: p.position,
+          name: p.name,
+          image: p.image || null,
+          mediaType: p.mediaType ?? null,
+          fit: p.fit ?? null,
+          scale: p.scale ?? null,
+          posX: p.posX ?? null,
+          posY: p.posY ?? null,
+        })),
+    [heroPrizes],
+  );
+
   const loadAll = async () => {
     const [s, o, b, sl, st] = await Promise.all([
       supabase.rpc("admin_dashboard_stats"),
