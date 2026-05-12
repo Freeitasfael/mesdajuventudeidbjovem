@@ -189,11 +189,33 @@ const Admin = () => {
 
   const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
 
+  const deleteHeroMedia = async (url?: string | null) => {
+    if (!url) return;
+    const path = extractStoragePath(url);
+    if (!path) return;
+    const { error } = await supabase.storage.from(HERO_BUCKET).remove([path]);
+    if (error) console.log("[Admin] failed to delete hero media", path, error);
+    else console.log("[Admin] removed hero media", path);
+  };
+
   const handleHeroUpload = async (idx: number, file: File) => {
-    const isImage = file.type.startsWith("image/");
-    const isVideo = file.type.startsWith("video/");
-    if (!isImage && !isVideo) {
-      toast.error("Envie uma imagem ou vídeo/GIF");
+    const ext = file.name.split(".").pop()?.toLowerCase() || "";
+    const mime = (file.type || "").toLowerCase();
+    const isVideo = mime.startsWith("video/");
+    const mimeOk = ALLOWED_MIME.has(mime);
+    const extOk = ALLOWED_EXT.has(ext);
+    if (!mimeOk || !extOk) {
+      toast.error("Formato não suportado. Use PNG, JPG, WEBP, GIF, MP4, WEBM ou MOV.");
+      return;
+    }
+    // Cross-check: extension must match MIME family
+    const expectedExt = MIME_TO_EXT[mime];
+    const isImageMime = mime.startsWith("image/");
+    const isVideoMime = mime.startsWith("video/");
+    const isImageExt = ["png", "jpg", "jpeg", "webp", "gif"].includes(ext);
+    const isVideoExt = ["mp4", "webm", "mov", "m4v"].includes(ext);
+    if ((isImageMime && !isImageExt) || (isVideoMime && !isVideoExt)) {
+      toast.error("Extensão e tipo do arquivo não conferem.");
       return;
     }
     if (file.size > 50 * 1024 * 1024) {
@@ -202,15 +224,18 @@ const Admin = () => {
     }
     setUploadingIdx(idx);
     try {
-      const ext = file.name.split(".").pop()?.toLowerCase() || (isVideo ? "mp4" : "jpg");
-      const path = `prizes/${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-      const { error } = await supabase.storage.from("hero-media").upload(path, file, {
+      const safeExt = expectedExt || ext;
+      const path = `prizes/${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 8)}.${safeExt}`;
+      const { error } = await supabase.storage.from(HERO_BUCKET).upload(path, file, {
         cacheControl: "3600",
         upsert: false,
-        contentType: file.type,
+        contentType: mime,
       });
       if (error) throw error;
-      const { data } = supabase.storage.from("hero-media").getPublicUrl(path);
+      const { data } = supabase.storage.from(HERO_BUCKET).getPublicUrl(path);
+      // Delete previous media (if it lived in our bucket)
+      const prev = heroPrizes[idx]?.image;
+      if (prev) await deleteHeroMedia(prev);
       const next = [...heroPrizes];
       next[idx] = {
         ...next[idx],
