@@ -63,6 +63,105 @@ async function logEvent(
   }
 }
 
+async function getSettingNumber(admin: SupabaseClient, key: string, fallback: number): Promise<number> {
+  const { data } = await admin.from("app_settings").select("value").eq("key", key).maybeSingle();
+  const v = data?.value;
+  const n = typeof v === "number" ? v : typeof v === "string" ? Number(v) : NaN;
+  return Number.isFinite(n) ? n : fallback;
+}
+
+async function createAlert(
+  admin: SupabaseClient,
+  alert_type: string,
+  level: "warn" | "error",
+  message: string,
+  details: Record<string, unknown>,
+  dedupeMinutes: number,
+) {
+  // Dedupe: não cria se já existe alerta do mesmo tipo não-confirmado dentro da janela
+  const sinceIso = new Date(Date.now() - dedupeMinutes * 60 * 1000).toISOString();
+  const { data: existing } = await admin
+    .from("admin_alerts")
+    .select("id")
+    .eq("alert_type", alert_type)
+    .is("acknowledged_at", null)
+    .gte("created_at", sinceIso)
+    .limit(1)
+    .maybeSingle();
+  if (existing) return;
+  await admin.from("admin_alerts").insert({ alert_type, level, message, details });
+  console.log(JSON.stringify({ fn: "reconcile-payments", event_type: "alert_created", alert_type, level, message }));
+}
+
+async function evaluateAlerts(
+  admin: SupabaseClient,
+  runId: string | null,
+  result: {
+    errors: number; processed: number; candidates: number;
+    reconciled: number; approved: number;
+  },
+) {
+  const errorsThreshold = await getSettingNumber(admin, "alerts.errors_per_run_threshold", 3);
+  const consecThreshold = await getSettingNumber(admin, "alerts.mp_consecutive_failures_threshold", 3);
+  const dedupeMinutes = await getSettingNumber(admin, "alerts.dedupe_minutes", 30);
+
+  // 1) Erros acima do limite em uma única execução
+  if (result.errors >= errorsThreshold) {
+    await createAlert(
+      admin,
+      "reconcile_errors_high",
+      "error",
+      `Reconciliação registrou ${result.errors} erro(s) (limite ${errorsThreshold}).`,
+      { run_id: runId, ...result, threshold: errorsThreshold },
+      dedupeMinutes,
+    );
+  }
+
+  // 2) Falhas recorrentes consultando o Mercado Pago — últimas N execuções consecutivas com erros
+  const { data: lastRuns } = await admin
+    .from("reconcile_runs")
+    .select("id, errors, candidates, finished_at")
+    .not("finished_at", "is", null)
+    .order("started_at", { ascending: false })
+    .limit(consecThreshold);
+
+  if (lastRuns && lastRuns.length >= consecThreshold && lastRuns.every((r) => (r.errors ?? 0) > 0)) {
+    await createAlert(
+      admin,
+      "mp_recurring_failures",
+      "error",
+      `Falhas consecutivas em ${consecThreshold} execuções de reconciliação.`,
+      { runs: lastRuns, threshold: consecThreshold },
+      dedupeMinutes,
+    );
+  }
+
+  // 3) Falhas recorrentes detectadas via payment_events recentes (qualquer canal: webhook, create-payment, reconcile)
+  const eventWindowMinutes = Math.max(15, dedupeMinutes);
+  const sinceIso = new Date(Date.now() - eventWindowMinutes * 60 * 1000).toISOString();
+  const { count: mpFailCount } = await admin
+    .from("payment_events")
+    .select("id", { count: "exact", head: true })
+    .gte("created_at", sinceIso)
+    .in("event_type", [
+      "reconcile_mp_fetch_failed",
+      "mp_create_failed",
+      "webhook_mp_fetch_failed",
+      "confirm_failed",
+    ]);
+
+  if ((mpFailCount ?? 0) >= consecThreshold) {
+    await createAlert(
+      admin,
+      "mp_event_failures_burst",
+      "error",
+      `${mpFailCount} falhas relacionadas ao Mercado Pago nos últimos ${eventWindowMinutes} min.`,
+      { count: mpFailCount, window_minutes: eventWindowMinutes, threshold: consecThreshold },
+      dedupeMinutes,
+    );
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
