@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -6,11 +6,44 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LogOut, Plus, Trash2, Copy, Trophy, Bell, Upload, Move, Image as ImageIcon } from "lucide-react";
+import { LogOut, Plus, Trash2, Copy, Trophy, Bell, Upload, Move, Image as ImageIcon, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { HeroRifa } from "@/components/HeroRifa";
+
+const ALLOWED_MIME = new Set([
+  "image/png",
+  "image/jpeg",
+  "image/jpg",
+  "image/webp",
+  "image/gif",
+  "video/mp4",
+  "video/webm",
+  "video/quicktime",
+]);
+const ALLOWED_EXT = new Set([
+  "png", "jpg", "jpeg", "webp", "gif", "mp4", "webm", "mov", "m4v",
+]);
+const MIME_TO_EXT: Record<string, string> = {
+  "image/png": "png",
+  "image/jpeg": "jpg",
+  "image/jpg": "jpg",
+  "image/webp": "webp",
+  "image/gif": "gif",
+  "video/mp4": "mp4",
+  "video/webm": "webm",
+  "video/quicktime": "mov",
+};
+
+const HERO_BUCKET = "hero-media";
+const extractStoragePath = (url: string): string | null => {
+  const marker = `/storage/v1/object/public/${HERO_BUCKET}/`;
+  const i = url.indexOf(marker);
+  if (i === -1) return null;
+  return url.substring(i + marker.length).split("?")[0];
+};
 
 interface Stats {
   paid_orders: number;
@@ -78,6 +111,8 @@ const Admin = () => {
   const [heroStats, setHeroStats] = useState({ years: 16, people: "MILHARES", coverage: "TODO O PAÍS" });
   const [uploadingIdx, setUploadingIdx] = useState<number | null>(null);
   const [adjustIdx, setAdjustIdx] = useState<number | null>(null);
+  const [showPreview, setShowPreview] = useState(true);
+  const [previewPrice, setPreviewPrice] = useState<number | null>(null);
 
   // New seller form
   const [newSellerName, setNewSellerName] = useState("");
@@ -88,6 +123,28 @@ const Admin = () => {
     document.title = "Painel Admin — Rifa";
     loadAll();
   }, []);
+
+  useEffect(() => {
+    const cents = Math.round(parseFloat(priceReais.replace(",", ".")) * 100);
+    setPreviewPrice(Number.isFinite(cents) && cents > 0 ? cents : null);
+  }, [priceReais]);
+
+  const previewPrizes = useMemo(
+    () =>
+      heroPrizes
+        .filter((p) => p.name.trim().length > 0)
+        .map((p) => ({
+          position: p.position,
+          name: p.name,
+          image: p.image || null,
+          mediaType: p.mediaType ?? null,
+          fit: p.fit ?? null,
+          scale: p.scale ?? null,
+          posX: p.posX ?? null,
+          posY: p.posY ?? null,
+        })),
+    [heroPrizes],
+  );
 
   const loadAll = async () => {
     const [s, o, b, sl, st] = await Promise.all([
@@ -154,11 +211,33 @@ const Admin = () => {
 
   const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
 
+  const deleteHeroMedia = async (url?: string | null) => {
+    if (!url) return;
+    const path = extractStoragePath(url);
+    if (!path) return;
+    const { error } = await supabase.storage.from(HERO_BUCKET).remove([path]);
+    if (error) console.log("[Admin] failed to delete hero media", path, error);
+    else console.log("[Admin] removed hero media", path);
+  };
+
   const handleHeroUpload = async (idx: number, file: File) => {
-    const isImage = file.type.startsWith("image/");
-    const isVideo = file.type.startsWith("video/");
-    if (!isImage && !isVideo) {
-      toast.error("Envie uma imagem ou vídeo/GIF");
+    const ext = file.name.split(".").pop()?.toLowerCase() || "";
+    const mime = (file.type || "").toLowerCase();
+    const isVideo = mime.startsWith("video/");
+    const mimeOk = ALLOWED_MIME.has(mime);
+    const extOk = ALLOWED_EXT.has(ext);
+    if (!mimeOk || !extOk) {
+      toast.error("Formato não suportado. Use PNG, JPG, WEBP, GIF, MP4, WEBM ou MOV.");
+      return;
+    }
+    // Cross-check: extension must match MIME family
+    const expectedExt = MIME_TO_EXT[mime];
+    const isImageMime = mime.startsWith("image/");
+    const isVideoMime = mime.startsWith("video/");
+    const isImageExt = ["png", "jpg", "jpeg", "webp", "gif"].includes(ext);
+    const isVideoExt = ["mp4", "webm", "mov", "m4v"].includes(ext);
+    if ((isImageMime && !isImageExt) || (isVideoMime && !isVideoExt)) {
+      toast.error("Extensão e tipo do arquivo não conferem.");
       return;
     }
     if (file.size > 50 * 1024 * 1024) {
@@ -167,15 +246,18 @@ const Admin = () => {
     }
     setUploadingIdx(idx);
     try {
-      const ext = file.name.split(".").pop()?.toLowerCase() || (isVideo ? "mp4" : "jpg");
-      const path = `prizes/${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-      const { error } = await supabase.storage.from("hero-media").upload(path, file, {
+      const safeExt = expectedExt || ext;
+      const path = `prizes/${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 8)}.${safeExt}`;
+      const { error } = await supabase.storage.from(HERO_BUCKET).upload(path, file, {
         cacheControl: "3600",
         upsert: false,
-        contentType: file.type,
+        contentType: mime,
       });
       if (error) throw error;
-      const { data } = supabase.storage.from("hero-media").getPublicUrl(path);
+      const { data } = supabase.storage.from(HERO_BUCKET).getPublicUrl(path);
+      // Delete previous media (if it lived in our bucket)
+      const prev = heroPrizes[idx]?.image;
+      if (prev) await deleteHeroMedia(prev);
       const next = [...heroPrizes];
       next[idx] = {
         ...next[idx],
@@ -478,7 +560,36 @@ const Admin = () => {
           </TabsContent>
 
           {/* HERO */}
-          <TabsContent value="hero" className="mt-6">
+          <TabsContent value="hero" className="mt-6 space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-semibold">Prévia da HeroSection pública</h3>
+                <p className="text-xs text-muted-foreground">
+                  Atualiza em tempo real conforme você edita.
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowPreview((v) => !v)}
+              >
+                <Eye className="mr-2 h-4 w-4" />
+                {showPreview ? "Ocultar prévia" : "Mostrar prévia"}
+              </Button>
+            </div>
+            {showPreview && (
+              <Card className="overflow-hidden p-0">
+                <div className="max-h-[560px] overflow-auto">
+                  <HeroRifa
+                    pricePerNumber={previewPrice}
+                    prizes={previewPrizes}
+                    stats={heroStats}
+                    onCtaClick={() => toast.info("Prévia: botão desativado no admin")}
+                  />
+                </div>
+              </Card>
+            )}
             <Card className="max-w-3xl space-y-6 p-6">
               <div>
                 <h3 className="font-semibold">Estatísticas do Hero</h3>
@@ -621,9 +732,10 @@ const Admin = () => {
                                 type="button"
                                 variant="ghost"
                                 size="sm"
-                                onClick={() =>
-                                  updatePrize(idx, { image: "", mediaType: undefined })
-                                }
+                                onClick={async () => {
+                                  await deleteHeroMedia(p.image);
+                                  updatePrize(idx, { image: "", mediaType: undefined });
+                                }}
                               >
                                 <Trash2 className="mr-2 h-4 w-4 text-destructive" /> Remover
                               </Button>
