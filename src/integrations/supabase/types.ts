@@ -169,6 +169,42 @@ export type Database = {
           },
         ]
       }
+      payment_events: {
+        Row: {
+          created_at: string
+          details: Json | null
+          event_type: string
+          id: string
+          level: string
+          message: string
+          order_id: string | null
+          payment_id: string | null
+          provider_payment_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          details?: Json | null
+          event_type: string
+          id?: string
+          level?: string
+          message: string
+          order_id?: string | null
+          payment_id?: string | null
+          provider_payment_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          details?: Json | null
+          event_type?: string
+          id?: string
+          level?: string
+          message?: string
+          order_id?: string | null
+          payment_id?: string | null
+          provider_payment_id?: string | null
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount_cents: number
