@@ -360,11 +360,5 @@ const PrizeMedia = ({ src, type, fallback, alt, style }: PrizeMediaProps) => {
     />
   );
 };
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-};
 
 export default HeroRifa;
