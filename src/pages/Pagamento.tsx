@@ -4,8 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { Check, Copy, Clock, AlertCircle } from "lucide-react";
+import { Check, Copy, Clock, AlertCircle, Download, Share2 } from "lucide-react";
 import { useSelection } from "@/hooks/useSelection";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 interface OrderStatus {
   order: {
