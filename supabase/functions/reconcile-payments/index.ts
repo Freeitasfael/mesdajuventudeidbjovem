@@ -277,6 +277,12 @@ Deno.serve(async (req) => {
         notes,
       }).eq("id", runId);
     }
+    // Avaliar e disparar alertas administrativos
+    try {
+      await evaluateAlerts(admin, runId ?? null, result);
+    } catch (e) {
+      console.log(JSON.stringify({ fn: "reconcile-payments", level: "warn", event_type: "alert_eval_failed", err: String(e) }));
+    }
     console.log(JSON.stringify({ fn: "reconcile-payments", event_type: "run_done", duration_ms: duration, ...result }));
   }
 
