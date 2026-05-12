@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LogOut, Plus, Trash2, Copy, Trophy, Bell, Upload, Move, Image as ImageIcon, Eye } from "lucide-react";
+import { LogOut, Plus, Trash2, Copy, Trophy, Bell, Upload, Move, Image as ImageIcon, Eye, RefreshCw, RotateCw, Radio } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Slider } from "@/components/ui/slider";
@@ -65,6 +65,16 @@ interface OrderRow {
   seller_id: string | null;
 }
 
+interface PaymentRow {
+  id: string;
+  order_id: string;
+  status: string;
+  amount_cents: number;
+  provider_payment_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 interface BuyerRow {
   id: string;
   name: string;
@@ -85,8 +95,11 @@ const Admin = () => {
   const navigate = useNavigate();
   const [stats, setStats] = useState<Stats | null>(null);
   const [orders, setOrders] = useState<OrderRow[]>([]);
+  const [payments, setPayments] = useState<PaymentRow[]>([]);
   const [buyers, setBuyers] = useState<Record<string, BuyerRow>>({});
   const [sellers, setSellers] = useState<SellerRow[]>([]);
+  const [revalidatingId, setRevalidatingId] = useState<string | null>(null);
+  const [realtimeOk, setRealtimeOk] = useState(false);
 
   // Settings
   const [title, setTitle] = useState("");
@@ -147,9 +160,14 @@ const Admin = () => {
   );
 
   const loadAll = async () => {
-    const [s, o, b, sl, st] = await Promise.all([
+    const [s, o, p, b, sl, st] = await Promise.all([
       supabase.rpc("admin_dashboard_stats"),
       supabase.from("orders").select("*").order("created_at", { ascending: false }).limit(100),
+      supabase
+        .from("payments")
+        .select("id, order_id, status, amount_cents, provider_payment_id, created_at, updated_at")
+        .order("created_at", { ascending: false })
+        .limit(100),
       supabase.from("buyers").select("*"),
       supabase.from("sellers").select("*").order("created_at", { ascending: false }),
       supabase
@@ -164,6 +182,7 @@ const Admin = () => {
     ]);
     if (s.data && Array.isArray(s.data) && s.data[0]) setStats(s.data[0] as Stats);
     if (o.data) setOrders(o.data as OrderRow[]);
+    if (p.data) setPayments(p.data as PaymentRow[]);
     if (b.data) {
       const map: Record<string, BuyerRow> = {};
       for (const row of b.data) map[row.id] = row as BuyerRow;
@@ -180,6 +199,69 @@ const Admin = () => {
       if (row.key === "hero_stats" && row.value && typeof row.value === "object") {
         setHeroStats(row.value as typeof heroStats);
       }
+    }
+  };
+
+  // Realtime: revalida stats e listas quando orders/payments mudarem
+  useEffect(() => {
+    let statsTimer: number | undefined;
+    const debouncedReload = () => {
+      if (statsTimer) window.clearTimeout(statsTimer);
+      statsTimer = window.setTimeout(() => {
+        supabase.rpc("admin_dashboard_stats").then(({ data }) => {
+          if (data && Array.isArray(data) && data[0]) setStats(data[0] as Stats);
+        });
+      }, 400);
+    };
+
+    const channel = supabase
+      .channel("admin-dashboard")
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, (payload) => {
+        const row = (payload.new ?? payload.old) as OrderRow;
+        if (!row?.id) return;
+        setOrders((prev) => {
+          if (payload.eventType === "DELETE") return prev.filter((o) => o.id !== row.id);
+          const next = (payload.new as OrderRow);
+          const idx = prev.findIndex((o) => o.id === next.id);
+          if (idx === -1) return [next, ...prev].slice(0, 100);
+          const copy = [...prev]; copy[idx] = next; return copy;
+        });
+        debouncedReload();
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "payments" }, (payload) => {
+        const row = (payload.new ?? payload.old) as PaymentRow;
+        if (!row?.id) return;
+        setPayments((prev) => {
+          if (payload.eventType === "DELETE") return prev.filter((p) => p.id !== row.id);
+          const next = payload.new as PaymentRow;
+          const idx = prev.findIndex((p) => p.id === next.id);
+          if (idx === -1) return [next, ...prev].slice(0, 100);
+          const copy = [...prev]; copy[idx] = next; return copy;
+        });
+        debouncedReload();
+      })
+      .subscribe((status) => setRealtimeOk(status === "SUBSCRIBED"));
+
+    return () => {
+      if (statsTimer) window.clearTimeout(statsTimer);
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const revalidatePayment = async (paymentId: string, orderId: string) => {
+    setRevalidatingId(paymentId);
+    try {
+      const { data, error } = await supabase.functions.invoke("revalidate-payment", {
+        body: { payment_id: paymentId, order_id: orderId },
+      });
+      if (error) throw error;
+      const r = data as { new_status?: string; mp_status?: string; confirmed?: boolean };
+      toast.success(`Status: ${r?.new_status ?? "?"}${r?.confirmed ? " (confirmado)" : ""}`);
+    } catch (e: unknown) {
+      console.log("[Admin] revalidate error", e);
+      toast.error("Falha ao revalidar pagamento");
+    } finally {
+      setRevalidatingId(null);
     }
   };
 
@@ -397,13 +479,23 @@ const Admin = () => {
           <TabsList>
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="orders">Pedidos</TabsTrigger>
+            <TabsTrigger value="payments">Pagamentos</TabsTrigger>
             <TabsTrigger value="sellers">Vendedores</TabsTrigger>
             <TabsTrigger value="settings">Configurações</TabsTrigger>
             <TabsTrigger value="hero">Hero</TabsTrigger>
           </TabsList>
 
           {/* DASHBOARD */}
-          <TabsContent value="dashboard" className="mt-6">
+          <TabsContent value="dashboard" className="mt-6 space-y-4">
+            <div className="flex items-center gap-2 text-xs">
+              <Radio className={`h-3 w-3 ${realtimeOk ? "text-green-500 animate-pulse" : "text-muted-foreground"}`} />
+              <span className="text-muted-foreground">
+                {realtimeOk ? "Atualizando em tempo real" : "Conectando ao tempo real..."}
+              </span>
+              <Button variant="ghost" size="sm" className="ml-auto" onClick={() => loadAll()}>
+                <RefreshCw className="mr-2 h-3 w-3" /> Recarregar
+              </Button>
+            </div>
             {stats ? (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <StatCard label="Arrecadado" value={fmtBRL(stats.total_revenue_cents)} />
@@ -417,6 +509,59 @@ const Admin = () => {
             ) : (
               <p className="text-muted-foreground">Carregando…</p>
             )}
+          </TabsContent>
+
+          {/* PAYMENTS */}
+          <TabsContent value="payments" className="mt-6">
+            <Card className="overflow-x-auto">
+              <div className="flex items-center justify-between border-b border-border px-4 py-3">
+                <p className="text-sm font-semibold">Últimos pagamentos</p>
+                <span className="text-xs text-muted-foreground">{payments.length} registros</span>
+              </div>
+              <table className="w-full text-sm">
+                <thead className="bg-muted/50 text-left">
+                  <tr>
+                    <th className="px-4 py-3">Data</th>
+                    <th className="px-4 py-3">Pedido</th>
+                    <th className="px-4 py-3">MP ID</th>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3 text-right">Valor</th>
+                    <th className="px-4 py-3 text-right">Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {payments.map((p) => (
+                    <tr key={p.id} className="border-t border-border">
+                      <td className="px-4 py-3 whitespace-nowrap">{fmtDate(p.created_at)}</td>
+                      <td className="px-4 py-3 font-mono text-xs">{p.order_id.slice(0, 8)}</td>
+                      <td className="px-4 py-3 font-mono text-xs">
+                        {p.provider_payment_id ?? "—"}
+                      </td>
+                      <td className="px-4 py-3"><StatusBadge status={p.status} /></td>
+                      <td className="px-4 py-3 text-right font-medium">{fmtBRL(p.amount_cents)}</td>
+                      <td className="px-4 py-3 text-right">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={!p.provider_payment_id || revalidatingId === p.id}
+                          onClick={() => revalidatePayment(p.id, p.order_id)}
+                          title="Revalidar com Mercado Pago"
+                        >
+                          <RotateCw className={`h-4 w-4 ${revalidatingId === p.id ? "animate-spin" : ""}`} />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                  {payments.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                        Nenhum pagamento registrado.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </Card>
           </TabsContent>
 
           {/* ORDERS */}
