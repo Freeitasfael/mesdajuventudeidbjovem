@@ -78,6 +78,8 @@ const Rifa = () => {
       className="min-h-screen text-white"
       style={{ backgroundColor: "hsl(var(--hero-bg))" }}
     >
+      <SiteHeader variant="dark" />
+
       <HeroRifa
         pricePerNumber={pricePerNumber}
         prizes={prizes}
