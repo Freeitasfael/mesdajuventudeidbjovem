@@ -231,7 +231,7 @@ export const HeroRifa = ({
         <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-3">
           {loading || !safeStats
             ? Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={i} className="h-28 rounded-2xl bg-white/10" />
+                <Skeleton key={i} className="h-28 rounded-2xl bg-white/15" />
               ))
             : [
                 { icon: Calendar, value: `${safeStats.years} ANOS`, label: "de história" },
@@ -271,7 +271,7 @@ export const HeroRifa = ({
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
             {loading || !safePrizes
               ? Array.from({ length: 3 }).map((_, i) => (
-                  <Skeleton key={i} className="aspect-[4/5] rounded-2xl bg-white/10" />
+                  <Skeleton key={i} className="aspect-[4/5] rounded-2xl bg-white/15" />
                 ))
               : safePrizes.map((prize, idx) => {
                   const fallback = FALLBACK_IMAGES[idx] || FALLBACK_IMAGES[0];
