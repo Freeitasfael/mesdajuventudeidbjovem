@@ -266,19 +266,16 @@ const Pagamento = () => {
 
   return (
     <main className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card">
-        <div className="container py-6">
-          <div className="flex items-center justify-between gap-3">
-            <Link to="/rifa" className="text-sm text-muted-foreground hover:text-foreground">
-              ← Voltar para rifa
-            </Link>
-            <Link to="/acompanhar" className="text-sm font-medium text-primary hover:underline">
-              Acompanhar minhas compras
-            </Link>
-          </div>
-          <h1 className="mt-2 text-2xl font-bold">Pagamento PIX</h1>
-        </div>
-      </header>
+      <SiteHeader
+        breadcrumbs={[
+          { label: "Início", to: "/rifa" },
+          { label: "Acompanhar", to: "/acompanhar" },
+          { label: "Pagamento PIX" },
+        ]}
+      />
+      <div className="container py-6">
+        <h1 className="text-2xl font-bold">Pagamento PIX</h1>
+      </div>
 
       <section className="container py-8 max-w-xl">
         {loading && (
