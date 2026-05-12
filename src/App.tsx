@@ -37,6 +37,7 @@ const App = () => (
           <Route path="/admin/ranking" element={<RequireAdmin><Ranking /></RequireAdmin>} />
           <Route path="/v/:refCode" element={<Vendedor />} />
           <Route path="/seller" element={<Seller />} />
+          <Route path="/seller/pedido/:orderId" element={<SellerOrderDetail />} />
           <Route path="/afiliacao" element={<Afiliacao />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/admin" element={<RequireAdmin><Admin /></RequireAdmin>} />
