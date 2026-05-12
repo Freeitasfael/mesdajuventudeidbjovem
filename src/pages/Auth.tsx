@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { Button } from "@/components/ui/button";
@@ -10,35 +10,65 @@ import { toast } from "sonner";
 
 const Auth = () => {
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [searchParams] = useSearchParams();
+  const next = searchParams.get("next");
+  const initialMode = searchParams.get("mode") === "signup" ? "signup" : "signin";
+  const [mode, setMode] = useState<"signin" | "signup">(initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const resolveDestination = async (uid?: string): Promise<string> => {
+    if (next) return next;
+    if (!uid) return "/seller";
+    // Admin → /admin; Seller → /seller; otherwise → /afiliacao
+    const [{ data: roleRow }, { data: sellerRow }] = await Promise.all([
+      supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", uid)
+        .eq("role", "admin")
+        .maybeSingle(),
+      supabase.rpc("get_my_seller").maybeSingle(),
+    ]);
+    if (roleRow) return "/admin";
+    if (sellerRow) return "/seller";
+    return "/afiliacao";
+  };
+
   useEffect(() => {
-    document.title = "Acesso Admin — Rifa";
-    // If already logged in and admin, go to admin
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate("/admin", { replace: true });
+    document.title = "Acesso — Rifa IDB Jovem";
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (data.session) {
+        const dest = await resolveDestination(data.session.user.id);
+        navigate(dest, { replace: true });
+      }
     });
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      if (session) navigate("/admin", { replace: true });
+    const { data: sub } = supabase.auth.onAuthStateChange(async (_e, session) => {
+      if (session) {
+        const dest = await resolveDestination(session.user.id);
+        navigate(dest, { replace: true });
+      }
     });
     return () => sub.subscription.unsubscribe();
-  }, [navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navigate, next]);
 
   const handleEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
       if (mode === "signin") {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
         if (error) throw error;
       } else {
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: `${window.location.origin}/admin` },
+          options: { emailRedirectTo: `${window.location.origin}${next || "/seller"}` },
         });
         if (error) throw error;
         toast.success("Conta criada. Verifique seu e-mail para confirmar.");
@@ -53,7 +83,7 @@ const Auth = () => {
   const handleGoogle = async () => {
     setLoading(true);
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: `${window.location.origin}/admin`,
+      redirect_uri: `${window.location.origin}${next || "/seller"}`,
     });
     if (result.error) {
       toast.error("Erro ao entrar com Google");
@@ -64,9 +94,17 @@ const Auth = () => {
   return (
     <main className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md p-6">
-        <h1 className="mb-1 text-2xl font-bold">Acesso Administrativo</h1>
+        <Link
+          to="/rifa"
+          className="text-xs text-muted-foreground hover:text-foreground"
+        >
+          ← Voltar para rifa
+        </Link>
+        <h1 className="mt-2 text-2xl font-bold">
+          {mode === "signin" ? "Entrar" : "Criar sua conta"}
+        </h1>
         <p className="mb-6 text-sm text-muted-foreground">
-          Entre para gerenciar a rifa.
+          Acesse o painel de revendedor ou administrador.
         </p>
 
         <form onSubmit={handleEmail} className="space-y-4">

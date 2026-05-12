@@ -1,78 +1,261 @@
-import { useEffect } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Handshake, Link2, Trophy, CheckCircle2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { SiteHeader } from "@/components/SiteHeader";
+import { toast } from "sonner";
+import {
+  CheckCircle2,
+  Handshake,
+  Link2,
+  Trophy,
+  Sparkles,
+  ShieldCheck,
+  TrendingUp,
+} from "lucide-react";
+
+const Schema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(3, "Informe seu nome completo")
+    .max(120)
+    .refine(
+      (v) => v.trim().split(/\s+/).length >= 2,
+      "Informe nome e sobrenome",
+    ),
+  phone: z
+    .string()
+    .trim()
+    .regex(/^[0-9]{10,11}$/, "Telefone deve conter 10 ou 11 dígitos (DDD + número)"),
+});
+
+type FormData = z.infer<typeof Schema>;
 
 const Afiliacao = () => {
+  const navigate = useNavigate();
+  const [authed, setAuthed] = useState<boolean | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
   useEffect(() => {
-    document.title = "Seja um Revendedor — Rifa";
-  }, []);
+    document.title = "Quero me afiliar — Rifa IDB Jovem";
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (!data.session) {
+        setAuthed(false);
+        return;
+      }
+      // If already a seller, jump straight to dashboard
+      const { data: existing } = await supabase
+        .rpc("get_my_seller")
+        .maybeSingle();
+      if (existing) {
+        navigate("/seller", { replace: true });
+        return;
+      }
+      setAuthed(true);
+    });
+  }, [navigate]);
+
+  const form = useForm<FormData>({
+    resolver: zodResolver(Schema),
+    defaultValues: { name: "", phone: "" },
+  });
+
+  const onSubmit = async (data: FormData) => {
+    setSubmitting(true);
+    const { data: result, error } = await supabase.rpc("register_seller_self", {
+      _name: data.name,
+      _phone: data.phone,
+    });
+    setSubmitting(false);
+
+    if (error) {
+      toast.error(error.message ?? "Não foi possível concluir o cadastro.");
+      return;
+    }
+    const row = Array.isArray(result) ? result[0] : result;
+    toast.success(`Afiliação concluída! Seu código: ${row?.ref_code}`);
+    navigate("/seller", { replace: true });
+  };
 
   return (
-    <main className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card">
-        <div className="container flex items-center justify-between py-6">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-              Programa de Afiliação
-            </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Torne-se um revendedor oficial da rifa.
-            </p>
-          </div>
-          <Button variant="outline" asChild>
-            <Link to="/rifa">
-              <ArrowLeft className="mr-2 h-4 w-4" /> Voltar
-            </Link>
-          </Button>
-        </div>
-      </header>
+    <div
+      className="min-h-screen text-white"
+      style={{ backgroundColor: "hsl(var(--hero-bg))" }}
+    >
+      <SiteHeader
+        variant="dark"
+        breadcrumbs={[
+          { label: "Início", to: "/rifa" },
+          { label: "Quero me afiliar" },
+        ]}
+      />
 
-      <section className="container max-w-3xl space-y-6 py-10">
-        <Card className="p-6 sm:p-8">
-          <div className="mb-4 flex items-center gap-3">
-            <div className="rounded-full bg-primary/10 p-3">
-              <Handshake className="h-6 w-6 text-primary" />
-            </div>
-            <h2 className="text-xl font-semibold">Como funciona</h2>
-          </div>
-          <p className="text-muted-foreground">
-            Como revendedor, você recebe um link exclusivo para divulgar a
-            rifa. Toda venda feita através do seu link é registrada
-            automaticamente em seu nome e contabilizada no ranking público.
+      {/* Hero */}
+      <section className="relative overflow-hidden">
+        <div
+          className="pointer-events-none absolute inset-0 opacity-50"
+          style={{
+            background:
+              "radial-gradient(circle at 50% 0%, hsl(var(--hero-gold) / 0.18), transparent 60%)",
+          }}
+        />
+        <div className="container relative max-w-3xl py-16 text-center">
+          <span
+            className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-[0.25em]"
+            style={{
+              borderColor: "hsl(var(--hero-gold) / 0.5)",
+              color: "hsl(var(--hero-gold))",
+            }}
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            Programa de Revendedores
+          </span>
+          <h1 className="mt-4 text-3xl font-extrabold tracking-tight sm:text-5xl">
+            Quer{" "}
+            <span style={{ color: "hsl(var(--hero-gold))" }}>ganhar dinheiro</span>{" "}
+            divulgando essa rifa?
+          </h1>
+          <p className="mx-auto mt-4 max-w-xl text-base text-white/75">
+            Compartilhe seu link exclusivo e ganhe comissões por cada venda
+            realizada. Os melhores vendedores podem ganhar bônus de até{" "}
+            <span className="font-semibold text-white">R$ 300</span>.
           </p>
-        </Card>
+        </div>
+      </section>
 
+      {/* How it works */}
+      <section className="container max-w-4xl pb-12">
         <div className="grid gap-4 sm:grid-cols-3">
           <Step
-            icon={<CheckCircle2 className="h-5 w-5 text-primary" />}
+            icon={<CheckCircle2 className="h-5 w-5" />}
             title="1. Cadastre-se"
-            text="Crie sua conta para solicitar a afiliação."
+            text="Crie sua conta e preencha seus dados. É grátis e leva menos de 1 minuto."
           />
           <Step
-            icon={<Link2 className="h-5 w-5 text-primary" />}
-            title="2. Receba seu link"
-            text="Você ganha um código único para compartilhar."
+            icon={<Link2 className="h-5 w-5" />}
+            title="2. Receba seu link único"
+            text="Compartilhe no WhatsApp, redes sociais ou pessoalmente. Toda venda é registrada para você."
           />
           <Step
-            icon={<Trophy className="h-5 w-5 text-primary" />}
-            title="3. Suba no ranking"
-            text="Acompanhe suas vendas em tempo real."
+            icon={<Trophy className="h-5 w-5" />}
+            title="3. Acompanhe e ganhe"
+            text="Use o painel para ver suas vendas, recuperar pendentes e subir no ranking."
           />
         </div>
-
-        <Card className="flex flex-col items-center gap-4 p-6 text-center sm:p-8">
-          <h3 className="text-lg font-semibold">Pronto para começar?</h3>
-          <p className="text-sm text-muted-foreground">
-            Faça seu cadastro agora e nossa equipe libera sua afiliação.
-          </p>
-          <Button size="lg" asChild>
-            <Link to="/auth">Quero ser revendedor</Link>
-          </Button>
-        </Card>
       </section>
-    </main>
+
+      {/* CTA / Form */}
+      <section className="container max-w-2xl pb-16">
+        {authed === null ? (
+          <Card className="bg-white/5 p-8 text-center text-white/70 backdrop-blur">
+            Carregando…
+          </Card>
+        ) : !authed ? (
+          <Card className="space-y-4 bg-white/5 p-8 text-center text-white backdrop-blur">
+            <Handshake className="mx-auto h-10 w-10 text-[hsl(var(--hero-gold))]" />
+            <h2 className="text-xl font-bold">Quero me afiliar agora</h2>
+            <p className="text-sm text-white/75">
+              Você precisa criar uma conta (ou entrar) antes de gerar seu link
+              exclusivo.
+            </p>
+            <Button
+              asChild
+              size="lg"
+              className="rounded-full font-bold"
+              style={{
+                backgroundColor: "hsl(var(--hero-gold))",
+                color: "hsl(var(--hero-bg))",
+              }}
+            >
+              <Link to="/auth?next=/afiliacao&mode=signup">
+                Criar conta de revendedor
+              </Link>
+            </Button>
+            <p className="text-xs text-white/50">
+              Já tem conta?{" "}
+              <Link to="/auth?next=/afiliacao" className="underline">
+                Entrar
+              </Link>
+            </p>
+          </Card>
+        ) : (
+          <Card className="bg-white text-foreground p-6 sm:p-8">
+            <h2 className="text-xl font-bold">Complete seu cadastro</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Confirme seus dados para gerar seu código de revendedor.
+            </p>
+
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="mt-6 space-y-5"
+            >
+              <div className="space-y-2">
+                <Label htmlFor="name">Nome completo</Label>
+                <Input
+                  id="name"
+                  placeholder="Maria Silva"
+                  autoComplete="name"
+                  {...form.register("name")}
+                />
+                {form.formState.errors.name && (
+                  <p className="text-xs text-destructive">
+                    {form.formState.errors.name.message}
+                  </p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone">Telefone (WhatsApp)</Label>
+                <Input
+                  id="phone"
+                  inputMode="numeric"
+                  placeholder="11987654321"
+                  autoComplete="tel"
+                  {...form.register("phone")}
+                  onChange={(e) => {
+                    const v = e.target.value.replace(/\D/g, "").slice(0, 11);
+                    form.setValue("phone", v, { shouldValidate: true });
+                  }}
+                />
+                {form.formState.errors.phone && (
+                  <p className="text-xs text-destructive">
+                    {form.formState.errors.phone.message}
+                  </p>
+                )}
+              </div>
+              <Button type="submit" size="lg" className="w-full" disabled={submitting}>
+                {submitting ? "Gerando seu link…" : "Gerar meu link de revendedor"}
+              </Button>
+            </form>
+          </Card>
+        )}
+
+        {/* Why join */}
+        <div className="mt-8 grid gap-4 sm:grid-cols-3">
+          <Bullet
+            icon={<TrendingUp className="h-5 w-5" />}
+            title="Comissão por venda"
+            text="Você ganha sempre que alguém compra usando seu link."
+          />
+          <Bullet
+            icon={<ShieldCheck className="h-5 w-5" />}
+            title="Pagamento garantido"
+            text="Acompanhe pendentes e ajude o cliente a finalizar o PIX."
+          />
+          <Bullet
+            icon={<Trophy className="h-5 w-5" />}
+            title="Bônus para os melhores"
+            text="Os top vendedores recebem prêmios extras."
+          />
+        </div>
+      </section>
+    </div>
   );
 };
 
@@ -85,13 +268,37 @@ const Step = ({
   title: string;
   text: string;
 }) => (
-  <Card className="p-4">
-    <div className="mb-2 flex items-center gap-2">
+  <Card className="border-white/10 bg-white/5 p-5 text-white backdrop-blur">
+    <div
+      className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full"
+      style={{
+        backgroundColor: "hsl(var(--hero-gold))",
+        color: "hsl(var(--hero-bg))",
+      }}
+    >
       {icon}
-      <p className="font-semibold">{title}</p>
     </div>
-    <p className="text-sm text-muted-foreground">{text}</p>
+    <p className="font-bold">{title}</p>
+    <p className="mt-1 text-sm text-white/70">{text}</p>
   </Card>
+);
+
+const Bullet = ({
+  icon,
+  title,
+  text,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  text: string;
+}) => (
+  <div className="rounded-lg border border-white/10 bg-white/5 p-4 text-white backdrop-blur">
+    <div className="mb-2 inline-flex items-center gap-2 text-[hsl(var(--hero-gold))]">
+      {icon}
+      <span className="text-sm font-semibold">{title}</span>
+    </div>
+    <p className="text-xs text-white/65">{text}</p>
+  </div>
 );
 
 export default Afiliacao;
