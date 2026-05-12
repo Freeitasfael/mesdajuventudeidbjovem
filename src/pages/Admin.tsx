@@ -60,12 +60,24 @@ const Admin = () => {
   const [priceReais, setPriceReais] = useState("");
 
   // Hero settings
-  const [heroPrizes, setHeroPrizes] = useState<{ position: string; name: string; image: string }[]>([
+  type HeroPrize = {
+    position: string;
+    name: string;
+    image: string;
+    mediaType?: "image" | "video";
+    fit?: "cover" | "contain";
+    scale?: number;
+    posX?: number;
+    posY?: number;
+  };
+  const [heroPrizes, setHeroPrizes] = useState<HeroPrize[]>([
     { position: "1º PRÊMIO", name: "", image: "" },
     { position: "2º PRÊMIO", name: "", image: "" },
     { position: "3º PRÊMIO", name: "", image: "" },
   ]);
   const [heroStats, setHeroStats] = useState({ years: 16, people: "MILHARES", coverage: "TODO O PAÍS" });
+  const [uploadingIdx, setUploadingIdx] = useState<number | null>(null);
+  const [adjustIdx, setAdjustIdx] = useState<number | null>(null);
 
   // New seller form
   const [newSellerName, setNewSellerName] = useState("");
