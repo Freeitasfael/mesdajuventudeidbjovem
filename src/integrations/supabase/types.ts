@@ -300,6 +300,27 @@ export type Database = {
           },
         ]
       }
+      reconcile_lock: {
+        Row: {
+          id: number
+          locked_at: string | null
+          locked_by: string | null
+          locked_until: string | null
+        }
+        Insert: {
+          id?: number
+          locked_at?: string | null
+          locked_by?: string | null
+          locked_until?: string | null
+        }
+        Update: {
+          id?: number
+          locked_at?: string | null
+          locked_by?: string | null
+          locked_until?: string | null
+        }
+        Relationships: []
+      }
       reconcile_runs: {
         Row: {
           approved: number
