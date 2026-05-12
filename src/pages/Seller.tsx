@@ -85,7 +85,11 @@ const Seller = () => {
   const [stats, setStats] = useState<SellerStats | null>(null);
   const [orders, setOrders] = useState<SellerOrder[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<"all" | "pending" | "paid">("all");
+  const [filter, setFilter] = useState<"all" | "pending" | "paid" | "expired" | "cancelled">("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [realtimeOk, setRealtimeOk] = useState(false);
+  const ordersRef = useRef<SellerOrder[]>([]);
 
   useEffect(() => {
     document.title = "Painel do Revendedor — Rifa IDB Jovem";
@@ -117,7 +121,11 @@ const Seller = () => {
         supabase.rpc("get_my_seller_orders"),
       ]);
       if (statsRes.data) setStats(statsRes.data as SellerStats);
-      if (ordersRes.data) setOrders(ordersRes.data as SellerOrder[]);
+      if (ordersRes.data) {
+        const next = ordersRes.data as SellerOrder[];
+        setOrders(next);
+        ordersRef.current = next;
+      }
     } finally {
       setLoading(false);
     }
@@ -126,6 +134,43 @@ const Seller = () => {
   useEffect(() => {
     if (authed) load();
   }, [authed, load]);
+
+  // Realtime: alerta quando algum pedido do vendedor mudar de status
+  useEffect(() => {
+    if (!authed || !seller) return;
+    const ch = supabase
+      .channel(`seller-orders-${seller.id}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "orders", filter: `seller_id=eq.${seller.id}` },
+        (payload) => {
+          const next = payload.new as SellerOrder;
+          const prev = ordersRef.current.find((o) => o.order_id === next.order_id);
+          if (prev && prev.status !== next.status) {
+            if (next.status === "paid") {
+              toast.success(`💰 Pagamento aprovado! ${prev.buyer_name ?? "Cliente"} concluiu a compra.`);
+            } else if (next.status === "expired") {
+              toast.warning(`⏱️ Reserva expirou (${prev.buyer_name ?? "Cliente"}).`);
+            } else if (next.status === "cancelled") {
+              toast.warning(`Pedido cancelado (${prev.buyer_name ?? "Cliente"}).`);
+            }
+          }
+          load();
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "orders", filter: `seller_id=eq.${seller.id}` },
+        () => {
+          toast.info("🆕 Nova reserva pelo seu link!");
+          load();
+        },
+      )
+      .subscribe((status) => setRealtimeOk(status === "SUBSCRIBED"));
+    return () => {
+      supabase.removeChannel(ch);
+    };
+  }, [authed, seller, load]);
 
   const sellerLink = useMemo(() => {
     if (!seller) return "";
@@ -142,10 +187,52 @@ const Seller = () => {
     }
   };
 
+  // Aplicar filtros (status + intervalo de datas)
   const filtered = useMemo(() => {
-    if (filter === "all") return orders;
-    return orders.filter((o) => o.status === filter);
-  }, [orders, filter]);
+    const fromTs = dateFrom ? new Date(dateFrom + "T00:00:00").getTime() : null;
+    const toTs = dateTo ? new Date(dateTo + "T23:59:59").getTime() : null;
+    return orders.filter((o) => {
+      if (filter !== "all" && o.status !== filter) return false;
+      const ts = new Date(o.created_at).getTime();
+      if (fromTs !== null && ts < fromTs) return false;
+      if (toTs !== null && ts > toTs) return false;
+      return true;
+    });
+  }, [orders, filter, dateFrom, dateTo]);
+
+  const exportCsv = () => {
+    if (filtered.length === 0) {
+      toast.info("Sem pedidos para exportar nesse filtro");
+      return;
+    }
+    const csv = buildCsv(
+      [
+        "ID Pedido",
+        "Status",
+        "Comprador",
+        "Telefone",
+        "Números",
+        "Qtd Números",
+        "Total (R$)",
+        "Criado em",
+        "Expira em",
+      ],
+      filtered.map((o) => [
+        o.order_id,
+        STATUS_LABEL[o.status] ?? o.status,
+        o.buyer_name,
+        o.buyer_phone,
+        o.numbers.map((n) => n.toString().padStart(3, "0")).join(" "),
+        o.numbers.length,
+        (o.total_cents / 100).toFixed(2).replace(".", ","),
+        formatDate(o.created_at),
+        formatDate(o.expires_at),
+      ]),
+    );
+    const stamp = new Date().toISOString().slice(0, 10);
+    downloadCsv(`vendas-${seller?.ref_code ?? "revendedor"}-${stamp}.csv`, csv);
+    toast.success(`${filtered.length} pedidos exportados`);
+  };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
