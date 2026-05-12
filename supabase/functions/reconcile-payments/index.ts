@@ -420,6 +420,16 @@ Deno.serve(async (req) => {
     } catch (e) {
       console.log(JSON.stringify({ fn: "reconcile-payments", level: "warn", event_type: "alert_eval_failed", err: String(e) }));
     }
+    // Liberar o lock — só se ainda formos os donos (evita liberar lease de outro run)
+    try {
+      await admin
+        .from("reconcile_lock")
+        .update({ locked_until: null, locked_at: null, locked_by: null })
+        .eq("id", 1)
+        .eq("locked_by", lockHolder);
+    } catch (e) {
+      console.log(JSON.stringify({ fn: "reconcile-payments", level: "warn", event_type: "lock_release_failed", err: String(e) }));
+    }
     console.log(JSON.stringify({ fn: "reconcile-payments", event_type: "run_done", duration_ms: duration, ...result }));
   }
 
