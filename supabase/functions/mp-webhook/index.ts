@@ -1,6 +1,6 @@
 // mp-webhook: recebe notificações do Mercado Pago e consulta a API para confirmar status.
 // Nunca confia no payload — sempre busca pelo ID na API do MP.
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.74.0";
+import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.74.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,59 +8,89 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-signature, x-request-id",
 };
 
-// Map MP status -> our status
 const mapStatus = (s: string): "pending" | "approved" | "rejected" | "refunded" | "expired" => {
   switch (s) {
-    case "approved":
-      return "approved";
+    case "approved": return "approved";
     case "rejected":
-    case "cancelled":
-      return "rejected";
+    case "cancelled": return "rejected";
     case "refunded":
-    case "charged_back":
-      return "refunded";
-    case "expired":
-      return "expired";
-    default:
-      return "pending";
+    case "charged_back": return "refunded";
+    case "expired": return "expired";
+    default: return "pending";
   }
 };
+
+type EventLevel = "info" | "warn" | "error";
+
+async function logEvent(
+  admin: SupabaseClient | null,
+  level: EventLevel,
+  event_type: string,
+  message: string,
+  ctx: {
+    order_id?: string | null;
+    payment_id?: string | null;
+    provider_payment_id?: string | null;
+    details?: unknown;
+  } = {},
+) {
+  console.log(JSON.stringify({
+    fn: "mp-webhook",
+    level,
+    event_type,
+    message,
+    order_id: ctx.order_id ?? null,
+    payment_id: ctx.payment_id ?? null,
+    provider_payment_id: ctx.provider_payment_id ?? null,
+    details: ctx.details ?? null,
+  }));
+  if (admin) {
+    try {
+      await admin.from("payment_events").insert({
+        level,
+        event_type,
+        order_id: ctx.order_id ?? null,
+        payment_id: ctx.payment_id ?? null,
+        provider_payment_id: ctx.provider_payment_id ?? null,
+        message,
+        details: ctx.details ?? null,
+      });
+    } catch (e) {
+      console.log(JSON.stringify({ fn: "mp-webhook", level: "warn", event_type: "log_persist_failed", err: String(e) }));
+    }
+  }
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  try {
-    const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
-    const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-    const MP_ACCESS_TOKEN = Deno.env.get("MP_ACCESS_TOKEN");
+  const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+  const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  const MP_ACCESS_TOKEN = Deno.env.get("MP_ACCESS_TOKEN");
 
-    if (!SUPABASE_URL || !SERVICE_ROLE) throw new Error("server_misconfig");
+  const admin =
+    SUPABASE_URL && SERVICE_ROLE
+      ? createClient(SUPABASE_URL, SERVICE_ROLE, { auth: { persistSession: false } })
+      : null;
+
+  try {
+    if (!admin) throw new Error("server_misconfig");
     if (!MP_ACCESS_TOKEN) {
-      console.log("[mp-webhook] MP_ACCESS_TOKEN missing");
-      // Respond 200 so MP doesn't retry forever while not configured
+      await logEvent(admin, "error", "mp_not_configured", "MP_ACCESS_TOKEN ausente no webhook");
       return new Response("ok", { status: 200, headers: corsHeaders });
     }
 
-    // Extract payment id from query OR body. MP sends multiple shapes.
     const url = new URL(req.url);
     let paymentId =
-      url.searchParams.get("data.id") ??
-      url.searchParams.get("id") ??
-      null;
+      url.searchParams.get("data.id") ?? url.searchParams.get("id") ?? null;
     let topic =
-      url.searchParams.get("type") ??
-      url.searchParams.get("topic") ??
-      null;
+      url.searchParams.get("type") ?? url.searchParams.get("topic") ?? null;
 
     let body: Record<string, unknown> | null = null;
     if (req.method !== "GET") {
-      try {
-        body = await req.json();
-      } catch {
-        body = null;
-      }
+      try { body = await req.json(); } catch { body = null; }
     }
 
     if (!paymentId && body) {
@@ -70,24 +100,29 @@ Deno.serve(async (req) => {
       if (t && !topic) topic = String(t);
     }
 
-    console.log("[mp-webhook] received", { paymentId, topic });
+    await logEvent(admin, "info", "mp_webhook_received", "Webhook recebido do Mercado Pago", {
+      provider_payment_id: paymentId,
+      details: { topic },
+    });
 
     if (!paymentId || (topic && topic !== "payment")) {
-      // Ack non-payment topics so MP stops retrying
       return new Response("ok", { status: 200, headers: corsHeaders });
     }
 
-    // ALWAYS fetch fresh state from MP API
     const mpRes = await fetch(
       `https://api.mercadopago.com/v1/payments/${paymentId}`,
-      {
-        headers: { Authorization: `Bearer ${MP_ACCESS_TOKEN}` },
-      },
+      { headers: { Authorization: `Bearer ${MP_ACCESS_TOKEN}` } },
     );
 
     if (!mpRes.ok) {
-      console.log("[mp-webhook] MP fetch failed", mpRes.status);
-      // Return 200 if not found — likely test event
+      const text = await mpRes.text().catch(() => "");
+      await logEvent(
+        admin,
+        mpRes.status === 404 ? "warn" : "error",
+        "mp_fetch_failed",
+        `Falha ao consultar pagamento no MP (HTTP ${mpRes.status})`,
+        { provider_payment_id: paymentId, details: { http_status: mpRes.status, body: text.slice(0, 500) } },
+      );
       if (mpRes.status === 404) {
         return new Response("ok", { status: 200, headers: corsHeaders });
       }
@@ -99,31 +134,34 @@ Deno.serve(async (req) => {
     const orderIdFromMp =
       mpData.external_reference ?? mpData.metadata?.order_id ?? null;
 
-    const admin = createClient(SUPABASE_URL, SERVICE_ROLE, {
-      auth: { persistSession: false },
-    });
-
-    // Find our payment row
     const { data: payment } = await admin
       .from("payments")
       .select("id, order_id, status")
       .eq("provider_payment_id", String(paymentId))
       .maybeSingle();
 
-    let orderId = payment?.order_id ?? orderIdFromMp ?? null;
+    const orderId = payment?.order_id ?? orderIdFromMp ?? null;
     if (!orderId) {
-      console.log("[mp-webhook] no matching order found");
+      await logEvent(admin, "warn", "webhook_no_order_match", "Webhook sem pedido correspondente", {
+        provider_payment_id: paymentId,
+        details: { mp_status: mpData.status },
+      });
       return new Response("ok", { status: 200, headers: corsHeaders });
     }
 
-    // Update payment row (or insert if missing)
     if (payment) {
-      await admin
+      const { error: updErr } = await admin
         .from("payments")
         .update({ status: newStatus, raw: mpData })
         .eq("id", payment.id);
+      if (updErr) {
+        await logEvent(admin, "error", "payment_update_failed", "Erro ao atualizar pagamento", {
+          order_id: orderId, payment_id: payment.id, provider_payment_id: paymentId,
+          details: updErr.message,
+        });
+      }
     } else {
-      await admin.from("payments").insert({
+      const { error: insErr } = await admin.from("payments").insert({
         order_id: orderId,
         provider: "mercadopago",
         provider_payment_id: String(paymentId),
@@ -131,25 +169,43 @@ Deno.serve(async (req) => {
         amount_cents: Math.round(Number(mpData.transaction_amount ?? 0) * 100),
         raw: mpData,
       });
+      if (insErr) {
+        await logEvent(admin, "error", "payment_insert_failed", "Erro ao inserir pagamento via webhook", {
+          order_id: orderId, provider_payment_id: paymentId, details: insErr.message,
+        });
+      }
     }
 
-    // If approved, confirm the order atomically (idempotent)
+    await logEvent(admin, "info", "mp_status_synced", `Status sincronizado: ${newStatus}`, {
+      order_id: orderId,
+      payment_id: payment?.id ?? null,
+      provider_payment_id: paymentId,
+      details: { mp_status: mpData.status, mp_status_detail: mpData.status_detail },
+    });
+
     if (newStatus === "approved") {
-      const { error: rpcErr } = await admin.rpc("confirm_payment", {
-        _order_id: orderId,
-      });
+      const { error: rpcErr } = await admin.rpc("confirm_payment", { _order_id: orderId });
       if (rpcErr) {
-        console.log("[mp-webhook] confirm_payment error", rpcErr);
+        await logEvent(admin, "error", "confirm_failed", "Falha ao confirmar pedido", {
+          order_id: orderId, payment_id: payment?.id ?? null, provider_payment_id: paymentId,
+          details: rpcErr.message,
+        });
       } else {
-        console.log("[mp-webhook] order confirmed", orderId);
+        await logEvent(admin, "info", "order_confirmed", "Pedido confirmado", {
+          order_id: orderId, payment_id: payment?.id ?? null, provider_payment_id: paymentId,
+        });
       }
+    } else if (newStatus === "rejected" || newStatus === "refunded") {
+      await logEvent(admin, "warn", "payment_negative", `Pagamento ${newStatus}`, {
+        order_id: orderId, payment_id: payment?.id ?? null, provider_payment_id: paymentId,
+        details: { mp_status: mpData.status, mp_status_detail: mpData.status_detail },
+      });
     }
 
     return new Response("ok", { status: 200, headers: corsHeaders });
   } catch (err) {
     const message = err instanceof Error ? err.message : "unknown";
-    console.log("[mp-webhook] unexpected", message);
-    // Avoid 500s — MP retries indefinitely
+    await logEvent(admin, "error", "webhook_unexpected", message);
     return new Response("ok", { status: 200, headers: corsHeaders });
   }
 });

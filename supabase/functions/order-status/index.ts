@@ -99,14 +99,48 @@ Deno.serve(async (req) => {
               .eq("id", payment.id);
             payment.status = newStatus;
 
+            await admin.from("payment_events").insert({
+              level: "info",
+              event_type: "reconcile_status_synced",
+              order_id: order.id,
+              payment_id: payment.id,
+              provider_payment_id: payment.provider_payment_id,
+              message: `Reconciliação ativa: status ${newStatus}`,
+              details: { mp_status: mpData.status, mp_status_detail: mpData.status_detail },
+            });
+
             if (newStatus === "approved") {
-              await admin.rpc("confirm_payment", { _order_id: order.id });
-              order.status = "paid";
+              const { error: rpcErr } = await admin.rpc("confirm_payment", { _order_id: order.id });
+              if (rpcErr) {
+                await admin.from("payment_events").insert({
+                  level: "error",
+                  event_type: "confirm_failed",
+                  order_id: order.id,
+                  payment_id: payment.id,
+                  provider_payment_id: payment.provider_payment_id,
+                  message: "Falha ao confirmar pedido na reconciliação",
+                  details: rpcErr.message,
+                });
+              } else {
+                order.status = "paid";
+              }
             }
           }
+        } else {
+          await admin.from("payment_events").insert({
+            level: "warn",
+            event_type: "reconcile_mp_fetch_failed",
+            order_id: order.id,
+            payment_id: payment.id,
+            provider_payment_id: payment.provider_payment_id,
+            message: `Reconciliação: MP retornou HTTP ${mpRes.status}`,
+          });
         }
       } catch (e) {
-        console.log("[order-status] reconciliation error", e);
+        console.log(JSON.stringify({
+          fn: "order-status", level: "error", event_type: "reconcile_unexpected",
+          order_id: order.id, payment_id: payment.id, err: String(e),
+        }));
       }
     }
 
