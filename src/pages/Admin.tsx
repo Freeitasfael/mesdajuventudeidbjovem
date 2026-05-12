@@ -565,12 +565,15 @@ const Admin = () => {
           </TabsContent>
 
           {/* ORDERS */}
-          <TabsContent value="orders" className="mt-6">
+          <TabsContent value="orders" className="mt-6 space-y-4">
+            <ManualFreeNumber onDone={loadAll} />
+
             <Card className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-muted/50 text-left">
                   <tr>
                     <th className="px-4 py-3">Data</th>
+                    <th className="px-4 py-3">Pedido</th>
                     <th className="px-4 py-3">Comprador</th>
                     <th className="px-4 py-3">Telefone</th>
                     <th className="px-4 py-3">Status</th>
@@ -583,6 +586,9 @@ const Admin = () => {
                     return (
                       <tr key={o.id} className="border-t border-border">
                         <td className="px-4 py-3">{fmtDate(o.created_at)}</td>
+                        <td className="px-4 py-3 font-mono text-xs">
+                          {o.id.slice(0, 8)}
+                        </td>
                         <td className="px-4 py-3">{buyer?.name ?? "—"}</td>
                         <td className="px-4 py-3">{buyer?.phone ?? "—"}</td>
                         <td className="px-4 py-3">
@@ -596,7 +602,7 @@ const Admin = () => {
                   })}
                   {orders.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                      <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
                         Nenhum pedido ainda.
                       </td>
                     </tr>
@@ -1041,6 +1047,53 @@ const StatusBadge = ({ status }: { status: string }) => {
     <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${map[status] ?? "bg-muted"}`}>
       {status}
     </span>
+  );
+};
+
+const ManualFreeNumber = ({ onDone }: { onDone: () => void }) => {
+  const [value, setValue] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const submit = async () => {
+    const n = parseInt(value, 10);
+    if (!Number.isFinite(n) || n < 0) {
+      toast.error("Informe um número válido");
+      return;
+    }
+    if (!confirm(`Liberar o número ${n}? Pedido pendente associado será cancelado.`))
+      return;
+    setBusy(true);
+    const { error } = await supabase.rpc("admin_free_number", { _number: n });
+    setBusy(false);
+    if (error) {
+      toast.error(error.message ?? "Falha ao liberar número");
+      return;
+    }
+    toast.success(`Número ${n} liberado com sucesso.`);
+    setValue("");
+    onDone();
+  };
+
+  return (
+    <Card className="p-4">
+      <p className="mb-2 text-sm font-semibold">Liberar número manualmente</p>
+      <p className="mb-3 text-xs text-muted-foreground">
+        Use em casos excepcionais — reverte a reserva e cancela o pedido pendente vinculado.
+      </p>
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <Input
+          type="number"
+          inputMode="numeric"
+          placeholder="Ex: 042"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          className="sm:max-w-[160px]"
+        />
+        <Button onClick={submit} disabled={busy || !value} variant="destructive">
+          {busy ? "Liberando…" : "Liberar número"}
+        </Button>
+      </div>
+    </Card>
   );
 };
 

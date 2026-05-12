@@ -8,7 +8,9 @@ import { useSelection } from "@/hooks/useSelection";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SiteHeader } from "@/components/SiteHeader";
 import { toast } from "sonner";
+import { Clock, Search } from "lucide-react";
 
 const REF_STORAGE_KEY = "raffle_ref_code";
 
@@ -117,24 +119,44 @@ const Checkout = () => {
 
   return (
     <main className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card">
-        <div className="container py-6">
-          <div className="flex items-center justify-between gap-3">
-            <Link to="/rifa" className="text-sm text-muted-foreground hover:text-foreground">
-              ← Voltar para rifa
-            </Link>
-            <Link
-              to="/acompanhar"
-              className="text-sm font-medium text-primary hover:underline"
-            >
-              Acompanhar minhas compras
-            </Link>
-          </div>
-          <h1 className="mt-2 text-2xl font-bold">Confirmar pedido</h1>
-        </div>
-      </header>
+      <SiteHeader
+        breadcrumbs={[
+          { label: "Início", to: "/rifa" },
+          { label: "Comprar números", to: "/rifa#rifa-grid" },
+          { label: "Confirmar pedido" },
+        ]}
+      />
 
-      <section className="container py-8 max-w-xl space-y-8">
+      <section className="container py-8 max-w-xl space-y-6">
+        <h1 className="text-2xl font-bold">Confirmar pedido</h1>
+
+        {/* Alerta de reserva 10min — destaque verde */}
+        <div className="rounded-xl border-2 border-number-available/40 bg-number-available/10 p-4 text-sm text-foreground shadow-sm">
+          <div className="flex items-start gap-3">
+            <div className="rounded-full bg-number-available/20 p-2 text-number-available">
+              <Clock className="h-5 w-5" />
+            </div>
+            <div className="space-y-1">
+              <p className="font-bold text-number-available">
+                ⚠️ Atenção: seus números estão reservados por 10 minutos.
+              </p>
+              <p className="text-sm">
+                Se você sair desta página, poderá retornar clicando em{" "}
+                <Link
+                  to="/acompanhar"
+                  className="inline-flex items-center gap-1 font-semibold underline"
+                >
+                  <Search className="h-3.5 w-3.5" /> Consultar número
+                </Link>
+                .
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Após 10 minutos sem pagamento, seus números serão liberados
+                automaticamente e poderão ser adquiridos por outra pessoa.
+              </p>
+            </div>
+          </div>
+        </div>
         <div className="rounded-lg border border-border bg-card p-5 space-y-3">
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
             Resumo

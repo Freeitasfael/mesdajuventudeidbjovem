@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertCircle, Check, Clock, Search, RefreshCw } from "lucide-react";
+import { SiteHeader } from "@/components/SiteHeader";
 
 interface OrderRow {
   id: string;
@@ -144,21 +145,18 @@ const Acompanhar = () => {
 
   return (
     <main className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card">
-        <div className="container py-6">
-          <Link
-            to="/rifa"
-            className="text-sm text-muted-foreground hover:text-foreground"
-          >
-            ← Voltar para rifa
-          </Link>
-          <h1 className="mt-2 text-2xl font-bold">Acompanhar minha compra</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Digite o telefone usado na compra para ver o status dos seus
-            pedidos.
-          </p>
-        </div>
-      </header>
+      <SiteHeader
+        breadcrumbs={[
+          { label: "Início", to: "/rifa" },
+          { label: "Consultar meu número" },
+        ]}
+      />
+      <div className="container py-6">
+        <h1 className="text-2xl font-bold">Acompanhar minha compra</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Digite o telefone usado na compra para ver o status dos seus pedidos.
+        </p>
+      </div>
 
       <section className="container py-8 max-w-xl space-y-6">
         <form

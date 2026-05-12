@@ -9,6 +9,7 @@ import Pagamento from "./pages/Pagamento.tsx";
 import Acompanhar from "./pages/Acompanhar.tsx";
 import Ranking from "./pages/Ranking.tsx";
 import Vendedor from "./pages/Vendedor.tsx";
+import Seller from "./pages/Seller.tsx";
 import Afiliacao from "./pages/Afiliacao.tsx";
 import Auth from "./pages/Auth.tsx";
 import Admin from "./pages/Admin.tsx";
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/acompanhar" element={<Acompanhar />} />
           <Route path="/admin/ranking" element={<RequireAdmin><Ranking /></RequireAdmin>} />
           <Route path="/v/:refCode" element={<Vendedor />} />
+          <Route path="/seller" element={<Seller />} />
           <Route path="/afiliacao" element={<Afiliacao />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/admin" element={<RequireAdmin><Admin /></RequireAdmin>} />

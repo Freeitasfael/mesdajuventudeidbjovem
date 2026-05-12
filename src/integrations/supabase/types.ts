@@ -434,12 +434,64 @@ export type Database = {
           total_revenue_cents: number
         }[]
       }
+      admin_free_number: { Args: { _number: number }; Returns: undefined }
+      admin_list_orders: {
+        Args: { _limit?: number }
+        Returns: {
+          buyer_name: string
+          buyer_phone: string
+          created_at: string
+          expires_at: string
+          numbers: number[]
+          order_id: string
+          payment_id: string
+          payment_status: string
+          provider_payment_id: string
+          seller_name: string
+          status: string
+          total_cents: number
+        }[]
+      }
       confirm_payment: { Args: { _order_id: string }; Returns: undefined }
       expire_reservations: {
         Args: never
         Returns: {
           expired_orders: number
           freed_numbers: number
+        }[]
+      }
+      get_my_seller: {
+        Args: never
+        Returns: {
+          created_at: string
+          id: string
+          name: string
+          phone: string
+          ref_code: string
+        }[]
+      }
+      get_my_seller_orders: {
+        Args: never
+        Returns: {
+          buyer_name: string
+          buyer_phone: string
+          created_at: string
+          expires_at: string
+          numbers: number[]
+          order_id: string
+          status: string
+          total_cents: number
+        }[]
+      }
+      get_my_seller_stats: {
+        Args: never
+        Returns: {
+          paid_orders: number
+          pending_orders: number
+          pending_revenue_cents: number
+          total_numbers_paid: number
+          total_orders: number
+          total_revenue_cents: number
         }[]
       }
       get_seller_by_ref: {
@@ -459,6 +511,14 @@ export type Database = {
           total_cents: number
           total_numbers: number
           total_orders: number
+        }[]
+      }
+      register_seller_self: {
+        Args: { _name: string; _phone: string }
+        Returns: {
+          id: string
+          name: string
+          ref_code: string
         }[]
       }
       reserve_numbers: {
