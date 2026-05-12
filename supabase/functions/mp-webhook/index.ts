@@ -149,6 +149,34 @@ Deno.serve(async (req) => {
       return new Response("ok", { status: 200, headers: corsHeaders });
     }
 
+    // Idempotência do webhook: se este pagamento já foi aprovado, não reprocessar.
+    if (payment && payment.status === "approved") {
+      await logEvent(admin, "info", "webhook_idempotent_skip",
+        "Pagamento já aprovado anteriormente — webhook ignorado (idempotente)", {
+        order_id: orderId, payment_id: payment.id, provider_payment_id: paymentId,
+      });
+      return new Response("ok", { status: 200, headers: corsHeaders });
+    }
+
+    // Validação forte de valor: comparar valor pago vs total do pedido no banco.
+    if (newStatus === "approved") {
+      const { data: orderRow } = await admin
+        .from("orders")
+        .select("total_cents, status")
+        .eq("id", orderId)
+        .maybeSingle();
+      const expected = orderRow?.total_cents ?? null;
+      const received = Math.round(Number(mpData.transaction_amount ?? 0) * 100);
+      if (expected == null || expected !== received) {
+        await logEvent(admin, "error", "amount_mismatch",
+          "Valor do pagamento difere do total do pedido — confirmação bloqueada", {
+          order_id: orderId, payment_id: payment?.id ?? null, provider_payment_id: paymentId,
+          details: { expected_cents: expected, received_cents: received, mp_status: mpData.status },
+        });
+        return new Response("ok", { status: 200, headers: corsHeaders });
+      }
+    }
+
     if (payment) {
       const { error: updErr } = await admin
         .from("payments")
