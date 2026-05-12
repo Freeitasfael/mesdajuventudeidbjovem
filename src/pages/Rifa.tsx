@@ -71,6 +71,9 @@ const Rifa = () => {
       setHeroLoading(false);
     };
     loadSettings();
+    // Failsafe: nunca deixe o hero preso em skeleton mais que 4s
+    const failsafe = window.setTimeout(() => setHeroLoading(false), 4000);
+    return () => window.clearTimeout(failsafe);
   }, []);
 
   return (

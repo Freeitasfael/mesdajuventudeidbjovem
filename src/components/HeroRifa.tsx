@@ -46,6 +46,18 @@ export type HeroRifaProps = {
 
 const FALLBACK_IMAGES = [prizeIphone, prizePs5, prizeMoto];
 
+const FALLBACK_PRIZES: Prize[] = [
+  { position: "1º PRÊMIO", name: "Prêmio principal", image: null, fit: "cover", scale: 1, posX: 0, posY: 0, mediaType: "image" },
+  { position: "2º PRÊMIO", name: "Prêmio secundário", image: null, fit: "cover", scale: 1, posX: 0, posY: 0, mediaType: "image" },
+  { position: "3º PRÊMIO", name: "Prêmio bônus", image: null, fit: "cover", scale: 1, posX: 0, posY: 0, mediaType: "image" },
+];
+
+const FALLBACK_STATS: HeroStats = {
+  years: 16,
+  people: "MILHARES",
+  coverage: "TODO O PAÍS",
+};
+
 const formatPrice = (cents: number | null | undefined) => {
   const value = typeof cents === "number" && cents > 0 ? cents : 500;
   return `R$ ${(value / 100).toFixed(2).replace(".", ",")}`;
@@ -71,8 +83,11 @@ export const HeroRifa = ({
     console.log("[HeroRifa]", { pricePerNumber, prizes, stats, loading });
   }, [pricePerNumber, prizes, stats, loading]);
 
-  const safePrizes = isValidPrizes(prizes) ? prizes : null;
-  const safeStats = isValidStats(stats) ? stats : null;
+  const safePrizes = isValidPrizes(prizes) && prizes.length > 0 ? prizes : (loading ? null : FALLBACK_PRIZES);
+  const safeStats = isValidStats(stats) ? stats : (loading ? null : FALLBACK_STATS);
+  const safePrice = typeof pricePerNumber === "number" && pricePerNumber > 0
+    ? pricePerNumber
+    : (loading ? null : 500);
 
   const handleCta = () => {
     if (onCtaClick) return onCtaClick();
@@ -162,16 +177,16 @@ export const HeroRifa = ({
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-white/70 sm:text-base">
             Por apenas
           </p>
-          {loading || pricePerNumber === null ? (
+          {loading && safePrice === null ? (
             <div className="mt-4 flex justify-center">
-              <Skeleton className="h-20 w-64 rounded-xl bg-white/10 sm:h-24 sm:w-80" />
+              <Skeleton className="h-20 w-64 rounded-xl bg-white/15 sm:h-24 sm:w-80" />
             </div>
           ) : (
             <p
               className="mt-3 font-extrabold leading-none tracking-tight text-glow-gold text-6xl sm:text-7xl lg:text-8xl"
               style={{ color: "hsl(var(--hero-gold))" }}
             >
-              {formatPrice(pricePerNumber)}
+              {formatPrice(safePrice)}
             </p>
           )}
           <p className="mt-3 text-sm font-semibold uppercase tracking-[0.3em] text-white/70 sm:text-base">
@@ -216,7 +231,7 @@ export const HeroRifa = ({
         <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-3">
           {loading || !safeStats
             ? Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={i} className="h-28 rounded-2xl bg-white/10" />
+                <Skeleton key={i} className="h-28 rounded-2xl bg-white/15" />
               ))
             : [
                 { icon: Calendar, value: `${safeStats.years} ANOS`, label: "de história" },
@@ -256,7 +271,7 @@ export const HeroRifa = ({
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
             {loading || !safePrizes
               ? Array.from({ length: 3 }).map((_, i) => (
-                  <Skeleton key={i} className="aspect-[4/5] rounded-2xl bg-white/10" />
+                  <Skeleton key={i} className="aspect-[4/5] rounded-2xl bg-white/15" />
                 ))
               : safePrizes.map((prize, idx) => {
                   const fallback = FALLBACK_IMAGES[idx] || FALLBACK_IMAGES[0];

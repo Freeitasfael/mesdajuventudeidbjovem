@@ -117,7 +117,7 @@ export const RaffleGrid = ({ pricePerNumber }: Props) => {
       {loading ? (
         <div className="grid grid-cols-6 sm:grid-cols-10 md:grid-cols-12 lg:grid-cols-16 gap-1.5">
           {Array.from({ length: 96 }).map((_, i) => (
-            <Skeleton key={i} className="aspect-square rounded-lg bg-white/10" />
+            <Skeleton key={i} className="aspect-square rounded-lg bg-white/15" />
           ))}
         </div>
       ) : (
