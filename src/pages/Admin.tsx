@@ -565,12 +565,15 @@ const Admin = () => {
           </TabsContent>
 
           {/* ORDERS */}
-          <TabsContent value="orders" className="mt-6">
+          <TabsContent value="orders" className="mt-6 space-y-4">
+            <ManualFreeNumber onDone={loadAll} />
+
             <Card className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-muted/50 text-left">
                   <tr>
                     <th className="px-4 py-3">Data</th>
+                    <th className="px-4 py-3">Pedido</th>
                     <th className="px-4 py-3">Comprador</th>
                     <th className="px-4 py-3">Telefone</th>
                     <th className="px-4 py-3">Status</th>
@@ -583,6 +586,9 @@ const Admin = () => {
                     return (
                       <tr key={o.id} className="border-t border-border">
                         <td className="px-4 py-3">{fmtDate(o.created_at)}</td>
+                        <td className="px-4 py-3 font-mono text-xs">
+                          {o.id.slice(0, 8)}
+                        </td>
                         <td className="px-4 py-3">{buyer?.name ?? "—"}</td>
                         <td className="px-4 py-3">{buyer?.phone ?? "—"}</td>
                         <td className="px-4 py-3">
@@ -596,7 +602,7 @@ const Admin = () => {
                   })}
                   {orders.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                      <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
                         Nenhum pedido ainda.
                       </td>
                     </tr>
