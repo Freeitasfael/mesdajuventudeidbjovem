@@ -133,6 +133,11 @@ const Admin = () => {
   const [newSellerRef, setNewSellerRef] = useState("");
   const [newSellerPhone, setNewSellerPhone] = useState("");
 
+  // Filtros de pedidos (Admin)
+  const [orderStatusFilter, setOrderStatusFilter] = useState<"all" | "pending" | "paid" | "expired" | "cancelled">("all");
+  const [orderDateFrom, setOrderDateFrom] = useState("");
+  const [orderDateTo, setOrderDateTo] = useState("");
+
   useEffect(() => {
     document.title = "Painel Admin — Rifa";
     loadAll();
