@@ -345,43 +345,70 @@ const Seller = () => {
           />
         </div>
 
+        {/* Realtime indicator */}
+        <div className="flex items-center gap-2 text-xs">
+          <Radio className={`h-3 w-3 ${realtimeOk ? "text-emerald-500 animate-pulse" : "text-muted-foreground"}`} />
+          <span className="text-muted-foreground">
+            {realtimeOk ? "Atualizando em tempo real" : "Conectando ao tempo real…"}
+          </span>
+        </div>
+
         {/* Orders */}
         <Card className="overflow-hidden">
-          <div className="flex items-center justify-between gap-2 border-b border-border p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border p-4">
             <h2 className="text-lg font-semibold">Minhas vendas</h2>
-            <Button variant="ghost" size="sm" onClick={load}>
-              Atualizar
-            </Button>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button variant="outline" size="sm" onClick={exportCsv}>
+                <Download className="mr-2 h-4 w-4" /> Exportar CSV
+              </Button>
+              <Button variant="ghost" size="sm" onClick={load}>
+                Atualizar
+              </Button>
+            </div>
           </div>
-          <div className="p-4">
-            <Tabs value={filter} onValueChange={(v) => setFilter(v as typeof filter)}>
-              <TabsList>
-                <TabsTrigger value="all">Todas ({orders.length})</TabsTrigger>
-                <TabsTrigger value="pending">
-                  Pendentes ({orders.filter((o) => o.status === "pending").length})
-                </TabsTrigger>
-                <TabsTrigger value="paid">
-                  Pagas ({orders.filter((o) => o.status === "paid").length})
-                </TabsTrigger>
-              </TabsList>
 
-              <TabsContent value={filter} className="mt-4 space-y-3">
-                {loading ? (
-                  <>
-                    <Skeleton className="h-24 w-full" />
-                    <Skeleton className="h-24 w-full" />
-                  </>
-                ) : filtered.length === 0 ? (
-                  <p className="py-8 text-center text-sm text-muted-foreground">
-                    Nenhuma venda nesta categoria.
-                  </p>
-                ) : (
-                  filtered.map((o) => (
-                    <OrderRow key={o.order_id} order={o} />
-                  ))
-                )}
-              </TabsContent>
-            </Tabs>
+          {/* Filtros */}
+          <div className="grid gap-3 border-b border-border bg-muted/30 p-4 sm:grid-cols-[1fr_180px_180px]">
+            <div className="space-y-1">
+              <Label className="text-xs">Status</Label>
+              <Tabs value={filter} onValueChange={(v) => setFilter(v as typeof filter)}>
+                <TabsList className="flex-wrap">
+                  <TabsTrigger value="all">Todas ({orders.length})</TabsTrigger>
+                  <TabsTrigger value="pending">
+                    Pendentes ({orders.filter((o) => o.status === "pending").length})
+                  </TabsTrigger>
+                  <TabsTrigger value="paid">
+                    Pagas ({orders.filter((o) => o.status === "paid").length})
+                  </TabsTrigger>
+                  <TabsTrigger value="expired">
+                    Expiradas ({orders.filter((o) => o.status === "expired").length})
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="dateFrom" className="text-xs">De</Label>
+              <Input id="dateFrom" type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="dateTo" className="text-xs">Até</Label>
+              <Input id="dateTo" type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+            </div>
+          </div>
+
+          <div className="space-y-3 p-4">
+            {loading ? (
+              <>
+                <Skeleton className="h-24 w-full" />
+                <Skeleton className="h-24 w-full" />
+              </>
+            ) : filtered.length === 0 ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">
+                Nenhuma venda nesse filtro.
+              </p>
+            ) : (
+              filtered.map((o) => <OrderRow key={o.order_id} order={o} />)
+            )}
           </div>
         </Card>
       </main>
