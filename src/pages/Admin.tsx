@@ -165,6 +165,48 @@ const Admin = () => {
     [heroPrizes],
   );
 
+  const filteredOrders = useMemo(() => {
+    const fromTs = orderDateFrom ? new Date(orderDateFrom + "T00:00:00").getTime() : null;
+    const toTs = orderDateTo ? new Date(orderDateTo + "T23:59:59").getTime() : null;
+    return orders.filter((o) => {
+      if (orderStatusFilter !== "all" && o.status !== orderStatusFilter) return false;
+      const ts = new Date(o.created_at).getTime();
+      if (fromTs !== null && ts < fromTs) return false;
+      if (toTs !== null && ts > toTs) return false;
+      return true;
+    });
+  }, [orders, orderStatusFilter, orderDateFrom, orderDateTo]);
+
+  const exportOrdersCsv = () => {
+    if (filteredOrders.length === 0) {
+      toast.info("Sem pedidos para exportar nesse filtro");
+      return;
+    }
+    const csv = buildCsv(
+      [
+        "ID Pedido",
+        "Status",
+        "Comprador",
+        "Telefone",
+        "Total (R$)",
+        "Criado em",
+        "Expira em",
+      ],
+      filteredOrders.map((o) => [
+        o.id,
+        o.status,
+        buyers[o.buyer_id]?.name ?? "—",
+        buyers[o.buyer_id]?.phone ?? "—",
+        (o.total_cents / 100).toFixed(2).replace(".", ","),
+        fmtDate(o.created_at),
+        fmtDate(o.expires_at),
+      ]),
+    );
+    const stamp = new Date().toISOString().slice(0, 10);
+    downloadCsv(`pedidos-admin-${stamp}.csv`, csv);
+    toast.success(`${filteredOrders.length} pedidos exportados`);
+  };
+
   const loadAll = async () => {
     const [s, o, p, b, sl, st] = await Promise.all([
       supabase.rpc("admin_dashboard_stats"),
