@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { RaffleGrid } from "@/components/RaffleGrid";
 import { HeroRifa, type Prize, type HeroStats } from "@/components/HeroRifa";
 import { Button } from "@/components/ui/button";
-import { Handshake, Sparkles } from "lucide-react";
+import { Handshake, Sparkles, History } from "lucide-react";
 
 const REF_STORAGE_KEY = "raffle_ref_code";
 
@@ -86,24 +86,36 @@ const Rifa = () => {
 
       {/* Affiliate strip — dark themed */}
       <div className="border-y border-white/10 bg-black/40 backdrop-blur-sm">
-        <div className="container flex flex-col items-center gap-2 py-4 text-center text-sm sm:flex-row sm:justify-between sm:text-left">
+        <div className="container flex flex-col items-center gap-3 py-4 text-center text-sm sm:flex-row sm:justify-between sm:text-left">
           <p className="text-white/75">
             Quer se tornar um <span className="font-semibold text-white">revendedor</span> e
             ganhar com cada número vendido?
           </p>
-          <Button
-            asChild
-            size="sm"
-            className="rounded-full font-bold"
-            style={{
-              backgroundColor: "hsl(var(--hero-gold))",
-              color: "hsl(var(--hero-bg))",
-            }}
-          >
-            <Link to="/afiliacao">
-              <Handshake className="mr-2 h-4 w-4" /> Quero me afiliar
-            </Link>
-          </Button>
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <Button
+              asChild
+              size="sm"
+              variant="outline"
+              className="rounded-full border-white/30 bg-white/5 text-white hover:bg-white/10"
+            >
+              <Link to="/acompanhar">
+                <History className="mr-2 h-4 w-4" /> Acompanhar compra
+              </Link>
+            </Button>
+            <Button
+              asChild
+              size="sm"
+              className="rounded-full font-bold"
+              style={{
+                backgroundColor: "hsl(var(--hero-gold))",
+                color: "hsl(var(--hero-bg))",
+              }}
+            >
+              <Link to="/afiliacao">
+                <Handshake className="mr-2 h-4 w-4" /> Quero me afiliar
+              </Link>
+            </Button>
+          </div>
         </div>
       </div>
 
