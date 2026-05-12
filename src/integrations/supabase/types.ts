@@ -210,12 +210,16 @@ export type Database = {
           amount_cents: number
           created_at: string
           id: string
+          last_reconcile_at: string | null
+          last_reconcile_error: string | null
+          next_reconcile_at: string | null
           order_id: string
           provider: string
           provider_payment_id: string | null
           qr_code: string | null
           qr_code_base64: string | null
           raw: Json | null
+          reconcile_attempts: number
           status: string
           updated_at: string
         }
@@ -223,12 +227,16 @@ export type Database = {
           amount_cents: number
           created_at?: string
           id?: string
+          last_reconcile_at?: string | null
+          last_reconcile_error?: string | null
+          next_reconcile_at?: string | null
           order_id: string
           provider?: string
           provider_payment_id?: string | null
           qr_code?: string | null
           qr_code_base64?: string | null
           raw?: Json | null
+          reconcile_attempts?: number
           status?: string
           updated_at?: string
         }
@@ -236,12 +244,16 @@ export type Database = {
           amount_cents?: number
           created_at?: string
           id?: string
+          last_reconcile_at?: string | null
+          last_reconcile_error?: string | null
+          next_reconcile_at?: string | null
           order_id?: string
           provider?: string
           provider_payment_id?: string | null
           qr_code?: string | null
           qr_code_base64?: string | null
           raw?: Json | null
+          reconcile_attempts?: number
           status?: string
           updated_at?: string
         }
@@ -254,6 +266,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      reconcile_runs: {
+        Row: {
+          approved: number
+          candidates: number
+          duration_ms: number | null
+          errors: number
+          expired_orders: number
+          finished_at: string | null
+          freed_numbers: number
+          id: string
+          notes: string | null
+          processed: number
+          reconciled: number
+          skipped: number
+          started_at: string
+        }
+        Insert: {
+          approved?: number
+          candidates?: number
+          duration_ms?: number | null
+          errors?: number
+          expired_orders?: number
+          finished_at?: string | null
+          freed_numbers?: number
+          id?: string
+          notes?: string | null
+          processed?: number
+          reconciled?: number
+          skipped?: number
+          started_at?: string
+        }
+        Update: {
+          approved?: number
+          candidates?: number
+          duration_ms?: number | null
+          errors?: number
+          expired_orders?: number
+          finished_at?: string | null
+          freed_numbers?: number
+          id?: string
+          notes?: string | null
+          processed?: number
+          reconciled?: number
+          skipped?: number
+          started_at?: string
+        }
+        Relationships: []
       }
       sellers: {
         Row: {
