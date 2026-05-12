@@ -676,6 +676,92 @@ const Admin = () => {
           </TabsContent>
         </Tabs>
       </section>
+
+      <Dialog open={adjustIdx !== null} onOpenChange={(o) => !o && setAdjustIdx(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Ajustar tamanho e posição</DialogTitle>
+          </DialogHeader>
+          {adjustIdx !== null && heroPrizes[adjustIdx] && (() => {
+            const p = heroPrizes[adjustIdx];
+            const isVid = p.mediaType === "video" || /(\.mp4|\.webm|\.mov|\.m4v)(\?|$)/i.test(p.image);
+            const fit = p.fit ?? "cover";
+            const scale = p.scale ?? 1;
+            const posX = p.posX ?? 0;
+            const posY = p.posY ?? 0;
+            const style: React.CSSProperties = {
+              objectFit: fit,
+              objectPosition: `${50 + posX}% ${50 + posY}%`,
+              transform: `scale(${scale})`,
+            };
+            return (
+              <div className="space-y-4">
+                <div className="mx-auto aspect-square w-64 overflow-hidden rounded-2xl border border-border bg-muted">
+                  {p.image ? (
+                    isVid ? (
+                      <video src={p.image} muted autoPlay loop playsInline className="h-full w-full" style={style} />
+                    ) : (
+                      <img src={p.image} alt="" className="h-full w-full" style={style} />
+                    )
+                  ) : null}
+                </div>
+                <div className="space-y-1">
+                  <Label>Ajuste</Label>
+                  <Select
+                    value={fit}
+                    onValueChange={(v) => updatePrize(adjustIdx, { fit: v as "cover" | "contain" })}
+                  >
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="cover">Preencher (pode cortar)</SelectItem>
+                      <SelectItem value="contain">Mostrar inteiro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label>Zoom: {scale.toFixed(2)}x</Label>
+                  <Slider
+                    min={0.6}
+                    max={1.6}
+                    step={0.05}
+                    value={[scale]}
+                    onValueChange={([v]) => updatePrize(adjustIdx, { scale: v })}
+                  />
+                  <p className="text-xs text-muted-foreground">Limite 0.6x a 1.6x para evitar desproporção.</p>
+                </div>
+                <div className="space-y-1">
+                  <Label>Posição horizontal: {posX}%</Label>
+                  <Slider
+                    min={-50} max={50} step={1}
+                    value={[posX]}
+                    onValueChange={([v]) => updatePrize(adjustIdx, { posX: v })}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label>Posição vertical: {posY}%</Label>
+                  <Slider
+                    min={-50} max={50} step={1}
+                    value={[posY]}
+                    onValueChange={([v]) => updatePrize(adjustIdx, { posY: v })}
+                  />
+                </div>
+              </div>
+            );
+          })()}
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                if (adjustIdx !== null)
+                  updatePrize(adjustIdx, { fit: "cover", scale: 1, posX: 0, posY: 0 });
+              }}
+            >
+              Resetar
+            </Button>
+            <Button onClick={() => setAdjustIdx(null)}>Concluir</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 };
