@@ -87,40 +87,41 @@ const Rifa = () => {
         loading={heroLoading}
       />
 
-      {/* Affiliate strip — dark themed */}
-      <div className="border-y border-white/10 bg-black/40 backdrop-blur-sm">
-        <div className="container flex flex-col items-center gap-3 py-4 text-center text-sm sm:flex-row sm:justify-between sm:text-left">
-          <p className="text-white/75">
-            Quer se tornar um <span className="font-semibold text-white">revendedor</span> e
-            ganhar com cada número vendido?
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-2">
-            <Button
-              asChild
-              size="sm"
-              variant="outline"
-              className="rounded-full border-white/30 bg-white/5 text-white hover:bg-white/10"
-            >
-              <Link to="/acompanhar">
-                <History className="mr-2 h-4 w-4" /> Acompanhar compra
-              </Link>
-            </Button>
-            <Button
-              asChild
-              size="sm"
-              className="rounded-full font-bold"
-              style={{
-                backgroundColor: "hsl(var(--hero-gold))",
-                color: "hsl(var(--hero-bg))",
-              }}
-            >
-              <Link to="/afiliacao">
-                <Handshake className="mr-2 h-4 w-4" /> Quero me afiliar
-              </Link>
-            </Button>
+      {/* Consultar meu número — destaque acima da rifa */}
+      <section
+        className="border-y border-white/10"
+        style={{
+          background:
+            "linear-gradient(135deg, hsl(var(--hero-gold) / 0.15), hsl(var(--hero-gold) / 0.05))",
+        }}
+      >
+        <div className="container flex flex-col items-center gap-4 py-8 text-center sm:flex-row sm:justify-between sm:text-left">
+          <div className="max-w-xl">
+            <p className="text-base font-bold text-white sm:text-lg">
+              Já comprou seu número e quer consultar seu bilhete?
+            </p>
+            <p className="mt-1 text-sm text-white/70">
+              Digite seu telefone e acompanhe o status do seu pagamento ou
+              recupere uma compra que ficou pendente.
+            </p>
           </div>
+          <Button
+            asChild
+            size="lg"
+            className="rounded-full font-bold shadow-lg"
+            style={{
+              backgroundColor: "hsl(var(--hero-gold))",
+              color: "hsl(var(--hero-bg))",
+            }}
+          >
+            <Link to="/acompanhar">
+              <Search className="mr-2 h-5 w-5" />
+              Consultar meu número
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
         </div>
-      </div>
+      </section>
 
       {/* Raffle grid section — hero-styled */}
       <section className="relative">
@@ -173,6 +174,49 @@ const Rifa = () => {
             style={{ borderColor: "hsl(var(--hero-gold) / 0.25)" }}
           >
             <RaffleGrid pricePerNumber={pricePerNumber} />
+          </div>
+        </div>
+      </section>
+
+      {/* Quero me afiliar — rodapé com copy estratégica */}
+      <section className="border-t border-white/10 bg-black/40">
+        <div className="container max-w-3xl py-12 text-center">
+          <Handshake
+            className="mx-auto h-10 w-10"
+            style={{ color: "hsl(var(--hero-gold))" }}
+          />
+          <h3 className="mt-3 text-2xl font-extrabold sm:text-3xl">
+            Quer ganhar dinheiro divulgando essa rifa?
+          </h3>
+          <p className="mx-auto mt-3 max-w-xl text-sm text-white/75 sm:text-base">
+            Você pode compartilhar seu link exclusivo e ganhar comissões por cada
+            venda realizada. Os melhores vendedores ainda recebem bônus de até{" "}
+            <span className="font-semibold text-white">R$ 300</span>.
+          </p>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+            <Button
+              asChild
+              size="lg"
+              className="rounded-full font-bold"
+              style={{
+                backgroundColor: "hsl(var(--hero-gold))",
+                color: "hsl(var(--hero-bg))",
+              }}
+            >
+              <Link to="/afiliacao">
+                <Handshake className="mr-2 h-5 w-5" /> Quero me afiliar agora
+              </Link>
+            </Button>
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="rounded-full border-white/30 bg-white/5 text-white hover:bg-white/10"
+            >
+              <Link to="/acompanhar">
+                <History className="mr-2 h-4 w-4" /> Acompanhar compra
+              </Link>
+            </Button>
           </div>
         </div>
       </section>
