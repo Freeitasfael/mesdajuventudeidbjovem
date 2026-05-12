@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { Check, Copy, Clock, AlertCircle, Download, Share2 } from "lucide-react";
 import { useSelection } from "@/hooks/useSelection";
+import { SiteHeader } from "@/components/SiteHeader";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
