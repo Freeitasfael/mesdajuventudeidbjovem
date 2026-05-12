@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -57,11 +57,14 @@ const STATUS_META: Record<
 const PHONE_KEY = "rifa.last_phone";
 
 const Acompanhar = () => {
+  const [searchParams] = useSearchParams();
+  const highlightOrderId = searchParams.get("orderId");
   const [phone, setPhone] = useState("");
   const [orders, setOrders] = useState<OrderRow[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
+  const autoLoadedRef = useRef(false);
 
   useEffect(() => {
     document.title = "Acompanhar compra — Rifa Digital";
