@@ -3,8 +3,9 @@ import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { RaffleGrid } from "@/components/RaffleGrid";
 import { HeroRifa, type Prize, type HeroStats } from "@/components/HeroRifa";
+import { SiteHeader } from "@/components/SiteHeader";
 import { Button } from "@/components/ui/button";
-import { Handshake, Sparkles, History } from "lucide-react";
+import { Handshake, Sparkles, History, Search, ArrowRight } from "lucide-react";
 
 const REF_STORAGE_KEY = "raffle_ref_code";
 
