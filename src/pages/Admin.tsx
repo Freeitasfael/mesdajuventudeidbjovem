@@ -523,44 +523,129 @@ const Admin = () => {
                     Deixe a URL da imagem em branco para usar a imagem padrão.
                   </p>
                 </div>
-                {heroPrizes.map((p, idx) => (
-                  <div key={idx} className="grid gap-2 rounded-md border border-border p-3 sm:grid-cols-3">
-                    <div className="space-y-1">
-                      <Label>Posição</Label>
-                      <Input
-                        value={p.position}
-                        onChange={(e) => {
-                          const next = [...heroPrizes];
-                          next[idx] = { ...next[idx], position: e.target.value };
-                          setHeroPrizes(next);
-                        }}
-                      />
+                {heroPrizes.map((p, idx) => {
+                  const isVideo = p.mediaType === "video" || /(\.mp4|\.webm|\.mov|\.m4v)(\?|$)/i.test(p.image);
+                  return (
+                    <div key={idx} className="rounded-md border border-border p-3 space-y-3">
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        <div className="space-y-1">
+                          <Label>Posição</Label>
+                          <Input
+                            value={p.position}
+                            onChange={(e) => updatePrize(idx, { position: e.target.value })}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label>Nome do prêmio</Label>
+                          <Input
+                            value={p.name}
+                            onChange={(e) => updatePrize(idx, { name: e.target.value })}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid gap-3 sm:grid-cols-[140px_1fr]">
+                        <div className="relative aspect-square w-full overflow-hidden rounded-md border border-border bg-muted">
+                          {p.image ? (
+                            isVideo ? (
+                              <video
+                                src={p.image}
+                                muted
+                                autoPlay
+                                loop
+                                playsInline
+                                className="h-full w-full"
+                                style={{
+                                  objectFit: p.fit ?? "cover",
+                                  objectPosition: `${50 + (p.posX ?? 0)}% ${50 + (p.posY ?? 0)}%`,
+                                  transform: `scale(${p.scale ?? 1})`,
+                                }}
+                              />
+                            ) : (
+                              <img
+                                src={p.image}
+                                alt=""
+                                className="h-full w-full"
+                                style={{
+                                  objectFit: p.fit ?? "cover",
+                                  objectPosition: `${50 + (p.posX ?? 0)}% ${50 + (p.posY ?? 0)}%`,
+                                  transform: `scale(${p.scale ?? 1})`,
+                                }}
+                              />
+                            )
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+                              <ImageIcon className="h-8 w-8" />
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Mídia (imagem, GIF ou vídeo) — máx 50MB</Label>
+                          <div className="flex flex-wrap gap-2">
+                            <label className="inline-flex">
+                              <input
+                                type="file"
+                                accept="image/png,image/jpeg,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
+                                className="hidden"
+                                onChange={(e) => {
+                                  const f = e.target.files?.[0];
+                                  if (f) handleHeroUpload(idx, f);
+                                  e.currentTarget.value = "";
+                                }}
+                              />
+                              <Button
+                                asChild
+                                type="button"
+                                variant="secondary"
+                                size="sm"
+                                disabled={uploadingIdx === idx}
+                              >
+                                <span>
+                                  <Upload className="mr-2 h-4 w-4" />
+                                  {uploadingIdx === idx ? "Enviando..." : "Enviar arquivo"}
+                                </span>
+                              </Button>
+                            </label>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              disabled={!p.image}
+                              onClick={() => setAdjustIdx(idx)}
+                            >
+                              <Move className="mr-2 h-4 w-4" /> Ajustar tamanho/posição
+                            </Button>
+                            {p.image && (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() =>
+                                  updatePrize(idx, { image: "", mediaType: undefined })
+                                }
+                              >
+                                <Trash2 className="mr-2 h-4 w-4 text-destructive" /> Remover
+                              </Button>
+                            )}
+                          </div>
+                          <Input
+                            placeholder="ou cole uma URL https://..."
+                            value={p.image}
+                            onChange={(e) =>
+                              updatePrize(idx, {
+                                image: e.target.value,
+                                mediaType: /(\.mp4|\.webm|\.mov|\.m4v)(\?|$)/i.test(e.target.value)
+                                  ? "video"
+                                  : "image",
+                              })
+                            }
+                          />
+                        </div>
+                      </div>
                     </div>
-                    <div className="space-y-1">
-                      <Label>Nome do prêmio</Label>
-                      <Input
-                        value={p.name}
-                        onChange={(e) => {
-                          const next = [...heroPrizes];
-                          next[idx] = { ...next[idx], name: e.target.value };
-                          setHeroPrizes(next);
-                        }}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label>URL da imagem (opcional)</Label>
-                      <Input
-                        placeholder="https://..."
-                        value={p.image}
-                        onChange={(e) => {
-                          const next = [...heroPrizes];
-                          next[idx] = { ...next[idx], image: e.target.value };
-                          setHeroPrizes(next);
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
