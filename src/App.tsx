@@ -12,6 +12,7 @@ import Vendedor from "./pages/Vendedor.tsx";
 import Afiliacao from "./pages/Afiliacao.tsx";
 import Auth from "./pages/Auth.tsx";
 import Admin from "./pages/Admin.tsx";
+import Eventos from "./pages/admin/Eventos.tsx";
 import { RequireAdmin } from "./components/RequireAdmin";
 import NotFound from "./pages/NotFound.tsx";
 
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/afiliacao" element={<Afiliacao />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/admin" element={<RequireAdmin><Admin /></RequireAdmin>} />
+          <Route path="/admin/eventos" element={<RequireAdmin><Eventos /></RequireAdmin>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

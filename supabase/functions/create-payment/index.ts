@@ -1,5 +1,5 @@
 // create-payment: cria cobrança PIX no Mercado Pago para um order_id existente
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.74.0";
+import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.74.0";
 import { z } from "https://esm.sh/zod@3.23.8";
 
 const corsHeaders = {
@@ -12,54 +12,93 @@ const BodySchema = z.object({
   order_id: z.string().uuid(),
 });
 
+type EventLevel = "info" | "warn" | "error";
+
+async function logEvent(
+  admin: SupabaseClient | null,
+  level: EventLevel,
+  event_type: string,
+  message: string,
+  ctx: {
+    order_id?: string | null;
+    payment_id?: string | null;
+    provider_payment_id?: string | null;
+    details?: unknown;
+  } = {},
+) {
+  // Sempre escreve log estruturado nos edge function logs (correlação)
+  const line = {
+    fn: "create-payment",
+    level,
+    event_type,
+    message,
+    order_id: ctx.order_id ?? null,
+    payment_id: ctx.payment_id ?? null,
+    provider_payment_id: ctx.provider_payment_id ?? null,
+    details: ctx.details ?? null,
+  };
+  console.log(JSON.stringify(line));
+
+  // Persiste em payment_events (best-effort) para alertas e auditoria
+  if (admin) {
+    try {
+      await admin.from("payment_events").insert({
+        level,
+        event_type,
+        order_id: ctx.order_id ?? null,
+        payment_id: ctx.payment_id ?? null,
+        provider_payment_id: ctx.provider_payment_id ?? null,
+        message,
+        details: ctx.details ?? null,
+      });
+    } catch (e) {
+      console.log(JSON.stringify({ fn: "create-payment", level: "warn", event_type: "log_persist_failed", err: String(e) }));
+    }
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  try {
-    const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
-    const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-    const MP_ACCESS_TOKEN = Deno.env.get("MP_ACCESS_TOKEN");
+  const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+  const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  const MP_ACCESS_TOKEN = Deno.env.get("MP_ACCESS_TOKEN");
 
-    if (!SUPABASE_URL || !SERVICE_ROLE) {
-      throw new Error("Configuração do servidor ausente");
-    }
+  const admin =
+    SUPABASE_URL && SERVICE_ROLE
+      ? createClient(SUPABASE_URL, SERVICE_ROLE, { auth: { persistSession: false } })
+      : null;
+
+  try {
+    if (!admin) throw new Error("server_misconfig");
+
     if (!MP_ACCESS_TOKEN) {
+      await logEvent(admin, "error", "mp_not_configured", "MP_ACCESS_TOKEN ausente");
       return new Response(
         JSON.stringify({
           error: "mp_not_configured",
-          message:
-            "Mercado Pago ainda não foi configurado. Adicione o secret MP_ACCESS_TOKEN.",
+          message: "Mercado Pago ainda não foi configurado. Adicione o secret MP_ACCESS_TOKEN.",
         }),
-        {
-          status: 503,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
+        { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
     const json = await req.json().catch(() => null);
     const parsed = BodySchema.safeParse(json);
     if (!parsed.success) {
+      await logEvent(admin, "warn", "invalid_input", "Payload inválido em create-payment", {
+        details: parsed.error.flatten().fieldErrors,
+      });
       return new Response(
-        JSON.stringify({
-          error: "invalid_input",
-          details: parsed.error.flatten().fieldErrors,
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
+        JSON.stringify({ error: "invalid_input", details: parsed.error.flatten().fieldErrors }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
     const { order_id } = parsed.data;
-    const admin = createClient(SUPABASE_URL, SERVICE_ROLE, {
-      auth: { persistSession: false },
-    });
 
-    // Load order + buyer
     const { data: order, error: orderErr } = await admin
       .from("orders")
       .select("id, status, total_cents, expires_at, buyer_id")
@@ -67,39 +106,35 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (orderErr || !order) {
-      return new Response(
-        JSON.stringify({ error: "order_not_found" }),
-        {
-          status: 404,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+      await logEvent(admin, "warn", "order_not_found", "Pedido não encontrado", {
+        order_id,
+        details: orderErr?.message,
+      });
+      return new Response(JSON.stringify({ error: "order_not_found" }), {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     if (order.status !== "pending") {
+      await logEvent(admin, "warn", "invalid_order_status", "Pedido em estado inválido para gerar PIX", {
+        order_id,
+        details: { status: order.status },
+      });
       return new Response(
-        JSON.stringify({
-          error: "invalid_order_status",
-          status: order.status,
-        }),
-        {
-          status: 409,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
+        JSON.stringify({ error: "invalid_order_status", status: order.status }),
+        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
     if (new Date(order.expires_at).getTime() < Date.now()) {
-      return new Response(
-        JSON.stringify({ error: "order_expired" }),
-        {
-          status: 409,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+      await logEvent(admin, "warn", "order_expired", "Pedido expirou antes de gerar PIX", { order_id });
+      return new Response(JSON.stringify({ error: "order_expired" }), {
+        status: 409,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    // Idempotency: if a pending payment already exists, return it
     const { data: existing } = await admin
       .from("payments")
       .select("id, status, qr_code, qr_code_base64, provider_payment_id, amount_cents")
@@ -108,7 +143,11 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (existing && existing.qr_code) {
-      console.log("[create-payment] returning existing payment", existing.id);
+      await logEvent(admin, "info", "pix_reused_existing", "Pagamento pendente reutilizado", {
+        order_id,
+        payment_id: existing.id,
+        provider_payment_id: existing.provider_payment_id,
+      });
       return new Response(
         JSON.stringify({
           payment_id: existing.id,
@@ -117,10 +156,7 @@ Deno.serve(async (req) => {
           qr_code_base64: existing.qr_code_base64,
           amount_cents: existing.amount_cents,
         }),
-        {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
@@ -132,8 +168,6 @@ Deno.serve(async (req) => {
 
     const amount = order.total_cents / 100;
     const idempotencyKey = `order-${order.id}-${Date.now()}`;
-
-    // Build webhook URL (MP will POST here on status change)
     const webhookUrl = `${SUPABASE_URL}/functions/v1/mp-webhook`;
 
     const mpPayload = {
@@ -163,7 +197,10 @@ Deno.serve(async (req) => {
     const mpData = await mpRes.json();
 
     if (!mpRes.ok) {
-      console.log("[create-payment] MP error", mpRes.status, mpData);
+      await logEvent(admin, "error", "pix_create_failed", "Erro do Mercado Pago ao criar PIX", {
+        order_id,
+        details: { http_status: mpRes.status, mp_error: mpData },
+      });
       return new Response(
         JSON.stringify({
           error: "mp_error",
@@ -171,16 +208,21 @@ Deno.serve(async (req) => {
           message: mpData?.message ?? "Erro no Mercado Pago",
           details: mpData,
         }),
-        {
-          status: 502,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
+        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
     const txData = mpData?.point_of_interaction?.transaction_data ?? {};
     const qr_code = txData.qr_code ?? null;
     const qr_code_base64 = txData.qr_code_base64 ?? null;
+
+    if (!qr_code || !qr_code_base64) {
+      await logEvent(admin, "error", "pix_missing_qr", "Mercado Pago não retornou QR Code", {
+        order_id,
+        provider_payment_id: String(mpData.id ?? ""),
+        details: { mp_status: mpData?.status, mp_status_detail: mpData?.status_detail },
+      });
+    }
 
     const { data: payment, error: payErr } = await admin
       .from("payments")
@@ -198,14 +240,18 @@ Deno.serve(async (req) => {
       .single();
 
     if (payErr || !payment) {
-      console.log("[create-payment] db insert error", payErr);
+      await logEvent(admin, "error", "payment_insert_failed", "Falha ao salvar pagamento no banco", {
+        order_id,
+        provider_payment_id: String(mpData.id),
+        details: payErr?.message,
+      });
       throw new Error("Não foi possível salvar o pagamento");
     }
 
-    console.log("[create-payment] created", {
+    await logEvent(admin, "info", "pix_created", "PIX criado com sucesso", {
+      order_id,
       payment_id: payment.id,
-      mp_id: mpData.id,
-      order_id: order.id,
+      provider_payment_id: String(mpData.id),
     });
 
     return new Response(
@@ -216,20 +262,14 @@ Deno.serve(async (req) => {
         qr_code_base64,
         amount_cents: order.total_cents,
       }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (err) {
     const message = err instanceof Error ? err.message : "Erro desconhecido";
-    console.log("[create-payment] unexpected", message);
-    return new Response(
-      JSON.stringify({ error: "internal_error", message }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
-    );
+    await logEvent(admin, "error", "create_payment_unexpected", message);
+    return new Response(JSON.stringify({ error: "internal_error", message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });
