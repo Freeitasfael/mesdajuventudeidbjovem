@@ -177,16 +177,16 @@ export const HeroRifa = ({
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-white/70 sm:text-base">
             Por apenas
           </p>
-          {loading || pricePerNumber === null ? (
+          {loading && safePrice === null ? (
             <div className="mt-4 flex justify-center">
-              <Skeleton className="h-20 w-64 rounded-xl bg-white/10 sm:h-24 sm:w-80" />
+              <Skeleton className="h-20 w-64 rounded-xl bg-white/15 sm:h-24 sm:w-80" />
             </div>
           ) : (
             <p
               className="mt-3 font-extrabold leading-none tracking-tight text-glow-gold text-6xl sm:text-7xl lg:text-8xl"
               style={{ color: "hsl(var(--hero-gold))" }}
             >
-              {formatPrice(pricePerNumber)}
+              {formatPrice(safePrice)}
             </p>
           )}
           <p className="mt-3 text-sm font-semibold uppercase tracking-[0.3em] text-white/70 sm:text-base">
