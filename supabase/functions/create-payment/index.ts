@@ -135,29 +135,23 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { data: existing } = await admin
+    // REGRA DE OURO: nunca reutilizar pagamento pendente.
+    // Conta tentativas anteriores deste pedido (para chave idempotente determinística por tentativa)
+    // e cancela QUALQUER pagamento pending antigo antes de criar um novo.
+    const { data: existingPayments, count: existingCount } = await admin
       .from("payments")
-      .select("id, status, qr_code, qr_code_base64, provider_payment_id, amount_cents")
-      .eq("order_id", order_id)
-      .eq("status", "pending")
-      .maybeSingle();
+      .select("id, status, provider_payment_id", { count: "exact" })
+      .eq("order_id", order_id);
 
-    if (existing && existing.qr_code) {
-      await logEvent(admin, "info", "pix_reused_existing", "Pagamento pendente reutilizado", {
+    const pendingOld = (existingPayments ?? []).filter((p) => p.status === "pending");
+    if (pendingOld.length > 0) {
+      const ids = pendingOld.map((p) => p.id);
+      await admin.from("payments").update({ status: "cancelled" }).in("id", ids);
+      await logEvent(admin, "warn", "pending_payment_superseded",
+        "Pagamento(s) pendente(s) cancelado(s) — novo PIX será gerado para o pedido", {
         order_id,
-        payment_id: existing.id,
-        provider_payment_id: existing.provider_payment_id,
+        details: { cancelled_payment_ids: ids, cancelled_provider_ids: pendingOld.map((p) => p.provider_payment_id) },
       });
-      return new Response(
-        JSON.stringify({
-          payment_id: existing.id,
-          provider_payment_id: existing.provider_payment_id,
-          qr_code: existing.qr_code,
-          qr_code_base64: existing.qr_code_base64,
-          amount_cents: existing.amount_cents,
-        }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
     }
 
     const { data: buyer } = await admin
@@ -166,8 +160,12 @@ Deno.serve(async (req) => {
       .eq("id", order.buyer_id)
       .maybeSingle();
 
+    // Valor SEMPRE recalculado a partir do banco (nunca confiar no client)
     const amount = order.total_cents / 100;
-    const idempotencyKey = `order-${order.id}-${Date.now()}`;
+    // Idempotência determinística por tentativa: duplo-clique não cria 2 cobranças,
+    // mas uma nova tentativa real (após cancelar a anterior) gera nova chave.
+    const attempt = (existingCount ?? existingPayments?.length ?? 0) + 1;
+    const idempotencyKey = `order-${order.id}-attempt-${attempt}`;
     const webhookUrl = `${SUPABASE_URL}/functions/v1/mp-webhook`;
 
     const mpPayload = {
