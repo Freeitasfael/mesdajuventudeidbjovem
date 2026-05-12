@@ -470,6 +470,24 @@ export type Database = {
           ref_code: string
         }[]
       }
+      get_my_seller_order: {
+        Args: { _order_id: string }
+        Returns: {
+          buyer_name: string
+          buyer_phone: string
+          created_at: string
+          expires_at: string
+          numbers: number[]
+          order_id: string
+          payment_id: string
+          payment_status: string
+          provider_payment_id: string
+          qr_code: string
+          qr_code_base64: string
+          status: string
+          total_cents: number
+        }[]
+      }
       get_my_seller_orders: {
         Args: never
         Returns: {
