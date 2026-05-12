@@ -15,6 +15,9 @@ interface OrderStatus {
     status: "pending" | "paid" | "expired" | "cancelled";
     total_cents: number;
     expires_at: string;
+    created_at?: string;
+    buyer_name?: string | null;
+    numbers?: number[];
   };
   payment: {
     id: string;
@@ -22,6 +25,7 @@ interface OrderStatus {
     qr_code: string | null;
     qr_code_base64: string | null;
     amount_cents: number;
+    provider_payment_id?: string | null;
   } | null;
 }
 
@@ -38,6 +42,83 @@ const Pagamento = () => {
   const [copied, setCopied] = useState(false);
   const [now, setNow] = useState(Date.now());
   const pollRef = useRef<number | null>(null);
+  const receiptRef = useRef<HTMLDivElement | null>(null);
+  const [generatingReceipt, setGeneratingReceipt] = useState(false);
+
+  const renderReceiptCanvas = async () => {
+    if (!receiptRef.current) return null;
+    receiptRef.current.style.display = "block";
+    try {
+      const canvas = await html2canvas(receiptRef.current, {
+        backgroundColor: "#ffffff",
+        scale: 2,
+        useCORS: true,
+      });
+      return canvas;
+    } finally {
+      receiptRef.current.style.display = "none";
+    }
+  };
+
+  const downloadReceiptPdf = async () => {
+    if (!data) return;
+    setGeneratingReceipt(true);
+    try {
+      const canvas = await renderReceiptCanvas();
+      if (!canvas) return;
+      const img = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: [canvas.width, canvas.height] });
+      pdf.addImage(img, "PNG", 0, 0, canvas.width, canvas.height);
+      pdf.save(`comprovante-${data.order.id.slice(0, 8)}.pdf`);
+      toast.success("Comprovante baixado!");
+    } catch (e) {
+      console.log("[Pagamento] pdf error", e);
+      toast.error("Não foi possível gerar o PDF");
+    } finally {
+      setGeneratingReceipt(false);
+    }
+  };
+
+  const shareReceipt = async () => {
+    if (!data) return;
+    setGeneratingReceipt(true);
+    try {
+      const canvas = await renderReceiptCanvas();
+      if (!canvas) return;
+      const blob: Blob | null = await new Promise((res) =>
+        canvas.toBlob((b) => res(b), "image/png"),
+      );
+      if (!blob) throw new Error("blob_failed");
+      const file = new File([blob], `comprovante-${data.order.id.slice(0, 8)}.png`, { type: "image/png" });
+
+      const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean };
+      if (nav.canShare && nav.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: "Comprovante Rifa",
+          text: `Comprovante do pedido ${data.order.id.slice(0, 8)}`,
+        });
+      } else {
+        // Fallback: baixa a imagem
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `comprovante-${data.order.id.slice(0, 8)}.png`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        toast.success("Imagem do comprovante baixada!");
+      }
+    } catch (e) {
+      if ((e as Error).name !== "AbortError") {
+        console.log("[Pagamento] share error", e);
+        toast.error("Não foi possível compartilhar");
+      }
+    } finally {
+      setGeneratingReceipt(false);
+    }
+  };
 
   const loadStatus = useCallback(async () => {
     if (!orderId) return;
