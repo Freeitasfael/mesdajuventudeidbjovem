@@ -1050,4 +1050,51 @@ const StatusBadge = ({ status }: { status: string }) => {
   );
 };
 
+const ManualFreeNumber = ({ onDone }: { onDone: () => void }) => {
+  const [value, setValue] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const submit = async () => {
+    const n = parseInt(value, 10);
+    if (!Number.isFinite(n) || n < 0) {
+      toast.error("Informe um número válido");
+      return;
+    }
+    if (!confirm(`Liberar o número ${n}? Pedido pendente associado será cancelado.`))
+      return;
+    setBusy(true);
+    const { error } = await supabase.rpc("admin_free_number", { _number: n });
+    setBusy(false);
+    if (error) {
+      toast.error(error.message ?? "Falha ao liberar número");
+      return;
+    }
+    toast.success(`Número ${n} liberado com sucesso.`);
+    setValue("");
+    onDone();
+  };
+
+  return (
+    <Card className="p-4">
+      <p className="mb-2 text-sm font-semibold">Liberar número manualmente</p>
+      <p className="mb-3 text-xs text-muted-foreground">
+        Use em casos excepcionais — reverte a reserva e cancela o pedido pendente vinculado.
+      </p>
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <Input
+          type="number"
+          inputMode="numeric"
+          placeholder="Ex: 042"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          className="sm:max-w-[160px]"
+        />
+        <Button onClick={submit} disabled={busy || !value} variant="destructive">
+          {busy ? "Liberando…" : "Liberar número"}
+        </Button>
+      </div>
+    </Card>
+  );
+};
+
 export default Admin;
