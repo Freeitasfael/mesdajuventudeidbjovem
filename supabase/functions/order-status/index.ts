@@ -157,6 +157,9 @@ Deno.serve(async (req) => {
           status: order.status,
           total_cents: order.total_cents,
           expires_at: order.expires_at,
+          created_at: order.created_at,
+          buyer_name: buyer?.name ?? null,
+          numbers,
         },
         payment: payment
           ? {
