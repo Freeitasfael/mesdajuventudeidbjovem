@@ -57,7 +57,7 @@ Deno.serve(async (req) => {
 
     const { data: order } = await admin
       .from("orders")
-      .select("id, status, total_cents, expires_at")
+      .select("id, status, total_cents, expires_at, buyer_id, created_at")
       .eq("id", order_id)
       .maybeSingle();
 
@@ -67,6 +67,12 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    const [{ data: buyer }, { data: onums }] = await Promise.all([
+      admin.from("buyers").select("name").eq("id", order.buyer_id).maybeSingle(),
+      admin.from("order_numbers").select("number").eq("order_id", order_id),
+    ]);
+    const numbers = (onums ?? []).map((r) => r.number).sort((a, b) => a - b);
 
     const { data: payment } = await admin
       .from("payments")
@@ -151,6 +157,9 @@ Deno.serve(async (req) => {
           status: order.status,
           total_cents: order.total_cents,
           expires_at: order.expires_at,
+          created_at: order.created_at,
+          buyer_name: buyer?.name ?? null,
+          numbers,
         },
         payment: payment
           ? {

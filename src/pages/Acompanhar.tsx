@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -57,11 +57,14 @@ const STATUS_META: Record<
 const PHONE_KEY = "rifa.last_phone";
 
 const Acompanhar = () => {
+  const [searchParams] = useSearchParams();
+  const highlightOrderId = searchParams.get("orderId");
   const [phone, setPhone] = useState("");
   const [orders, setOrders] = useState<OrderRow[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
+  const autoLoadedRef = useRef(false);
 
   useEffect(() => {
     document.title = "Acompanhar compra — Rifa Digital";
@@ -71,9 +74,9 @@ const Acompanhar = () => {
 
   const sanitizedPhone = phone.replace(/\D/g, "");
 
-  const fetchOrders = async (silent = false) => {
+  const fetchOrders = useCallback(async (silent = false) => {
     if (sanitizedPhone.length < 10 || sanitizedPhone.length > 11) {
-      setError("Informe um telefone válido (DDD + número, 10 ou 11 dígitos).");
+      if (!silent) setError("Informe um telefone válido (DDD + número, 10 ou 11 dígitos).");
       return;
     }
     if (!silent) setLoading(true);
@@ -119,7 +122,16 @@ const Acompanhar = () => {
       clearTimeout(timer);
       if (!silent) setLoading(false);
     }
-  };
+  }, [sanitizedPhone]);
+
+  // Auto-busca quando há telefone salvo (vinda do checkout ou retorno do comprador)
+  useEffect(() => {
+    if (autoLoadedRef.current) return;
+    if (sanitizedPhone.length >= 10 && sanitizedPhone.length <= 11) {
+      autoLoadedRef.current = true;
+      fetchOrders(false);
+    }
+  }, [sanitizedPhone, fetchOrders]);
 
   // Autoatualização a cada 15s quando houver pedidos pendentes
   useEffect(() => {
@@ -128,8 +140,7 @@ const Acompanhar = () => {
     if (!hasPending) return;
     const id = window.setInterval(() => fetchOrders(true), 15000);
     return () => window.clearInterval(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [orders]);
+  }, [orders, fetchOrders]);
 
   return (
     <main className="min-h-screen bg-background">
@@ -234,11 +245,19 @@ const Acompanhar = () => {
             {orders.map((o) => {
               const meta = STATUS_META[o.status];
               const Icon = meta.icon;
+              const isHighlighted = highlightOrderId === o.id;
               return (
                 <article
                   key={o.id}
-                  className="rounded-lg border border-border bg-card p-4 space-y-3"
+                  className={`rounded-lg border bg-card p-4 space-y-3 ${
+                    isHighlighted ? "border-primary ring-2 ring-primary/30" : "border-border"
+                  }`}
                 >
+                  {isHighlighted && (
+                    <p className="text-xs font-semibold text-primary">
+                      ✨ Pedido recém-criado — clique para ver o QR Code
+                    </p>
+                  )}
                   <div className="flex items-start justify-between gap-3">
                     <div className="space-y-1">
                       <p className="text-xs text-muted-foreground font-mono">

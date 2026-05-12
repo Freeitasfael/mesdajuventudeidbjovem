@@ -106,8 +106,11 @@ const Checkout = () => {
       return;
     }
 
+    // Save phone so /acompanhar can auto-load this buyer's orders later
+    try { localStorage.setItem("rifa.last_phone", phone); } catch { /* ignore */ }
+
     toast.success("Números reservados! Você tem 10 minutos para pagar.");
-    navigate(`/pagamento/${result.order_id}`);
+    navigate(`/acompanhar?orderId=${result.order_id}`);
   };
 
   if (selected.length === 0) return null;
@@ -116,9 +119,17 @@ const Checkout = () => {
     <main className="min-h-screen bg-background">
       <header className="border-b border-border bg-card">
         <div className="container py-6">
-          <Link to="/rifa" className="text-sm text-muted-foreground hover:text-foreground">
-            ← Voltar para rifa
-          </Link>
+          <div className="flex items-center justify-between gap-3">
+            <Link to="/rifa" className="text-sm text-muted-foreground hover:text-foreground">
+              ← Voltar para rifa
+            </Link>
+            <Link
+              to="/acompanhar"
+              className="text-sm font-medium text-primary hover:underline"
+            >
+              Acompanhar minhas compras
+            </Link>
+          </div>
           <h1 className="mt-2 text-2xl font-bold">Confirmar pedido</h1>
         </div>
       </header>
