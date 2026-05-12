@@ -486,7 +486,16 @@ const Admin = () => {
           </TabsList>
 
           {/* DASHBOARD */}
-          <TabsContent value="dashboard" className="mt-6">
+          <TabsContent value="dashboard" className="mt-6 space-y-4">
+            <div className="flex items-center gap-2 text-xs">
+              <Radio className={`h-3 w-3 ${realtimeOk ? "text-green-500 animate-pulse" : "text-muted-foreground"}`} />
+              <span className="text-muted-foreground">
+                {realtimeOk ? "Atualizando em tempo real" : "Conectando ao tempo real..."}
+              </span>
+              <Button variant="ghost" size="sm" className="ml-auto" onClick={() => loadAll()}>
+                <RefreshCw className="mr-2 h-3 w-3" /> Recarregar
+              </Button>
+            </div>
             {stats ? (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <StatCard label="Arrecadado" value={fmtBRL(stats.total_revenue_cents)} />
@@ -500,6 +509,59 @@ const Admin = () => {
             ) : (
               <p className="text-muted-foreground">Carregando…</p>
             )}
+          </TabsContent>
+
+          {/* PAYMENTS */}
+          <TabsContent value="payments" className="mt-6">
+            <Card className="overflow-x-auto">
+              <div className="flex items-center justify-between border-b border-border px-4 py-3">
+                <p className="text-sm font-semibold">Últimos pagamentos</p>
+                <span className="text-xs text-muted-foreground">{payments.length} registros</span>
+              </div>
+              <table className="w-full text-sm">
+                <thead className="bg-muted/50 text-left">
+                  <tr>
+                    <th className="px-4 py-3">Data</th>
+                    <th className="px-4 py-3">Pedido</th>
+                    <th className="px-4 py-3">MP ID</th>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3 text-right">Valor</th>
+                    <th className="px-4 py-3 text-right">Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {payments.map((p) => (
+                    <tr key={p.id} className="border-t border-border">
+                      <td className="px-4 py-3 whitespace-nowrap">{fmtDate(p.created_at)}</td>
+                      <td className="px-4 py-3 font-mono text-xs">{p.order_id.slice(0, 8)}</td>
+                      <td className="px-4 py-3 font-mono text-xs">
+                        {p.provider_payment_id ?? "—"}
+                      </td>
+                      <td className="px-4 py-3"><StatusBadge status={p.status} /></td>
+                      <td className="px-4 py-3 text-right font-medium">{fmtBRL(p.amount_cents)}</td>
+                      <td className="px-4 py-3 text-right">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={!p.provider_payment_id || revalidatingId === p.id}
+                          onClick={() => revalidatePayment(p.id, p.order_id)}
+                          title="Revalidar com Mercado Pago"
+                        >
+                          <RotateCw className={`h-4 w-4 ${revalidatingId === p.id ? "animate-spin" : ""}`} />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                  {payments.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                        Nenhum pagamento registrado.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </Card>
           </TabsContent>
 
           {/* ORDERS */}
