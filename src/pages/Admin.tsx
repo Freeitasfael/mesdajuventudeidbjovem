@@ -111,6 +111,8 @@ const Admin = () => {
   const [heroStats, setHeroStats] = useState({ years: 16, people: "MILHARES", coverage: "TODO O PAÍS" });
   const [uploadingIdx, setUploadingIdx] = useState<number | null>(null);
   const [adjustIdx, setAdjustIdx] = useState<number | null>(null);
+  const [showPreview, setShowPreview] = useState(true);
+  const [previewPrice, setPreviewPrice] = useState<number | null>(null);
 
   // New seller form
   const [newSellerName, setNewSellerName] = useState("");
