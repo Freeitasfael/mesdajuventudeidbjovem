@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LogOut, Plus, Trash2, Copy, Trophy } from "lucide-react";
+import { LogOut, Plus, Trash2, Copy, Trophy, Bell } from "lucide-react";
 import { toast } from "sonner";
 
 interface Stats {
