@@ -195,6 +195,44 @@ Deno.serve(async (req) => {
     auth: { persistSession: false },
   });
 
+  // Lock distribuído: impede execuções concorrentes (cron + chamada manual).
+  // Estratégia: UPDATE condicional atômico — só adquire se o lock estiver livre
+  // ou expirado. Lease de 5 minutos: caso a função morra sem liberar, o próximo
+  // run consegue assumir após esse prazo.
+  const LOCK_LEASE_MS = 5 * 60 * 1000;
+  const lockHolder = `${crypto.randomUUID()}`;
+  const nowIso = new Date().toISOString();
+  const leaseUntilIso = new Date(Date.now() + LOCK_LEASE_MS).toISOString();
+
+  const { data: lockRow, error: lockErr } = await admin
+    .from("reconcile_lock")
+    .update({
+      locked_until: leaseUntilIso,
+      locked_at: nowIso,
+      locked_by: lockHolder,
+    })
+    .eq("id", 1)
+    .or(`locked_until.is.null,locked_until.lt.${nowIso}`)
+    .select("id, locked_by")
+    .maybeSingle();
+
+  if (lockErr) {
+    console.log(JSON.stringify({ fn: "reconcile-payments", event_type: "lock_error", err: lockErr.message }));
+    return new Response(
+      JSON.stringify({ error: "lock_error", message: lockErr.message }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
+  }
+
+  if (!lockRow) {
+    // Outro processo já está executando — sair sem fazer nada.
+    console.log(JSON.stringify({ fn: "reconcile-payments", event_type: "lock_busy", message: "Reconciliação já em andamento, ignorando." }));
+    return new Response(
+      JSON.stringify({ skipped: true, reason: "lock_busy" }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
+  }
+
   // Cria a linha de auditoria já no início para sabermos se o run sequer chegou a rodar
   const { data: runRow } = await admin
     .from("reconcile_runs")
