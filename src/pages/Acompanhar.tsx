@@ -245,11 +245,19 @@ const Acompanhar = () => {
             {orders.map((o) => {
               const meta = STATUS_META[o.status];
               const Icon = meta.icon;
+              const isHighlighted = highlightOrderId === o.id;
               return (
                 <article
                   key={o.id}
-                  className="rounded-lg border border-border bg-card p-4 space-y-3"
+                  className={`rounded-lg border bg-card p-4 space-y-3 ${
+                    isHighlighted ? "border-primary ring-2 ring-primary/30" : "border-border"
+                  }`}
                 >
+                  {isHighlighted && (
+                    <p className="text-xs font-semibold text-primary">
+                      ✨ Pedido recém-criado — clique para ver o QR Code
+                    </p>
+                  )}
                   <div className="flex items-start justify-between gap-3">
                     <div className="space-y-1">
                       <p className="text-xs text-muted-foreground font-mono">
