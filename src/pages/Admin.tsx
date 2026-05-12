@@ -632,6 +632,41 @@ const Admin = () => {
           <TabsContent value="orders" className="mt-6 space-y-4">
             <ManualFreeNumber onDone={loadAll} />
 
+            <Card className="space-y-3 p-4">
+              <div className="flex flex-wrap items-end gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs">Status</Label>
+                  <Select
+                    value={orderStatusFilter}
+                    onValueChange={(v) => setOrderStatusFilter(v as typeof orderStatusFilter)}
+                  >
+                    <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      <SelectItem value="pending">Pendente</SelectItem>
+                      <SelectItem value="paid">Pago</SelectItem>
+                      <SelectItem value="expired">Expirado</SelectItem>
+                      <SelectItem value="cancelled">Cancelado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs" htmlFor="adFrom">De</Label>
+                  <Input id="adFrom" type="date" value={orderDateFrom} onChange={(e) => setOrderDateFrom(e.target.value)} className="w-44" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs" htmlFor="adTo">Até</Label>
+                  <Input id="adTo" type="date" value={orderDateTo} onChange={(e) => setOrderDateTo(e.target.value)} className="w-44" />
+                </div>
+                <Button variant="outline" size="sm" onClick={() => { setOrderStatusFilter("all"); setOrderDateFrom(""); setOrderDateTo(""); }}>
+                  Limpar
+                </Button>
+                <Button size="sm" onClick={exportOrdersCsv} className="ml-auto">
+                  <Download className="mr-2 h-4 w-4" /> Exportar CSV ({filteredOrders.length})
+                </Button>
+              </div>
+            </Card>
+
             <Card className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-muted/50 text-left">
@@ -645,7 +680,7 @@ const Admin = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {orders.map((o) => {
+                  {filteredOrders.map((o) => {
                     const buyer = buyers[o.buyer_id];
                     return (
                       <tr key={o.id} className="border-t border-border">
@@ -664,10 +699,10 @@ const Admin = () => {
                       </tr>
                     );
                   })}
-                  {orders.length === 0 && (
+                  {filteredOrders.length === 0 && (
                     <tr>
                       <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
-                        Nenhum pedido ainda.
+                        Nenhum pedido nesse filtro.
                       </td>
                     </tr>
                   )}
