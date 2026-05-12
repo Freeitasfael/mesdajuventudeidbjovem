@@ -258,37 +258,65 @@ export const HeroRifa = ({
               ? Array.from({ length: 3 }).map((_, i) => (
                   <Skeleton key={i} className="aspect-[4/5] rounded-2xl bg-white/10" />
                 ))
-              : safePrizes.map((prize, idx) => (
-                  <article
-                    key={`${prize.position}-${idx}`}
-                    className="group overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm transition-all hover:scale-[1.03] hover:shadow-gold-glow"
-                  >
-                    <div className="relative aspect-square w-full overflow-hidden">
-                      <img
-                        src={prize.image || FALLBACK_IMAGES[idx] || FALLBACK_IMAGES[0]}
-                        alt={prize.name}
-                        loading="lazy"
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                        onError={(e) => {
-                          (e.currentTarget as HTMLImageElement).src =
-                            FALLBACK_IMAGES[idx] || FALLBACK_IMAGES[0];
-                        }}
-                      />
-                      <span
-                        className="absolute left-3 top-3 rounded-full px-3 py-1 text-xs font-extrabold uppercase tracking-wider shadow-md"
-                        style={{
-                          backgroundColor: "hsl(var(--hero-gold))",
-                          color: "hsl(var(--hero-bg))",
-                        }}
-                      >
-                        {prize.position}
-                      </span>
-                    </div>
-                    <div className="p-4 text-center">
-                      <h3 className="text-lg font-bold text-white">{prize.name}</h3>
-                    </div>
-                  </article>
-                ))}
+              : safePrizes.map((prize, idx) => {
+                  const fallback = FALLBACK_IMAGES[idx] || FALLBACK_IMAGES[0];
+                  const src = prize.image || fallback;
+                  const type = prize.mediaType || inferType(prize.image);
+                  const fit = prize.fit === "contain" ? "contain" : "cover";
+                  const scale = clamp(typeof prize.scale === "number" ? prize.scale : 1, 0.6, 1.6);
+                  const posX = clamp(typeof prize.posX === "number" ? prize.posX : 0, -50, 50);
+                  const posY = clamp(typeof prize.posY === "number" ? prize.posY : 0, -50, 50);
+                  const objectPosition = `${50 + posX}% ${50 + posY}%`;
+                  const mediaStyle: React.CSSProperties = {
+                    objectFit: fit,
+                    objectPosition,
+                    transform: `scale(${scale})`,
+                    transformOrigin: "center center",
+                  };
+                  return (
+                    <article
+                      key={`${prize.position}-${idx}`}
+                      className="group overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm transition-all hover:scale-[1.03] hover:shadow-gold-glow"
+                    >
+                      <div className="relative aspect-square w-full overflow-hidden bg-black/30">
+                        {type === "video" ? (
+                          <video
+                            src={src}
+                            autoPlay
+                            muted
+                            loop
+                            playsInline
+                            className="h-full w-full transition-transform duration-500 group-hover:scale-110"
+                            style={mediaStyle}
+                          />
+                        ) : (
+                          <img
+                            src={src}
+                            alt={prize.name}
+                            loading="lazy"
+                            className="h-full w-full transition-transform duration-500 group-hover:scale-110"
+                            style={mediaStyle}
+                            onError={(e) => {
+                              (e.currentTarget as HTMLImageElement).src = fallback;
+                            }}
+                          />
+                        )}
+                        <span
+                          className="absolute left-3 top-3 rounded-full px-3 py-1 text-xs font-extrabold uppercase tracking-wider shadow-md"
+                          style={{
+                            backgroundColor: "hsl(var(--hero-gold))",
+                            color: "hsl(var(--hero-bg))",
+                          }}
+                        >
+                          {prize.position}
+                        </span>
+                      </div>
+                      <div className="p-4 text-center">
+                        <h3 className="text-lg font-bold text-white">{prize.name}</h3>
+                      </div>
+                    </article>
+                  );
+                })}
           </div>
         </div>
       </div>
