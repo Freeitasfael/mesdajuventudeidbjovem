@@ -74,9 +74,9 @@ const Acompanhar = () => {
 
   const sanitizedPhone = phone.replace(/\D/g, "");
 
-  const fetchOrders = async (silent = false) => {
+  const fetchOrders = useCallback(async (silent = false) => {
     if (sanitizedPhone.length < 10 || sanitizedPhone.length > 11) {
-      setError("Informe um telefone válido (DDD + número, 10 ou 11 dígitos).");
+      if (!silent) setError("Informe um telefone válido (DDD + número, 10 ou 11 dígitos).");
       return;
     }
     if (!silent) setLoading(true);
@@ -122,7 +122,16 @@ const Acompanhar = () => {
       clearTimeout(timer);
       if (!silent) setLoading(false);
     }
-  };
+  }, [sanitizedPhone]);
+
+  // Auto-busca quando há telefone salvo (vinda do checkout ou retorno do comprador)
+  useEffect(() => {
+    if (autoLoadedRef.current) return;
+    if (sanitizedPhone.length >= 10 && sanitizedPhone.length <= 11) {
+      autoLoadedRef.current = true;
+      fetchOrders(false);
+    }
+  }, [sanitizedPhone, fetchOrders]);
 
   // Autoatualização a cada 15s quando houver pedidos pendentes
   useEffect(() => {
@@ -131,8 +140,7 @@ const Acompanhar = () => {
     if (!hasPending) return;
     const id = window.setInterval(() => fetchOrders(true), 15000);
     return () => window.clearInterval(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [orders]);
+  }, [orders, fetchOrders]);
 
   return (
     <main className="min-h-screen bg-background">
