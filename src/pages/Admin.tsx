@@ -681,9 +681,10 @@ const Admin = () => {
                                 type="button"
                                 variant="ghost"
                                 size="sm"
-                                onClick={() =>
-                                  updatePrize(idx, { image: "", mediaType: undefined })
-                                }
+                                onClick={async () => {
+                                  await deleteHeroMedia(p.image);
+                                  updatePrize(idx, { image: "", mediaType: undefined });
+                                }}
                               >
                                 <Trash2 className="mr-2 h-4 w-4 text-destructive" /> Remover
                               </Button>
