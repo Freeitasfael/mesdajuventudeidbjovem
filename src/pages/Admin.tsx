@@ -6,12 +6,13 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LogOut, Plus, Trash2, Copy, Trophy, Bell, Upload, Move, Image as ImageIcon, Eye, RefreshCw, RotateCw, Radio } from "lucide-react";
+import { LogOut, Plus, Trash2, Copy, Trophy, Bell, Upload, Move, Image as ImageIcon, Eye, RefreshCw, RotateCw, Radio, Download } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { HeroRifa } from "@/components/HeroRifa";
+import { buildCsv, downloadCsv } from "@/lib/csv";
 
 const ALLOWED_MIME = new Set([
   "image/png",
@@ -132,6 +133,11 @@ const Admin = () => {
   const [newSellerRef, setNewSellerRef] = useState("");
   const [newSellerPhone, setNewSellerPhone] = useState("");
 
+  // Filtros de pedidos (Admin)
+  const [orderStatusFilter, setOrderStatusFilter] = useState<"all" | "pending" | "paid" | "expired" | "cancelled">("all");
+  const [orderDateFrom, setOrderDateFrom] = useState("");
+  const [orderDateTo, setOrderDateTo] = useState("");
+
   useEffect(() => {
     document.title = "Painel Admin — Rifa";
     loadAll();
@@ -158,6 +164,48 @@ const Admin = () => {
         })),
     [heroPrizes],
   );
+
+  const filteredOrders = useMemo(() => {
+    const fromTs = orderDateFrom ? new Date(orderDateFrom + "T00:00:00").getTime() : null;
+    const toTs = orderDateTo ? new Date(orderDateTo + "T23:59:59").getTime() : null;
+    return orders.filter((o) => {
+      if (orderStatusFilter !== "all" && o.status !== orderStatusFilter) return false;
+      const ts = new Date(o.created_at).getTime();
+      if (fromTs !== null && ts < fromTs) return false;
+      if (toTs !== null && ts > toTs) return false;
+      return true;
+    });
+  }, [orders, orderStatusFilter, orderDateFrom, orderDateTo]);
+
+  const exportOrdersCsv = () => {
+    if (filteredOrders.length === 0) {
+      toast.info("Sem pedidos para exportar nesse filtro");
+      return;
+    }
+    const csv = buildCsv(
+      [
+        "ID Pedido",
+        "Status",
+        "Comprador",
+        "Telefone",
+        "Total (R$)",
+        "Criado em",
+        "Expira em",
+      ],
+      filteredOrders.map((o) => [
+        o.id,
+        o.status,
+        buyers[o.buyer_id]?.name ?? "—",
+        buyers[o.buyer_id]?.phone ?? "—",
+        (o.total_cents / 100).toFixed(2).replace(".", ","),
+        fmtDate(o.created_at),
+        fmtDate(o.expires_at),
+      ]),
+    );
+    const stamp = new Date().toISOString().slice(0, 10);
+    downloadCsv(`pedidos-admin-${stamp}.csv`, csv);
+    toast.success(`${filteredOrders.length} pedidos exportados`);
+  };
 
   const loadAll = async () => {
     const [s, o, p, b, sl, st] = await Promise.all([
@@ -223,6 +271,22 @@ const Admin = () => {
           if (payload.eventType === "DELETE") return prev.filter((o) => o.id !== row.id);
           const next = (payload.new as OrderRow);
           const idx = prev.findIndex((o) => o.id === next.id);
+          // Toast quando o status muda (pendente → pago/expirado/cancelado)
+          if (idx !== -1 && payload.eventType === "UPDATE") {
+            const prevStatus = prev[idx].status;
+            if (prevStatus !== next.status) {
+              const shortId = next.id.slice(0, 8);
+              if (next.status === "paid") {
+                toast.success(`💰 Pedido ${shortId} foi PAGO (${fmtBRL(next.total_cents)})`);
+              } else if (next.status === "expired") {
+                toast.warning(`⏱️ Pedido ${shortId} expirou`);
+              } else if (next.status === "cancelled") {
+                toast.warning(`Pedido ${shortId} foi cancelado`);
+              }
+            }
+          } else if (payload.eventType === "INSERT") {
+            toast.info(`🆕 Novo pedido ${next.id.slice(0, 8)}`);
+          }
           if (idx === -1) return [next, ...prev].slice(0, 100);
           const copy = [...prev]; copy[idx] = next; return copy;
         });
@@ -568,6 +632,41 @@ const Admin = () => {
           <TabsContent value="orders" className="mt-6 space-y-4">
             <ManualFreeNumber onDone={loadAll} />
 
+            <Card className="space-y-3 p-4">
+              <div className="flex flex-wrap items-end gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs">Status</Label>
+                  <Select
+                    value={orderStatusFilter}
+                    onValueChange={(v) => setOrderStatusFilter(v as typeof orderStatusFilter)}
+                  >
+                    <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      <SelectItem value="pending">Pendente</SelectItem>
+                      <SelectItem value="paid">Pago</SelectItem>
+                      <SelectItem value="expired">Expirado</SelectItem>
+                      <SelectItem value="cancelled">Cancelado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs" htmlFor="adFrom">De</Label>
+                  <Input id="adFrom" type="date" value={orderDateFrom} onChange={(e) => setOrderDateFrom(e.target.value)} className="w-44" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs" htmlFor="adTo">Até</Label>
+                  <Input id="adTo" type="date" value={orderDateTo} onChange={(e) => setOrderDateTo(e.target.value)} className="w-44" />
+                </div>
+                <Button variant="outline" size="sm" onClick={() => { setOrderStatusFilter("all"); setOrderDateFrom(""); setOrderDateTo(""); }}>
+                  Limpar
+                </Button>
+                <Button size="sm" onClick={exportOrdersCsv} className="ml-auto">
+                  <Download className="mr-2 h-4 w-4" /> Exportar CSV ({filteredOrders.length})
+                </Button>
+              </div>
+            </Card>
+
             <Card className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-muted/50 text-left">
@@ -581,7 +680,7 @@ const Admin = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {orders.map((o) => {
+                  {filteredOrders.map((o) => {
                     const buyer = buyers[o.buyer_id];
                     return (
                       <tr key={o.id} className="border-t border-border">
@@ -600,10 +699,10 @@ const Admin = () => {
                       </tr>
                     );
                   })}
-                  {orders.length === 0 && (
+                  {filteredOrders.length === 0 && (
                     <tr>
                       <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
-                        Nenhum pedido ainda.
+                        Nenhum pedido nesse filtro.
                       </td>
                     </tr>
                   )}
