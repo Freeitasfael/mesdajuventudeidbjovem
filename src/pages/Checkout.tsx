@@ -8,7 +8,9 @@ import { useSelection } from "@/hooks/useSelection";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SiteHeader } from "@/components/SiteHeader";
 import { toast } from "sonner";
+import { Clock, Search } from "lucide-react";
 
 const REF_STORAGE_KEY = "raffle_ref_code";
 
