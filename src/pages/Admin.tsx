@@ -160,9 +160,14 @@ const Admin = () => {
   );
 
   const loadAll = async () => {
-    const [s, o, b, sl, st] = await Promise.all([
+    const [s, o, p, b, sl, st] = await Promise.all([
       supabase.rpc("admin_dashboard_stats"),
       supabase.from("orders").select("*").order("created_at", { ascending: false }).limit(100),
+      supabase
+        .from("payments")
+        .select("id, order_id, status, amount_cents, provider_payment_id, created_at, updated_at")
+        .order("created_at", { ascending: false })
+        .limit(100),
       supabase.from("buyers").select("*"),
       supabase.from("sellers").select("*").order("created_at", { ascending: false }),
       supabase
@@ -177,6 +182,7 @@ const Admin = () => {
     ]);
     if (s.data && Array.isArray(s.data) && s.data[0]) setStats(s.data[0] as Stats);
     if (o.data) setOrders(o.data as OrderRow[]);
+    if (p.data) setPayments(p.data as PaymentRow[]);
     if (b.data) {
       const map: Record<string, BuyerRow> = {};
       for (const row of b.data) map[row.id] = row as BuyerRow;
@@ -193,6 +199,69 @@ const Admin = () => {
       if (row.key === "hero_stats" && row.value && typeof row.value === "object") {
         setHeroStats(row.value as typeof heroStats);
       }
+    }
+  };
+
+  // Realtime: revalida stats e listas quando orders/payments mudarem
+  useEffect(() => {
+    let statsTimer: number | undefined;
+    const debouncedReload = () => {
+      if (statsTimer) window.clearTimeout(statsTimer);
+      statsTimer = window.setTimeout(() => {
+        supabase.rpc("admin_dashboard_stats").then(({ data }) => {
+          if (data && Array.isArray(data) && data[0]) setStats(data[0] as Stats);
+        });
+      }, 400);
+    };
+
+    const channel = supabase
+      .channel("admin-dashboard")
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, (payload) => {
+        const row = (payload.new ?? payload.old) as OrderRow;
+        if (!row?.id) return;
+        setOrders((prev) => {
+          if (payload.eventType === "DELETE") return prev.filter((o) => o.id !== row.id);
+          const next = (payload.new as OrderRow);
+          const idx = prev.findIndex((o) => o.id === next.id);
+          if (idx === -1) return [next, ...prev].slice(0, 100);
+          const copy = [...prev]; copy[idx] = next; return copy;
+        });
+        debouncedReload();
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "payments" }, (payload) => {
+        const row = (payload.new ?? payload.old) as PaymentRow;
+        if (!row?.id) return;
+        setPayments((prev) => {
+          if (payload.eventType === "DELETE") return prev.filter((p) => p.id !== row.id);
+          const next = payload.new as PaymentRow;
+          const idx = prev.findIndex((p) => p.id === next.id);
+          if (idx === -1) return [next, ...prev].slice(0, 100);
+          const copy = [...prev]; copy[idx] = next; return copy;
+        });
+        debouncedReload();
+      })
+      .subscribe((status) => setRealtimeOk(status === "SUBSCRIBED"));
+
+    return () => {
+      if (statsTimer) window.clearTimeout(statsTimer);
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const revalidatePayment = async (paymentId: string, orderId: string) => {
+    setRevalidatingId(paymentId);
+    try {
+      const { data, error } = await supabase.functions.invoke("revalidate-payment", {
+        body: { payment_id: paymentId, order_id: orderId },
+      });
+      if (error) throw error;
+      const r = data as { new_status?: string; mp_status?: string; confirmed?: boolean };
+      toast.success(`Status: ${r?.new_status ?? "?"}${r?.confirmed ? " (confirmado)" : ""}`);
+    } catch (e: unknown) {
+      console.log("[Admin] revalidate error", e);
+      toast.error("Falha ao revalidar pagamento");
+    } finally {
+      setRevalidatingId(null);
     }
   };
 
