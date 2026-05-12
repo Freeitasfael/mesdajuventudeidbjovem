@@ -95,8 +95,11 @@ const Admin = () => {
   const navigate = useNavigate();
   const [stats, setStats] = useState<Stats | null>(null);
   const [orders, setOrders] = useState<OrderRow[]>([]);
+  const [payments, setPayments] = useState<PaymentRow[]>([]);
   const [buyers, setBuyers] = useState<Record<string, BuyerRow>>({});
   const [sellers, setSellers] = useState<SellerRow[]>([]);
+  const [revalidatingId, setRevalidatingId] = useState<string | null>(null);
+  const [realtimeOk, setRealtimeOk] = useState(false);
 
   // Settings
   const [title, setTitle] = useState("");
