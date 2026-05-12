@@ -224,6 +224,22 @@ const Admin = () => {
           if (payload.eventType === "DELETE") return prev.filter((o) => o.id !== row.id);
           const next = (payload.new as OrderRow);
           const idx = prev.findIndex((o) => o.id === next.id);
+          // Toast quando o status muda (pendente → pago/expirado/cancelado)
+          if (idx !== -1 && payload.eventType === "UPDATE") {
+            const prevStatus = prev[idx].status;
+            if (prevStatus !== next.status) {
+              const shortId = next.id.slice(0, 8);
+              if (next.status === "paid") {
+                toast.success(`💰 Pedido ${shortId} foi PAGO (${fmtBRL(next.total_cents)})`);
+              } else if (next.status === "expired") {
+                toast.warning(`⏱️ Pedido ${shortId} expirou`);
+              } else if (next.status === "cancelled") {
+                toast.warning(`Pedido ${shortId} foi cancelado`);
+              }
+            }
+          } else if (payload.eventType === "INSERT") {
+            toast.info(`🆕 Novo pedido ${next.id.slice(0, 8)}`);
+          }
           if (idx === -1) return [next, ...prev].slice(0, 100);
           const copy = [...prev]; copy[idx] = next; return copy;
         });
