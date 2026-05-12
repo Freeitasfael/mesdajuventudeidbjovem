@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Shield, CheckCircle, Heart, Calendar, Users, Map, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -261,7 +261,8 @@ export const HeroRifa = ({
               : safePrizes.map((prize, idx) => {
                   const fallback = FALLBACK_IMAGES[idx] || FALLBACK_IMAGES[0];
                   const src = prize.image || fallback;
-                  const type = prize.mediaType || inferType(prize.image);
+                  const inferred = prize.mediaType || inferType(prize.image);
+                  const type = inferred;
                   const fit = prize.fit === "contain" ? "contain" : "cover";
                   const scale = clamp(typeof prize.scale === "number" ? prize.scale : 1, 0.6, 1.6);
                   const posX = clamp(typeof prize.posX === "number" ? prize.posX : 0, -50, 50);
