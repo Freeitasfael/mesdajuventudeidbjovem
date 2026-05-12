@@ -46,6 +46,18 @@ export type HeroRifaProps = {
 
 const FALLBACK_IMAGES = [prizeIphone, prizePs5, prizeMoto];
 
+const FALLBACK_PRIZES: Prize[] = [
+  { position: "1º PRÊMIO", name: "Prêmio principal", image: null, fit: "cover", scale: 1, posX: 0, posY: 0, mediaType: "image" },
+  { position: "2º PRÊMIO", name: "Prêmio secundário", image: null, fit: "cover", scale: 1, posX: 0, posY: 0, mediaType: "image" },
+  { position: "3º PRÊMIO", name: "Prêmio bônus", image: null, fit: "cover", scale: 1, posX: 0, posY: 0, mediaType: "image" },
+];
+
+const FALLBACK_STATS: HeroStats = {
+  years: 16,
+  people: "MILHARES",
+  coverage: "TODO O PAÍS",
+};
+
 const formatPrice = (cents: number | null | undefined) => {
   const value = typeof cents === "number" && cents > 0 ? cents : 500;
   return `R$ ${(value / 100).toFixed(2).replace(".", ",")}`;
