@@ -302,9 +302,21 @@ const Pagamento = () => {
                 <p className="text-sm text-muted-foreground">
                   Seus números foram registrados. Boa sorte!
                 </p>
-                <Button asChild>
-                  <Link to="/rifa">Ver rifa</Link>
-                </Button>
+                <div className="flex flex-col sm:flex-row gap-2 justify-center pt-2">
+                  <Button onClick={downloadReceiptPdf} disabled={generatingReceipt}>
+                    <Download className="h-4 w-4 mr-2" />
+                    Baixar comprovante (PDF)
+                  </Button>
+                  <Button variant="outline" onClick={shareReceipt} disabled={generatingReceipt}>
+                    <Share2 className="h-4 w-4 mr-2" />
+                    Compartilhar
+                  </Button>
+                </div>
+                <div className="pt-2">
+                  <Button asChild variant="ghost" size="sm">
+                    <Link to="/rifa">Ver rifa</Link>
+                  </Button>
+                </div>
               </div>
             )}
 
