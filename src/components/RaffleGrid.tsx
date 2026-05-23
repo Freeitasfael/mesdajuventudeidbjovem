@@ -27,6 +27,13 @@ export const RaffleGrid = ({ pricePerNumber }: Props) => {
   const [isInlineVisible, setIsInlineVisible] = useState(false);
   const observerRef = useRef<IntersectionObserver | null>(null);
 
+  // Popup for already-reserved number selection
+  const [blockedPopup, setBlockedPopup] = useState<{
+    number: number;
+    status: NumberStatus;
+    isInSelection: boolean;
+  } | null>(null);
+
   // Ref callback ensures the observer attaches as soon as the inline node mounts
   const inlineRefCallback = (node: HTMLDivElement | null) => {
     if (observerRef.current) {
