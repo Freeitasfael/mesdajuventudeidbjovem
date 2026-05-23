@@ -1081,7 +1081,10 @@ const Admin = () => {
               </div>
               <Button onClick={saveSettings}>Salvar</Button>
             </Card>
+
+            <ResetAllDataCard onDone={loadAll} />
           </TabsContent>
+
 
           {/* HERO */}
           <TabsContent value="hero" className="mt-6 space-y-6">
