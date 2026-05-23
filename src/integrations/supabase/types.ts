@@ -597,6 +597,7 @@ export type Database = {
           total_orders: number
         }[]
       }
+      next_seller_ref_code: { Args: never; Returns: string }
       register_my_manual_sale: {
         Args: {
           _amount_cents?: number
