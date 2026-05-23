@@ -29,6 +29,8 @@ const Auth = () => {
   const [mode, setMode] = useState<"signin" | "signup" | "forgot">(initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
   const [loading, setLoading] = useState(false);
 
   const resolveDestination = async (uid?: string): Promise<string> => {
@@ -62,6 +64,19 @@ const Auth = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate, next]);
 
+  const registerAsSeller = async () => {
+    const cleanPhone = whatsapp.replace(/\D/g, "");
+    if (cleanPhone.length < 10) return;
+    try {
+      await supabase.rpc("register_seller_self", {
+        _name: fullName.trim(),
+        _phone: cleanPhone,
+      });
+    } catch (err) {
+      console.log("[Auth] register_seller_self failed", err);
+    }
+  };
+
   const handleEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -70,21 +85,32 @@ const Auth = () => {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
       } else if (mode === "signup") {
+        // Client-side validation for signup-only fields
+        const cleanPhone = whatsapp.replace(/\D/g, "");
+        if (fullName.trim().split(/\s+/).length < 2) {
+          throw new Error("Informe seu nome e sobrenome");
+        }
+        if (!/^[0-9]{10,11}$/.test(cleanPhone)) {
+          throw new Error("WhatsApp deve ter 10 ou 11 dígitos (DDD + número)");
+        }
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: `${window.location.origin}${next || "/revendedor"}` },
+          options: {
+            emailRedirectTo: `${window.location.origin}/revendedor`,
+            data: { full_name: fullName.trim(), phone: cleanPhone },
+          },
         });
         if (error) throw error;
         if (!data.session) {
-          // fallback: tenta login direto (caso confirmação automática esteja ativa)
           const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
           if (signInErr) {
             toast.success("Conta criada! Verifique seu e-mail para confirmar antes de entrar.");
             return;
           }
         }
-        toast.success("Conta criada com sucesso!");
+        await registerAsSeller();
+        toast.success("Conta criada! Seu código de revendedor está pronto.");
       } else if (mode === "forgot") {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: `${window.location.origin}/reset-password`,
@@ -104,7 +130,7 @@ const Auth = () => {
   const handleGoogle = async () => {
     setLoading(true);
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: `${window.location.origin}${next || "/revendedor"}`,
+      redirect_uri: `${window.location.origin}/revendedor`,
     });
     if (result.error) {
       toast.error("Erro ao entrar com Google");
@@ -125,10 +151,42 @@ const Auth = () => {
         <p className="mb-6 text-sm text-muted-foreground">
           {mode === "forgot"
             ? "Informe seu e-mail e enviaremos um link para redefinir a senha."
+            : mode === "signup"
+            ? "Crie sua conta e receba automaticamente seu código de revendedor."
             : "Acesse o painel de revendedor ou administrador."}
         </p>
 
         <form onSubmit={handleEmail} className="space-y-4">
+          {mode === "signup" && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="fullName">Nome completo</Label>
+                <Input
+                  id="fullName"
+                  type="text"
+                  required
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  autoComplete="name"
+                  placeholder="Maria Silva"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="whatsapp">WhatsApp</Label>
+                <Input
+                  id="whatsapp"
+                  type="tel"
+                  inputMode="numeric"
+                  required
+                  value={whatsapp}
+                  onChange={(e) => setWhatsapp(e.target.value.replace(/\D/g, "").slice(0, 11))}
+                  autoComplete="tel"
+                  placeholder="11987654321"
+                />
+                <p className="text-xs text-muted-foreground">DDD + número, apenas dígitos.</p>
+              </div>
+            </>
+          )}
           <div className="space-y-2">
             <Label htmlFor="email">E-mail</Label>
             <Input
@@ -191,6 +249,11 @@ const Auth = () => {
             >
               Continuar com Google
             </Button>
+            {mode === "signup" && (
+              <p className="mt-2 text-xs text-muted-foreground text-center">
+                Após entrar com Google, complete seus dados na tela do revendedor.
+              </p>
+            )}
           </>
         )}
 
