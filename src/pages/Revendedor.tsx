@@ -14,7 +14,22 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { LogOut, Plus, FileText, User, Copy, ExternalLink } from "lucide-react";
+import {
+  LogOut,
+  Plus,
+  FileText,
+  User,
+  Copy,
+  ExternalLink,
+  QrCode,
+  MousePointerClick,
+  Smartphone,
+  Lightbulb,
+  AlertTriangle,
+  BookOpen,
+  TrendingUp,
+  Users,
+} from "lucide-react";
 
 interface ManualSale {
   id: string;
