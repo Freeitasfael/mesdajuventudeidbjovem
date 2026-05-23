@@ -125,6 +125,28 @@ export const RaffleGrid = ({ pricePerNumber }: Props) => {
     navigate("/checkout");
   };
 
+  const handleNumberClick = (n: RaffleNumber) => {
+    if (n.status === "available") {
+      toggle(n.number);
+      return;
+    }
+    // Show popup for reserved/paid numbers
+    setBlockedPopup({
+      number: n.number,
+      status: n.status,
+      isInSelection: selected.includes(n.number),
+    });
+  };
+
+  const removeBlockedFromSelection = () => {
+    if (blockedPopup) {
+      toggle(blockedPopup.number);
+    }
+    setBlockedPopup(null);
+  };
+
+  const closeBlockedPopup = () => setBlockedPopup(null);
+
 
   if (error) {
     return (
