@@ -25,7 +25,7 @@ const BodySchema = z.object({
     .string()
     .trim()
     .regex(/^[0-9]{10,11}$/, "Telefone deve ter 10 ou 11 dígitos"),
-  numbers: z.array(z.number().int().min(1).max(400)).min(1).max(50),
+  numbers: z.array(z.number().int().min(1).max(600)).min(1).max(50),
   ref_code: z.string().trim().min(1).max(64).optional().nullable(),
 });
 
