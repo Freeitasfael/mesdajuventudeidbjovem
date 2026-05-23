@@ -10,9 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SiteHeader } from "@/components/SiteHeader";
 import { toast } from "sonner";
-import { Clock, Search } from "lucide-react";
-
-const REF_STORAGE_KEY = "raffle_ref_code";
+import { Clock, Search, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 
 const Schema = z.object({
   name: z
@@ -35,17 +33,20 @@ const Checkout = () => {
   const [pricePerNumber, setPricePerNumber] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // Referral: auto from link (localStorage) or manual via checkbox
-  const autoRefCode =
-    typeof window !== "undefined" ? localStorage.getItem(REF_STORAGE_KEY) : null;
+  // Referral (código numérico apenas)
   const [hasReferral, setHasReferral] = useState(false);
   const [refInput, setRefInput] = useState("");
+  const [refValidating, setRefValidating] = useState(false);
+  const [refResult, setRefResult] = useState<
+    | { ok: true; name: string; ref_code: string }
+    | { ok: false; message: string }
+    | null
+  >(null);
 
   const form = useForm<FormData>({
     resolver: zodResolver(Schema),
     defaultValues: { name: "", phone: "" },
   });
-
 
   useEffect(() => {
     document.title = "Checkout — Rifa Digital";
@@ -68,12 +69,53 @@ const Checkout = () => {
     if (selected.length === 0) navigate("/rifa", { replace: true });
   }, [selected.length, navigate]);
 
+  // Auto-validate referral code (debounced)
+  useEffect(() => {
+    if (!hasReferral) {
+      setRefResult(null);
+      return;
+    }
+    const code = refInput.trim();
+    if (code.length < 3) {
+      setRefResult(null);
+      return;
+    }
+    let cancelled = false;
+    setRefValidating(true);
+    const t = setTimeout(async () => {
+      const { data, error } = await supabase.rpc("validate_referral_code", {
+        _code: code,
+      });
+      if (cancelled) return;
+      setRefValidating(false);
+      if (error) {
+        setRefResult({ ok: false, message: "Erro ao validar código" });
+        return;
+      }
+      const row = Array.isArray(data) ? data[0] : data;
+      if (row && row.name) {
+        setRefResult({ ok: true, name: row.name, ref_code: row.ref_code });
+        toast.success(`Este código pertence a: ${row.name}`);
+      } else {
+        setRefResult({ ok: false, message: "Código não encontrado" });
+      }
+    }, 450);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [refInput, hasReferral]);
+
   const totalCents = pricePerNumber ? pricePerNumber * selected.length : 0;
 
   const onSubmit = async (data: FormData) => {
+    if (hasReferral && refInput.trim() && (!refResult || !refResult.ok)) {
+      toast.error("Código de indicação inválido. Corrija ou desmarque a opção.");
+      return;
+    }
     setSubmitting(true);
     const phone = data.phone.replace(/\D/g, "");
-    const manualRef = hasReferral ? refInput.trim() : "";
+    const validRef = hasReferral && refResult && refResult.ok ? refResult.ref_code : null;
 
     const { data: result, error } = await supabase.functions.invoke(
       "reserve-numbers",
@@ -82,18 +124,16 @@ const Checkout = () => {
           name: data.name.trim(),
           phone,
           numbers: selected,
-          ref_code: autoRefCode,
-          ref_input: manualRef || null,
+          ref_code: validRef,
+          ref_input: null,
         },
       },
     );
-
 
     setSubmitting(false);
 
     if (error) {
       console.log("[Checkout] invoke error", error);
-      // Edge function returns useful body on error
       const ctx = (error as { context?: Response }).context;
       let message = "Não foi possível reservar. Tente novamente.";
       try {
@@ -105,9 +145,7 @@ const Checkout = () => {
         } else if (body?.error === "invalid_input") {
           message = "Verifique os dados informados.";
         }
-      } catch {
-        // ignore
-      }
+      } catch { /* ignore */ }
       toast.error(message);
       return;
     }
@@ -117,9 +155,7 @@ const Checkout = () => {
       return;
     }
 
-    // Save phone so /acompanhar can auto-load this buyer's orders later
     try { localStorage.setItem("rifa.last_phone", phone); } catch { /* ignore */ }
-
     toast.success("Números reservados! Você tem 10 minutos para pagar.");
     navigate(`/pagamento/${result.order_id}`);
   };
@@ -139,7 +175,6 @@ const Checkout = () => {
       <section className="container py-8 max-w-xl space-y-6">
         <h1 className="text-2xl font-bold">Confirmar pedido</h1>
 
-        {/* Alerta de reserva 10min — destaque verde */}
         <div className="rounded-xl border-2 border-number-available/40 bg-number-available/10 p-4 text-sm text-foreground shadow-sm">
           <div className="flex items-start gap-3">
             <div className="rounded-full bg-number-available/20 p-2 text-number-available">
@@ -159,13 +194,10 @@ const Checkout = () => {
                 </Link>
                 .
               </p>
-              <p className="text-xs text-muted-foreground">
-                Após 10 minutos sem pagamento, seus números serão liberados
-                automaticamente e poderão ser adquiridos por outra pessoa.
-              </p>
             </div>
           </div>
         </div>
+
         <div className="rounded-lg border border-border bg-card p-5 space-y-3">
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
             Resumo
@@ -237,49 +269,64 @@ const Checkout = () => {
             </p>
           </div>
 
-          {/* Referral: auto-detected from link, or manual checkbox */}
-          {autoRefCode ? (
-            <div className="rounded-md border border-primary/30 bg-primary/5 p-3 text-xs text-muted-foreground">
-              Indicação registrada automaticamente pelo link de revendedor (<span className="font-mono font-semibold">{autoRefCode}</span>).
-            </div>
-          ) : (
-            <div className="space-y-2 rounded-md border border-border p-3">
-              <label className="flex items-start gap-2 text-sm font-medium cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={hasReferral}
-                  onChange={(e) => setHasReferral(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 rounded border-border"
+          {/* Indicação por código */}
+          <div className="space-y-3 rounded-md border border-border p-3">
+            <label className="flex items-start gap-2 text-sm font-medium cursor-pointer">
+              <input
+                type="checkbox"
+                checked={hasReferral}
+                onChange={(e) => {
+                  setHasReferral(e.target.checked);
+                  if (!e.target.checked) {
+                    setRefInput("");
+                    setRefResult(null);
+                  }
+                }}
+                className="mt-0.5 h-4 w-4 rounded border-border"
+              />
+              <span>
+                Você recebeu indicação de alguém para comprar?
+              </span>
+            </label>
+
+            {hasReferral && (
+              <div className="space-y-2">
+                <Label htmlFor="ref-input" className="text-xs">
+                  Ele te informou um código? Digite abaixo para validar a indicação.
+                </Label>
+                <Input
+                  id="ref-input"
+                  type="text"
+                  inputMode="text"
+                  placeholder="Ex.: IDB001"
+                  value={refInput}
+                  onChange={(e) => setRefInput(e.target.value.toUpperCase().slice(0, 32))}
+                  maxLength={32}
+                  className="font-mono tracking-wider"
                 />
-                <span>
-                  Fui indicado por um revendedor
-                  <span className="block text-xs font-normal text-muted-foreground">
-                    Marque se alguém te indicou para garantir que essa indicação seja contabilizada.
-                  </span>
-                </span>
-              </label>
-              {hasReferral && (
-                <div className="space-y-1">
-                  <Label htmlFor="ref-input" className="text-xs">
-                    Nome ou código do revendedor
-                  </Label>
-                  <Input
-                    id="ref-input"
-                    type="text"
-                    placeholder="Ex.: Maria Silva ou IDB001"
-                    value={refInput}
-                    onChange={(e) => setRefInput(e.target.value.slice(0, 120))}
-                    maxLength={120}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Esse nome ficará registrado e visível no seu pedido para reforçar a validação da indicação.
+                {refValidating && (
+                  <p className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" /> Validando código...
                   </p>
-                </div>
-              )}
-            </div>
-          )}
-
-
+                )}
+                {!refValidating && refResult?.ok && (
+                  <div className="flex items-start gap-2 rounded-md border border-number-available/40 bg-number-available/10 p-2 text-sm">
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-number-available" />
+                    <p>
+                      Este código pertence a:{" "}
+                      <strong>{refResult.name}</strong>
+                    </p>
+                  </div>
+                )}
+                {!refValidating && refResult && refResult.ok === false && refInput.trim().length >= 3 && (
+                  <div className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 p-2 text-sm">
+                    <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
+                    <p>{refResult.message}</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
 
           <Button type="submit" className="w-full" size="lg" disabled={submitting}>
             {submitting ? "Reservando..." : "Reservar e ir para pagamento"}

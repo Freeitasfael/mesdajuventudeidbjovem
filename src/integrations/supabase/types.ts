@@ -409,25 +409,31 @@ export type Database = {
       }
       sellers: {
         Row: {
+          church: string | null
           created_at: string
           id: string
           name: string
+          neighborhood: string | null
           phone: string | null
           ref_code: string
           user_id: string | null
         }
         Insert: {
+          church?: string | null
           created_at?: string
           id?: string
           name: string
+          neighborhood?: string | null
           phone?: string | null
           ref_code: string
           user_id?: string | null
         }
         Update: {
+          church?: string | null
           created_at?: string
           id?: string
           name?: string
+          neighborhood?: string | null
           phone?: string | null
           ref_code?: string
           user_id?: string | null
@@ -533,9 +539,11 @@ export type Database = {
       get_my_seller: {
         Args: never
         Returns: {
+          church: string
           created_at: string
           id: string
           name: string
+          neighborhood: string
           phone: string
           ref_code: string
         }[]
@@ -612,7 +620,12 @@ export type Database = {
         Returns: string
       }
       register_seller_self: {
-        Args: { _name: string; _phone: string }
+        Args: {
+          _church?: string
+          _name: string
+          _neighborhood?: string
+          _phone: string
+        }
         Returns: {
           id: string
           name: string
@@ -622,6 +635,13 @@ export type Database = {
       reserve_numbers: {
         Args: { _numbers: number[]; _order_id: string }
         Returns: undefined
+      }
+      validate_referral_code: {
+        Args: { _code: string }
+        Returns: {
+          name: string
+          ref_code: string
+        }[]
       }
     }
     Enums: {
