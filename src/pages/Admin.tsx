@@ -141,7 +141,7 @@ const Admin = () => {
   const [newSellerPhone, setNewSellerPhone] = useState("");
 
   // Filtros de pedidos (Admin)
-  const [orderStatusFilter, setOrderStatusFilter] = useState<"all" | "pending" | "paid" | "expired" | "cancelled">("all");
+  const [orderStatusFilter, setOrderStatusFilter] = useState<"all" | "pending" | "paid" | "expired" | "cancelled" | "refunded">("all");
   const [orderDateFrom, setOrderDateFrom] = useState("");
   const [orderDateTo, setOrderDateTo] = useState("");
 
