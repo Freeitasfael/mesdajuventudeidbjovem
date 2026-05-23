@@ -482,6 +482,7 @@ export type Database = {
           payment_id: string
           payment_status: string
           provider_payment_id: string
+          referral_label: string
           seller_name: string
           status: string
           total_cents: number
@@ -563,6 +564,7 @@ export type Database = {
           expires_at: string
           numbers: number[]
           order_id: string
+          referral_label: string
           status: string
           total_cents: number
         }[]
