@@ -23,6 +23,20 @@ export const RaffleGrid = ({ pricePerNumber }: Props) => {
   const [numbers, setNumbers] = useState<RaffleNumber[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const inlineRef = useRef<HTMLDivElement | null>(null);
+  const [inlineVisible, setInlineVisible] = useState(false);
+
+  useEffect(() => {
+    const el = inlineRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setInlineVisible(entry.isIntersecting),
+      { threshold: 0.1 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
 
   const load = async () => {
     setLoading(true);
