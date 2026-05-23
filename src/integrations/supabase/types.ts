@@ -458,6 +458,13 @@ export type Database = {
           freed_numbers: number
         }[]
       }
+      admin_reset_all_data: {
+        Args: never
+        Returns: {
+          numbers_reset: number
+          orders_deleted: number
+        }[]
+      }
       confirm_payment: { Args: { _order_id: string }; Returns: undefined }
       expire_reservations: {
         Args: never
