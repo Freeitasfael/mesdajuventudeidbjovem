@@ -641,27 +641,27 @@ const Admin = () => {
   return (
     <main className="min-h-screen bg-background">
       <header className="border-b border-border bg-card">
-        <div className="container flex items-center justify-between py-4">
+        <div className="container flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:py-4">
           <div>
-            <h1 className="text-xl font-bold">Painel Admin</h1>
+            <h1 className="text-lg font-bold sm:text-xl">Painel Admin</h1>
             <p className="text-xs text-muted-foreground">Gerencie sua rifa</p>
           </div>
-          <div className="flex gap-2 flex-wrap">
-            <Button variant="outline" asChild>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" asChild>
               <Link to="/admin/alertas">
-                <Bell className="mr-2 h-4 w-4" /> Alertas
+                <Bell className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">Alertas</span>
               </Link>
             </Button>
-            <Button variant="outline" asChild>
+            <Button variant="outline" size="sm" asChild>
               <Link to="/admin/ranking">
-                <Trophy className="mr-2 h-4 w-4" /> Ranking
+                <Trophy className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">Ranking</span>
               </Link>
             </Button>
-            <Button variant="outline" asChild>
+            <Button variant="outline" size="sm" asChild>
               <Link to="/rifa">Ver rifa</Link>
             </Button>
-            <Button variant="outline" onClick={handleLogout}>
-              <LogOut className="mr-2 h-4 w-4" /> Sair
+            <Button variant="outline" size="sm" onClick={handleLogout}>
+              <LogOut className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">Sair</span>
             </Button>
           </div>
         </div>
