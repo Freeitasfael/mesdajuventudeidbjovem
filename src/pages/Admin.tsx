@@ -792,8 +792,12 @@ const Admin = () => {
                   Limpar
                 </Button>
                 <Button size="sm" onClick={exportOrdersCsv} className="ml-auto">
-                  <Download className="mr-2 h-4 w-4" /> Exportar CSV ({filteredOrders.length})
+                  <Download className="mr-2 h-4 w-4" /> Exportar pedidos ({filteredOrders.length})
                 </Button>
+                <Button size="sm" variant="secondary" onClick={exportRaffleCsv}>
+                  <Trophy className="mr-2 h-4 w-4" /> Exportar sorteio (números pagos)
+                </Button>
+
               </div>
             </Card>
 
