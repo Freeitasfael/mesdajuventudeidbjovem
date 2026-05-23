@@ -31,10 +31,11 @@ export const RaffleGrid = ({ pricePerNumber }: Props) => {
     if (!el) return;
     const observer = new IntersectionObserver(
       ([entry]) => setInlineVisible(entry.isIntersecting),
-      { threshold: 0.1 },
+      { threshold: 0.4 },
     );
     observer.observe(el);
     return () => observer.disconnect();
+
   }, []);
 
 
