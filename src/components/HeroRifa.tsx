@@ -325,18 +325,15 @@ export const HeroRifa = ({
 type PrizeMediaProps = {
   src: string;
   type: "image" | "video";
-  fallback: string;
   alt: string;
   style: React.CSSProperties;
 };
 
-const PrizeMedia = ({ src, type, fallback, alt, style }: PrizeMediaProps) => {
+const PrizeMedia = ({ src, type, alt, style }: PrizeMediaProps) => {
   const [videoFailed, setVideoFailed] = useState(false);
-  const [imgSrc, setImgSrc] = useState(src);
 
   useEffect(() => {
     setVideoFailed(false);
-    setImgSrc(src);
   }, [src]);
 
   if (type === "video" && !videoFailed) {
@@ -351,24 +348,20 @@ const PrizeMedia = ({ src, type, fallback, alt, style }: PrizeMediaProps) => {
         className="h-full w-full transition-transform duration-500 group-hover:scale-110"
         style={style}
         onError={() => {
-          console.log("[HeroRifa] video failed, falling back to image", src);
+          console.log("[HeroRifa] video failed", src);
           setVideoFailed(true);
         }}
       />
     );
   }
 
-  const finalSrc = type === "video" && videoFailed ? fallback : imgSrc;
   return (
     <img
-      src={finalSrc}
+      src={src}
       alt={alt}
       loading="lazy"
       className="h-full w-full transition-transform duration-500 group-hover:scale-110"
       style={style}
-      onError={() => {
-        if (imgSrc !== fallback) setImgSrc(fallback);
-      }}
     />
   );
 };
