@@ -102,6 +102,13 @@ const Admin = () => {
   const [revalidatingId, setRevalidatingId] = useState<string | null>(null);
   const [realtimeOk, setRealtimeOk] = useState(false);
 
+  // Order detail dialog
+  const [detailOrder, setDetailOrder] = useState<OrderRow | null>(null);
+  const [detailNumbers, setDetailNumbers] = useState<number[]>([]);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [refunding, setRefunding] = useState(false);
+
+
   // Settings
   const [title, setTitle] = useState("");
   const [priceReais, setPriceReais] = useState("");
