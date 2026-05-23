@@ -239,10 +239,6 @@ export const RaffleGrid = ({ pricePerNumber }: Props) => {
             backdropFilter: "blur(8px)",
           }}
         >
-            borderColor: "hsl(var(--hero-gold) / 0.4)",
-            backdropFilter: "blur(8px)",
-          }}
-        >
           <div className="container py-3 sm:py-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
             <div className="flex-1 min-w-0 text-white">
               <p className="text-sm font-medium">
