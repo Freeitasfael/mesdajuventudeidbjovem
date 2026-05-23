@@ -34,7 +34,7 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
 
   const resolveDestination = async (uid?: string): Promise<string> => {
-    if (next) return next;
+    if (next && next !== "/afiliacao") return next;
     if (!uid) return "/revendedor";
     const { data: roleRow } = await supabase
       .from("user_roles")
