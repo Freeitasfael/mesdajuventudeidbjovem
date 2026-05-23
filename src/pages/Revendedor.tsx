@@ -14,7 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { LogOut, Plus, FileText, User } from "lucide-react";
+import { LogOut, Plus, FileText, User, Copy, ExternalLink } from "lucide-react";
 
 interface ManualSale {
   id: string;
@@ -199,6 +199,45 @@ const Revendedor = () => {
       </header>
 
       <main className="container space-y-6 py-8">
+        {/* Link de divulgação + código IDB */}
+        <Card className="space-y-3 p-5">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-sm font-semibold">
+              <ExternalLink className="h-4 w-4 text-primary" />
+              Seu link de divulgação
+            </div>
+            {seller?.ref_code && (
+              <span className="rounded-full border border-primary/40 bg-primary/10 px-3 py-0.5 font-mono text-xs font-bold text-primary">
+                {seller.ref_code}
+              </span>
+            )}
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <code className="flex-1 break-all rounded-md bg-muted px-3 py-2 text-xs">
+              {seller ? `${window.location.origin}/v/${seller.ref_code}` : "—"}
+            </code>
+            <Button
+              size="sm"
+              onClick={async () => {
+                if (!seller) return;
+                try {
+                  await navigator.clipboard.writeText(
+                    `${window.location.origin}/v/${seller.ref_code}`,
+                  );
+                  toast.success("Link copiado!");
+                } catch {
+                  toast.error("Não foi possível copiar");
+                }
+              }}
+            >
+              <Copy className="mr-2 h-4 w-4" /> Copiar link
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Toda compra feita pelo seu link é registrada automaticamente no seu nome.
+          </p>
+        </Card>
+
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-xl font-semibold">Minhas vendas</h2>
           <Button onClick={() => setOpen(true)}>
