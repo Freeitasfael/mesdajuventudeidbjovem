@@ -181,10 +181,64 @@ export const RaffleGrid = ({ pricePerNumber }: Props) => {
         </div>
       )}
 
+      {/* Inline payment bar at the bottom of the page (in flow) */}
       {selected.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 border-t z-40 animate-in slide-in-from-bottom-2"
+        <div
+          ref={inlineBarRef}
+          className="rounded-2xl border p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4"
+          style={{
+            backgroundColor: "hsl(var(--hero-bg) / 0.85)",
+            borderColor: "hsl(var(--hero-gold) / 0.4)",
+            boxShadow: "var(--shadow-gold-glow)",
+          }}
+        >
+          <div className="flex-1 min-w-0 text-white">
+            <p className="text-sm font-medium">
+              {selected.length}{" "}
+              {selected.length === 1 ? "número selecionado" : "números selecionados"}
+            </p>
+            {pricePerNumber !== null && (
+              <p className="text-xs text-white/70">
+                Total:{" "}
+                <span className="font-bold" style={{ color: "hsl(var(--hero-gold))" }}>
+                  R$ {(totalCents / 100).toFixed(2).replace(".", ",")}
+                </span>
+              </p>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={clear}
+              className="border-white/20 bg-transparent text-white hover:bg-white/10 hover:text-white"
+            >
+              Limpar
+            </Button>
+            <Button
+              size="sm"
+              onClick={goToCheckout}
+              className="font-bold"
+              style={{
+                backgroundColor: "hsl(var(--hero-gold))",
+                color: "hsl(var(--hero-bg))",
+              }}
+            >
+              Ir para pagamento
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {selected.length > 0 && !inlineVisible && (
+        <div
+          className="fixed bottom-0 left-0 right-0 border-t z-40 animate-in slide-in-from-bottom-2"
           style={{
             backgroundColor: "hsl(var(--hero-bg) / 0.95)",
+            borderColor: "hsl(var(--hero-gold) / 0.4)",
+            backdropFilter: "blur(8px)",
+          }}
+        >
             borderColor: "hsl(var(--hero-gold) / 0.4)",
             backdropFilter: "blur(8px)",
           }}
