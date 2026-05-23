@@ -14,6 +14,7 @@ import Revendedor from "./pages/Revendedor.tsx";
 import SellerOrderDetail from "./pages/SellerOrderDetail.tsx";
 import Afiliacao from "./pages/Afiliacao.tsx";
 import Auth from "./pages/Auth.tsx";
+import ResetPassword from "./pages/ResetPassword.tsx";
 import Admin from "./pages/Admin.tsx";
 import Eventos from "./pages/admin/Eventos.tsx";
 import Reconciliacao from "./pages/admin/Reconciliacao.tsx";
