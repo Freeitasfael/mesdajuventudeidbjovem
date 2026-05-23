@@ -928,6 +928,18 @@ const Admin = () => {
                             {seller.phone && (
                               <p className="text-xs text-muted-foreground">Tel: {seller.phone}</p>
                             )}
+                            {detailOrder.referral_label && (
+                              <p className="mt-1 text-xs text-muted-foreground">
+                                Informado pelo comprador: <span className="font-medium text-foreground">{detailOrder.referral_label}</span>
+                              </p>
+                            )}
+                          </div>
+                        ) : detailOrder.referral_label ? (
+                          <div className="mt-1">
+                            <p className="font-medium text-amber-600 dark:text-amber-400">{detailOrder.referral_label}</p>
+                            <p className="text-xs text-muted-foreground">
+                              Nome/código informado pelo comprador — não vinculado a um revendedor cadastrado.
+                            </p>
                           </div>
                         ) : (
                           <p className="mt-1 text-muted-foreground">Sem indicação</p>
