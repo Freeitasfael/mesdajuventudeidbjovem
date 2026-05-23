@@ -164,6 +164,62 @@ export const RaffleGrid = ({ pricePerNumber }: Props) => {
 
   return (
     <div className="space-y-6 pb-32 sm:pb-24">
+      {/* Blocked number popup — fixed top */}
+      {blockedPopup && (
+        <div className="fixed top-0 left-0 right-0 z-[60] animate-fade-in-down">
+          <div className="container pt-4">
+            <div className="rounded-xl border-2 border-red-500 bg-red-950/90 p-4 shadow-2xl backdrop-blur-md">
+              <div className="flex items-start gap-3">
+                <div className="rounded-full bg-red-500/20 p-2 text-red-400">
+                  <AlertTriangle className="h-5 w-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-red-100">
+                    Número <span className="font-mono text-lg">{blockedPopup.number.toString().padStart(3, "0")}</span> já foi escolhido
+                  </p>
+                  <p className="mt-0.5 text-sm text-red-200/80">
+                    Este número está <span className="font-semibold">{blockedPopup.status === "reserved" ? "reservado" : "pago"}</span> por outra pessoa. Escolha outro número disponível.
+                  </p>
+                  {blockedPopup.isInSelection && (
+                    <p className="mt-1 text-xs text-red-300/70">
+                      Esse número ainda consta na sua seleção atual porque foi reservado por você antes, mas agora não está mais disponível.
+                    </p>
+                  )}
+                </div>
+                <button
+                  onClick={closeBlockedPopup}
+                  className="rounded-full p-1.5 text-red-300 hover:bg-red-500/20 hover:text-red-100 transition-colors"
+                  aria-label="Fechar aviso"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {blockedPopup.isInSelection && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={removeBlockedFromSelection}
+                    className="border-red-400/50 bg-red-500/10 text-red-100 hover:bg-red-500/20 hover:text-white"
+                  >
+                    <Trash2 className="mr-1.5 h-4 w-4" />
+                    Excluir da minha seleção
+                  </Button>
+                )}
+                <Button
+                  size="sm"
+                  onClick={closeBlockedPopup}
+                  className="bg-red-600 text-white hover:bg-red-500 font-semibold"
+                >
+                  <Shuffle className="mr-1.5 h-4 w-4" />
+                  Escolher outro número
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-wrap items-center justify-center gap-4 text-xs sm:text-sm">
         <LegendDot className="bg-number-available" label={`Disponíveis (${counts.available})`} />
         <LegendDot className="bg-number-reserved" label={`Reservados (${counts.reserved})`} />
