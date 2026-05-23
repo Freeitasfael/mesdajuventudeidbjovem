@@ -189,12 +189,12 @@ const Rifa = () => {
             style={{ color: "hsl(var(--hero-gold))" }}
           />
           <h3 className="mt-3 text-2xl font-extrabold sm:text-3xl">
-            Quer ganhar dinheiro divulgando essa rifa?
+            Quer contribuir com o evento divulgando essa rifa?
           </h3>
           <p className="mx-auto mt-3 max-w-xl text-sm text-white/75 sm:text-base">
-            Você pode compartilhar seu link exclusivo e ganhar comissões por cada
-            venda realizada. Os melhores vendedores ainda recebem bônus de até{" "}
-            <span className="font-semibold text-white">R$ 300</span>.
+            Você pode compartilhar seu link exclusivo e fazer parte ativa da construção
+            do Mês da Juventude. Sua divulgação ajuda a custear tudo com excelência e honrar
+            os participantes. <span className="font-semibold text-white">Obrigado a quem contribuir!</span>
           </p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
             <Button

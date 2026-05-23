@@ -119,13 +119,13 @@ const Afiliacao = () => {
           </span>
           <h1 className="mt-4 text-3xl font-extrabold tracking-tight sm:text-5xl">
             Quer{" "}
-            <span style={{ color: "hsl(var(--hero-gold))" }}>ganhar dinheiro</span>{" "}
+            <span style={{ color: "hsl(var(--hero-gold))" }}>contribuir com o evento</span>{" "}
             divulgando essa rifa?
           </h1>
           <p className="mx-auto mt-4 max-w-xl text-base text-white/75">
-            Compartilhe seu link exclusivo e ganhe comissões por cada venda
-            realizada. Os melhores vendedores podem ganhar bônus de até{" "}
-            <span className="font-semibold text-white">R$ 300</span>.
+            Compartilhe seu link exclusivo e faça parte ativa da construção do evento.
+            Sua divulgação ajuda a custear tudo com excelência e honrar os participantes.{" "}
+            <span className="font-semibold text-white">Obrigado a quem contribuir!</span>
           </p>
         </div>
       </section>
@@ -145,7 +145,7 @@ const Afiliacao = () => {
           />
           <Step
             icon={<Trophy className="h-5 w-5" />}
-            title="3. Acompanhe e ganhe"
+            title="3. Acompanhe e contribua"
             text="Use o painel para ver suas vendas, recuperar pendentes e subir no ranking."
           />
         </div>
@@ -240,18 +240,18 @@ const Afiliacao = () => {
         <div className="mt-8 grid gap-4 sm:grid-cols-3">
           <Bullet
             icon={<TrendingUp className="h-5 w-5" />}
-            title="Comissão por venda"
-            text="Você ganha sempre que alguém compra usando seu link."
+            title="Faça parte do evento"
+            text="Cada venda pelo seu link ajuda a custear o Mês da Juventude."
           />
           <Bullet
             icon={<ShieldCheck className="h-5 w-5" />}
-            title="Pagamento garantido"
-            text="Acompanhe pendentes e ajude o cliente a finalizar o PIX."
+            title="Acompanhe tudo"
+            text="Monitore suas vendas e ajude os compradores a finalizar o PIX."
           />
           <Bullet
             icon={<Trophy className="h-5 w-5" />}
-            title="Bônus para os melhores"
-            text="Os top vendedores recebem prêmios extras."
+            title="Ranking de contribuição"
+            text="Veja sua posição entre quem mais ajudou na divulgação."
           />
         </div>
       </section>
