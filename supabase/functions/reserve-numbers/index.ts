@@ -87,33 +87,43 @@ Deno.serve(async (req) => {
     // Resolve seller (optional): try exact ref_code first (auto-captured from link),
     // then fall back to user-typed input matching ref_code OR name (case-insensitive).
     let seller_id: string | null = null;
+    let referral_label: string | null = null;
     if (ref_code) {
       const { data: seller } = await admin
         .from("sellers")
-        .select("id")
+        .select("id, name, ref_code")
         .eq("ref_code", ref_code)
         .maybeSingle();
-      if (seller) seller_id = seller.id;
+      if (seller) {
+        seller_id = seller.id;
+        referral_label = `${seller.name} (${seller.ref_code})`;
+      }
     }
     if (!seller_id && ref_input) {
       const q = ref_input.trim();
-      // Try exact ref_code match first
       const { data: byCode } = await admin
         .from("sellers")
-        .select("id")
+        .select("id, name, ref_code")
         .ilike("ref_code", q)
         .maybeSingle();
       if (byCode) {
         seller_id = byCode.id;
+        referral_label = `${byCode.name} (${byCode.ref_code})`;
       } else {
-        // Fallback: name match (exact ilike)
         const { data: byName } = await admin
           .from("sellers")
-          .select("id")
+          .select("id, name, ref_code")
           .ilike("name", q)
           .limit(2);
-        if (byName && byName.length === 1) seller_id = byName[0].id;
+        if (byName && byName.length === 1) {
+          seller_id = byName[0].id;
+          referral_label = `${byName[0].name} (${byName[0].ref_code})`;
+        }
       }
+    }
+    // Always preserve what the buyer typed when no seller match was found
+    if (!referral_label && ref_input) {
+      referral_label = ref_input.trim();
     }
 
 
@@ -145,6 +155,7 @@ Deno.serve(async (req) => {
       .insert({
         buyer_id: buyer.id,
         seller_id,
+        referral_label,
         total_cents,
         status: "pending",
         expires_at,

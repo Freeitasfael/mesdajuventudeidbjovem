@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
 
     const { data: orders } = await admin
       .from("orders")
-      .select("id, status, total_cents, expires_at, created_at, buyer_id")
+      .select("id, status, total_cents, expires_at, created_at, buyer_id, referral_label")
       .in("buyer_id", buyerIds)
       .order("created_at", { ascending: false })
       .limit(10);
@@ -88,6 +88,7 @@ Deno.serve(async (req) => {
       expires_at: o.expires_at,
       created_at: o.created_at,
       buyer_name: buyerNameById.get(o.buyer_id) ?? null,
+      referral_label: o.referral_label ?? null,
       numbers: (numsByOrder.get(o.id) ?? []).sort((a, b) => a - b),
     }));
 

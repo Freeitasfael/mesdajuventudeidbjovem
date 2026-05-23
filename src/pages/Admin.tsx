@@ -64,6 +64,7 @@ interface OrderRow {
   expires_at: string;
   buyer_id: string;
   seller_id: string | null;
+  referral_label: string | null;
 }
 
 interface PaymentRow {
@@ -313,7 +314,7 @@ const Admin = () => {
         ]),
     ]);
     if (s.data && Array.isArray(s.data) && s.data[0]) setStats(s.data[0] as Stats);
-    if (o.data) setOrders(o.data as OrderRow[]);
+    if (o.data) setOrders(o.data as unknown as OrderRow[]);
     if (p.data) setPayments(p.data as PaymentRow[]);
     if (b.data) {
       const map: Record<string, BuyerRow> = {};
@@ -840,6 +841,11 @@ const Admin = () => {
                                 {seller.ref_code}
                               </span>
                             </span>
+                          ) : o.referral_label ? (
+                            <span className="inline-flex flex-col">
+                              <span className="font-medium text-amber-600 dark:text-amber-400">{o.referral_label}</span>
+                              <span className="text-[10px] text-muted-foreground">informado, não vinculado</span>
+                            </span>
                           ) : (
                             <span className="text-muted-foreground">—</span>
                           )}
@@ -927,6 +933,18 @@ const Admin = () => {
                             {seller.phone && (
                               <p className="text-xs text-muted-foreground">Tel: {seller.phone}</p>
                             )}
+                            {detailOrder.referral_label && (
+                              <p className="mt-1 text-xs text-muted-foreground">
+                                Informado pelo comprador: <span className="font-medium text-foreground">{detailOrder.referral_label}</span>
+                              </p>
+                            )}
+                          </div>
+                        ) : detailOrder.referral_label ? (
+                          <div className="mt-1">
+                            <p className="font-medium text-amber-600 dark:text-amber-400">{detailOrder.referral_label}</p>
+                            <p className="text-xs text-muted-foreground">
+                              Nome/código informado pelo comprador — não vinculado a um revendedor cadastrado.
+                            </p>
                           </div>
                         ) : (
                           <p className="mt-1 text-muted-foreground">Sem indicação</p>

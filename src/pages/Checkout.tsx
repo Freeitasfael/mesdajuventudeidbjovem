@@ -240,30 +240,39 @@ const Checkout = () => {
           {/* Referral: auto-detected from link, or manual checkbox */}
           {autoRefCode ? (
             <div className="rounded-md border border-primary/30 bg-primary/5 p-3 text-xs text-muted-foreground">
-              Indicação registrada automaticamente pelo link de revendedor.
+              Indicação registrada automaticamente pelo link de revendedor (<span className="font-mono font-semibold">{autoRefCode}</span>).
             </div>
           ) : (
             <div className="space-y-2 rounded-md border border-border p-3">
-              <label className="flex items-center gap-2 text-sm font-medium cursor-pointer">
+              <label className="flex items-start gap-2 text-sm font-medium cursor-pointer">
                 <input
                   type="checkbox"
                   checked={hasReferral}
                   onChange={(e) => setHasReferral(e.target.checked)}
-                  className="h-4 w-4 rounded border-border"
+                  className="mt-0.5 h-4 w-4 rounded border-border"
                 />
-                Fui indicado
+                <span>
+                  Fui indicado por um revendedor
+                  <span className="block text-xs font-normal text-muted-foreground">
+                    Marque se alguém te indicou para garantir que essa indicação seja contabilizada.
+                  </span>
+                </span>
               </label>
               {hasReferral && (
                 <div className="space-y-1">
+                  <Label htmlFor="ref-input" className="text-xs">
+                    Nome ou código do revendedor
+                  </Label>
                   <Input
+                    id="ref-input"
                     type="text"
-                    placeholder="Nome ou código do revendedor"
+                    placeholder="Ex.: Maria Silva ou IDB001"
                     value={refInput}
                     onChange={(e) => setRefInput(e.target.value.slice(0, 120))}
                     maxLength={120}
                   />
                   <p className="text-xs text-muted-foreground">
-                    Informe o nome completo ou o código exato do revendedor.
+                    Esse nome ficará registrado e visível no seu pedido para reforçar a validação da indicação.
                   </p>
                 </div>
               )}

@@ -14,6 +14,7 @@ interface OrderRow {
   expires_at: string;
   created_at: string;
   buyer_name: string | null;
+  referral_label: string | null;
   numbers: number[];
 }
 
@@ -290,7 +291,15 @@ const Acompanhar = () => {
                     )}
                   </div>
 
+                  {o.referral_label && (
+                    <div className="rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-xs">
+                      <span className="text-muted-foreground">Indicado por: </span>
+                      <span className="font-semibold text-foreground">{o.referral_label}</span>
+                    </div>
+                  )}
+
                   <div className="flex items-center justify-between pt-2 border-t border-border">
+
                     <p className="text-sm font-semibold">
                       {formatBRL(o.total_cents)}
                     </p>
