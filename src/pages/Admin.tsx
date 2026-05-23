@@ -1334,6 +1334,8 @@ const StatusBadge = ({ status }: { status: string }) => {
     pending: "bg-yellow-500/15 text-yellow-700 dark:text-yellow-400",
     expired: "bg-muted text-muted-foreground",
     cancelled: "bg-destructive/15 text-destructive",
+    refunded: "bg-orange-500/15 text-orange-700 dark:text-orange-400",
+
   };
   return (
     <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${map[status] ?? "bg-muted"}`}>
