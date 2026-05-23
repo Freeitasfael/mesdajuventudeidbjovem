@@ -185,13 +185,10 @@ const Checkout = () => {
                 ⚠️ Atenção: seus números estão reservados por 10 minutos.
               </p>
               <p className="text-sm">
-                Se você sair desta página, poderá retornar clicando em{" "}
-                <Link
-                  to="/acompanhar"
-                  className="inline-flex items-center gap-1 font-semibold underline"
-                >
-                  <Search className="h-3.5 w-3.5" /> Consultar número
-                </Link>
+                Se você sair desta página, poderá retornar acessando o menu:{" "}
+                <span className="font-semibold text-foreground">
+                  Menu ☰ &gt; Consultar número
+                </span>
                 .
               </p>
             </div>
