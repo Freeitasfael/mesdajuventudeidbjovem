@@ -351,7 +351,7 @@ const Pagamento = () => {
                 </div>
                 <div className="pt-2">
                   <Button asChild variant="ghost" size="sm">
-                    <Link to="/rifa">Ver rifa</Link>
+                    <Link to="/acompanhar">Ver meus números</Link>
                   </Button>
                 </div>
               </div>
