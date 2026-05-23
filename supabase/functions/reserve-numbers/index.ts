@@ -155,6 +155,7 @@ Deno.serve(async (req) => {
       .insert({
         buyer_id: buyer.id,
         seller_id,
+        referral_label,
         total_cents,
         status: "pending",
         expires_at,
