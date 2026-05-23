@@ -675,6 +675,7 @@ const Admin = () => {
                     <th className="px-4 py-3">Pedido</th>
                     <th className="px-4 py-3">Comprador</th>
                     <th className="px-4 py-3">Telefone</th>
+                    <th className="px-4 py-3">Indicação</th>
                     <th className="px-4 py-3">Status</th>
                     <th className="px-4 py-3 text-right">Total</th>
                   </tr>
@@ -682,6 +683,9 @@ const Admin = () => {
                 <tbody>
                   {filteredOrders.map((o) => {
                     const buyer = buyers[o.buyer_id];
+                    const seller = o.seller_id
+                      ? sellers.find((s) => s.id === o.seller_id)
+                      : null;
                     return (
                       <tr key={o.id} className="border-t border-border">
                         <td className="px-4 py-3">{fmtDate(o.created_at)}</td>
@@ -690,6 +694,18 @@ const Admin = () => {
                         </td>
                         <td className="px-4 py-3">{buyer?.name ?? "—"}</td>
                         <td className="px-4 py-3">{buyer?.phone ?? "—"}</td>
+                        <td className="px-4 py-3">
+                          {seller ? (
+                            <span className="inline-flex flex-col">
+                              <span className="font-medium">{seller.name}</span>
+                              <span className="font-mono text-[10px] text-muted-foreground">
+                                {seller.ref_code}
+                              </span>
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </td>
                         <td className="px-4 py-3">
                           <StatusBadge status={o.status} />
                         </td>
@@ -701,11 +717,12 @@ const Admin = () => {
                   })}
                   {filteredOrders.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                      <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
                         Nenhum pedido nesse filtro.
                       </td>
                     </tr>
                   )}
+
                 </tbody>
               </table>
             </Card>
