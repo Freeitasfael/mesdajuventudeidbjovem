@@ -27,6 +27,8 @@ const BodySchema = z.object({
     .regex(/^[0-9]{10,11}$/, "Telefone deve ter 10 ou 11 dígitos"),
   numbers: z.array(z.number().int().min(1).max(600)).min(1).max(50),
   ref_code: z.string().trim().min(1).max(64).optional().nullable(),
+  ref_input: z.string().trim().min(1).max(120).optional().nullable(),
+
 });
 
 Deno.serve(async (req) => {
@@ -59,7 +61,7 @@ Deno.serve(async (req) => {
 
     // Dedupe numbers
     const numbers = Array.from(new Set(parsed.data.numbers));
-    const { name, phone, ref_code } = parsed.data;
+    const { name, phone, ref_code, ref_input } = parsed.data;
 
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE, {
       auth: { persistSession: false },
@@ -82,7 +84,8 @@ Deno.serve(async (req) => {
     }
     const total_cents = pricePerNumber * numbers.length;
 
-    // Resolve seller (optional)
+    // Resolve seller (optional): try exact ref_code first (auto-captured from link),
+    // then fall back to user-typed input matching ref_code OR name (case-insensitive).
     let seller_id: string | null = null;
     if (ref_code) {
       const { data: seller } = await admin
@@ -92,6 +95,27 @@ Deno.serve(async (req) => {
         .maybeSingle();
       if (seller) seller_id = seller.id;
     }
+    if (!seller_id && ref_input) {
+      const q = ref_input.trim();
+      // Try exact ref_code match first
+      const { data: byCode } = await admin
+        .from("sellers")
+        .select("id")
+        .ilike("ref_code", q)
+        .maybeSingle();
+      if (byCode) {
+        seller_id = byCode.id;
+      } else {
+        // Fallback: name match (exact ilike)
+        const { data: byName } = await admin
+          .from("sellers")
+          .select("id")
+          .ilike("name", q)
+          .limit(2);
+        if (byName && byName.length === 1) seller_id = byName[0].id;
+      }
+    }
+
 
     // Create buyer
     const { data: buyer, error: buyerErr } = await admin
