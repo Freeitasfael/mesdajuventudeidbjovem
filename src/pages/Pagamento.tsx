@@ -92,34 +92,68 @@ const Pagamento = () => {
       if (!blob) throw new Error("blob_failed");
       const file = new File([blob], `comprovante-${data.order.id.slice(0, 8)}.png`, { type: "image/png" });
 
+      const shortId = data.order.id.slice(0, 8);
+      const shareUrl = typeof window !== "undefined" ? window.location.href : "";
       const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean };
+
+      // 1) Tenta compartilhar com arquivo (mobile nativo)
       if (nav.canShare && nav.canShare({ files: [file] })) {
-        await navigator.share({
-          files: [file],
-          title: "Comprovante Rifa",
-          text: `Comprovante do pedido ${data.order.id.slice(0, 8)}`,
-        });
-      } else {
-        // Fallback: baixa a imagem
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `comprovante-${data.order.id.slice(0, 8)}.png`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
+        try {
+          await navigator.share({
+            files: [file],
+            title: "Comprovante Rifa",
+            text: `Comprovante do pedido ${shortId}`,
+          });
+          return;
+        } catch (e) {
+          if ((e as Error).name === "AbortError") return;
+          // segue para próximos fallbacks
+        }
+      }
+
+      // 2) Tenta compartilhar apenas texto + url
+      if (typeof navigator.share === "function") {
+        try {
+          await navigator.share({
+            title: "Comprovante Rifa",
+            text: `Comprovante do pedido ${shortId}`,
+            url: shareUrl,
+          });
+          return;
+        } catch (e) {
+          if ((e as Error).name === "AbortError") return;
+        }
+      }
+
+      // 3) Fallback: baixa a imagem do comprovante
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `comprovante-${shortId}.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+
+      // 4) E tenta copiar o link do pedido para a área de transferência
+      try {
+        if (shareUrl && navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(shareUrl);
+          toast.success("Imagem baixada e link copiado!");
+        } else {
+          toast.success("Imagem do comprovante baixada!");
+        }
+      } catch {
         toast.success("Imagem do comprovante baixada!");
       }
     } catch (e) {
-      if ((e as Error).name !== "AbortError") {
-        console.log("[Pagamento] share error", e);
-        toast.error("Não foi possível compartilhar");
-      }
+      console.log("[Pagamento] share error", e);
+      toast.error("Não foi possível compartilhar");
     } finally {
       setGeneratingReceipt(false);
     }
   };
+
 
   const loadStatus = useCallback(async () => {
     if (!orderId) return;
