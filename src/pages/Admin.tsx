@@ -992,9 +992,7 @@ const Admin = () => {
                         onClick={refundOrder}
                         disabled={refunding}
                       >
-                        {refunding
-                          ? "Processando..."
-                          : "Liberar números e reembolsar"}
+                        {refunding ? "Liberando..." : "Liberar números"}
                       </Button>
                     )}
                 </DialogFooter>
