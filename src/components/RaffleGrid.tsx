@@ -23,19 +23,29 @@ export const RaffleGrid = ({ pricePerNumber }: Props) => {
   const [numbers, setNumbers] = useState<RaffleNumber[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const inlineRef = useRef<HTMLDivElement | null>(null);
-  const [inlineVisible, setInlineVisible] = useState(false);
+  const [isInlineVisible, setIsInlineVisible] = useState(false);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+
+  // Ref callback ensures the observer attaches as soon as the inline node mounts
+  const inlineRefCallback = (node: HTMLDivElement | null) => {
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+      observerRef.current = null;
+    }
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsInlineVisible(entry.isIntersecting),
+      { threshold: 0.3 },
+    );
+    observer.observe(node);
+    observerRef.current = observer;
+  };
 
   useEffect(() => {
-    const el = inlineRef.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => setInlineVisible(entry.isIntersecting),
-      { threshold: 0.4 },
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-
+    return () => {
+      observerRef.current?.disconnect();
+      observerRef.current = null;
+    };
   }, []);
 
 
