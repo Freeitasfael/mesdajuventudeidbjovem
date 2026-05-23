@@ -641,42 +641,44 @@ const Admin = () => {
   return (
     <main className="min-h-screen bg-background">
       <header className="border-b border-border bg-card">
-        <div className="container flex items-center justify-between py-4">
+        <div className="container flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:py-4">
           <div>
-            <h1 className="text-xl font-bold">Painel Admin</h1>
+            <h1 className="text-lg font-bold sm:text-xl">Painel Admin</h1>
             <p className="text-xs text-muted-foreground">Gerencie sua rifa</p>
           </div>
-          <div className="flex gap-2 flex-wrap">
-            <Button variant="outline" asChild>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" asChild>
               <Link to="/admin/alertas">
-                <Bell className="mr-2 h-4 w-4" /> Alertas
+                <Bell className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">Alertas</span>
               </Link>
             </Button>
-            <Button variant="outline" asChild>
+            <Button variant="outline" size="sm" asChild>
               <Link to="/admin/ranking">
-                <Trophy className="mr-2 h-4 w-4" /> Ranking
+                <Trophy className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">Ranking</span>
               </Link>
             </Button>
-            <Button variant="outline" asChild>
+            <Button variant="outline" size="sm" asChild>
               <Link to="/rifa">Ver rifa</Link>
             </Button>
-            <Button variant="outline" onClick={handleLogout}>
-              <LogOut className="mr-2 h-4 w-4" /> Sair
+            <Button variant="outline" size="sm" onClick={handleLogout}>
+              <LogOut className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">Sair</span>
             </Button>
           </div>
         </div>
       </header>
 
-      <section className="container py-6">
+      <section className="container py-4 sm:py-6">
         <Tabs defaultValue="dashboard">
-          <TabsList>
-            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-            <TabsTrigger value="orders">Pedidos</TabsTrigger>
-            <TabsTrigger value="payments">Pagamentos</TabsTrigger>
-            <TabsTrigger value="sellers">Vendedores</TabsTrigger>
-            <TabsTrigger value="settings">Configurações</TabsTrigger>
-            <TabsTrigger value="hero">Hero</TabsTrigger>
-          </TabsList>
+          <div className="-mx-2 overflow-x-auto px-2 sm:mx-0 sm:px-0">
+            <TabsList className="inline-flex w-max min-w-full sm:w-auto sm:min-w-0">
+              <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+              <TabsTrigger value="orders">Pedidos</TabsTrigger>
+              <TabsTrigger value="payments">Pagamentos</TabsTrigger>
+              <TabsTrigger value="sellers">Vendedores</TabsTrigger>
+              <TabsTrigger value="settings">Configurações</TabsTrigger>
+              <TabsTrigger value="hero">Hero</TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* DASHBOARD */}
           <TabsContent value="dashboard" className="mt-6 space-y-4">
@@ -762,14 +764,14 @@ const Admin = () => {
             <ManualFreeNumber onDone={loadAll} />
 
             <Card className="space-y-3 p-4">
-              <div className="flex flex-wrap items-end gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:flex lg:flex-wrap lg:items-end">
                 <div className="space-y-1">
                   <Label className="text-xs">Status</Label>
                   <Select
                     value={orderStatusFilter}
                     onValueChange={(v) => setOrderStatusFilter(v as typeof orderStatusFilter)}
                   >
-                    <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="w-full lg:w-44"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos</SelectItem>
                       <SelectItem value="pending">Pendente</SelectItem>
@@ -783,19 +785,19 @@ const Admin = () => {
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs" htmlFor="adFrom">De</Label>
-                  <Input id="adFrom" type="date" value={orderDateFrom} onChange={(e) => setOrderDateFrom(e.target.value)} className="w-44" />
+                  <Input id="adFrom" type="date" value={orderDateFrom} onChange={(e) => setOrderDateFrom(e.target.value)} className="w-full lg:w-44" />
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs" htmlFor="adTo">Até</Label>
-                  <Input id="adTo" type="date" value={orderDateTo} onChange={(e) => setOrderDateTo(e.target.value)} className="w-44" />
+                  <Input id="adTo" type="date" value={orderDateTo} onChange={(e) => setOrderDateTo(e.target.value)} className="w-full lg:w-44" />
                 </div>
-                <Button variant="outline" size="sm" onClick={() => { setOrderStatusFilter("all"); setOrderDateFrom(""); setOrderDateTo(""); }}>
+                <Button variant="outline" size="sm" onClick={() => { setOrderStatusFilter("all"); setOrderDateFrom(""); setOrderDateTo(""); }} className="w-full sm:w-auto">
                   Limpar
                 </Button>
-                <Button size="sm" onClick={exportOrdersCsv} className="ml-auto">
+                <Button size="sm" onClick={exportOrdersCsv} className="w-full sm:w-auto lg:ml-auto">
                   <Download className="mr-2 h-4 w-4" /> Exportar pedidos ({filteredOrders.length})
                 </Button>
-                <Button size="sm" variant="secondary" onClick={exportRaffleCsv}>
+                <Button size="sm" variant="secondary" onClick={exportRaffleCsv} className="w-full sm:w-auto">
                   <Trophy className="mr-2 h-4 w-4" /> Exportar sorteio (números pagos)
                 </Button>
 
@@ -894,7 +896,7 @@ const Admin = () => {
                   const canRefund = ["paid", "pending"].includes(detailOrder.status);
                   return (
                     <div className="space-y-4 text-sm">
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                         <div>
                           <p className="text-xs uppercase text-muted-foreground">Pedido</p>
                           <p className="font-mono text-xs">{detailOrder.id}</p>
@@ -1104,7 +1106,7 @@ const Admin = () => {
 
           {/* HERO */}
           <TabsContent value="hero" className="mt-6 space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h3 className="text-sm font-semibold">Prévia da HeroSection pública</h3>
                 <p className="text-xs text-muted-foreground">
@@ -1116,6 +1118,7 @@ const Admin = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => setShowPreview((v) => !v)}
+                className="w-full sm:w-auto"
               >
                 <Eye className="mr-2 h-4 w-4" />
                 {showPreview ? "Ocultar prévia" : "Mostrar prévia"}
