@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import logoIdb from "@/assets/idb-jovem-logo.png";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -118,20 +119,22 @@ export const SiteHeader = ({ variant = "light", breadcrumbs }: Props) => {
       <div className="container flex items-center justify-between gap-3 py-3">
         <Link
           to="/rifa"
-          className={`flex items-center gap-2 font-extrabold tracking-tight ${
+          className={`flex items-center gap-2.5 font-extrabold tracking-tight ${
             isDark ? "text-white" : "text-foreground"
           }`}
         >
-          <span
-            className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-xs font-black"
+          <img
+            src={logoIdb}
+            alt="IDB Jovem"
+            className="h-9 w-auto sm:h-10"
             style={{
-              backgroundColor: "hsl(var(--hero-gold))",
-              color: "hsl(var(--hero-bg))",
+              backgroundColor: "transparent",
+              filter: "drop-shadow(0 2px 6px hsl(var(--hero-gold) / 0.35))",
             }}
-          >
-            IDB
+          />
+          <span className="hidden text-base sm:inline sm:text-lg">
+            RIFA IDB JOVEM
           </span>
-          <span className="hidden sm:inline">Rifa IDB Jovem</span>
         </Link>
 
         <nav className="hidden items-center gap-1 lg:flex">{renderLinks()}</nav>
