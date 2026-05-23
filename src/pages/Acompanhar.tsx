@@ -14,6 +14,7 @@ interface OrderRow {
   expires_at: string;
   created_at: string;
   buyer_name: string | null;
+  referral_label: string | null;
   numbers: number[];
 }
 
