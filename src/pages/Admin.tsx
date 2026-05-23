@@ -576,7 +576,7 @@ const Admin = () => {
     if (!detailOrder) return;
     if (
       !confirm(
-        "Liberar TODOS os números deste pedido e marcar como reembolsado? Esta ação não pode ser desfeita.",
+        "Liberar TODOS os números deste pedido? O reembolso deve ser feito manualmente. Esta ação não pode ser desfeita.",
       )
     ) {
       return;
@@ -587,11 +587,11 @@ const Admin = () => {
     });
     setRefunding(false);
     if (error) {
-      toast.error("Erro no reembolso: " + error.message);
+      toast.error("Erro ao liberar números: " + error.message);
       return;
     }
     const freed = Array.isArray(data) && data[0] ? (data[0] as { freed_numbers: number }).freed_numbers : 0;
-    toast.success(`Pedido reembolsado. ${freed} números liberados.`);
+    toast.success(`${freed} números liberados. Faça o reembolso manualmente.`);
     setDetailOrder(null);
     setDetailNumbers([]);
     loadAll();
