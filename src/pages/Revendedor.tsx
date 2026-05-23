@@ -14,7 +14,22 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { LogOut, Plus, FileText, User, Copy, ExternalLink } from "lucide-react";
+import {
+  LogOut,
+  Plus,
+  FileText,
+  User,
+  Copy,
+  ExternalLink,
+  QrCode,
+  MousePointerClick,
+  Smartphone,
+  Lightbulb,
+  AlertTriangle,
+  BookOpen,
+  TrendingUp,
+  Users,
+} from "lucide-react";
 
 interface ManualSale {
   id: string;
@@ -182,15 +197,22 @@ const Revendedor = () => {
     return <Navigate to="/auth?next=/revendedor" replace />;
   }
 
+  const shareLink = seller
+    ? `${window.location.origin}/v/${seller.ref_code}`
+    : "";
+
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border">
-        <div className="container flex items-center justify-between py-4">
+      {/* Header */}
+      <header className="border-b border-border bg-gradient-to-r from-primary/5 to-secondary/30">
+        <div className="container flex items-center justify-between py-5">
           <div>
             <p className="text-xs uppercase tracking-wider text-muted-foreground">
-              Revendedor
+              Dashboard do Revendedor
             </p>
-            <h1 className="text-lg font-bold">{seller?.name ?? "—"}</h1>
+            <h1 className="text-xl font-bold">
+              {seller?.name ? `Olá, ${seller.name.split(" ")[0]}!` : "Bem-vindo!"}
+            </h1>
           </div>
           <Button variant="outline" size="sm" onClick={handleLogout}>
             <LogOut className="mr-2 h-4 w-4" /> Sair
@@ -198,92 +220,203 @@ const Revendedor = () => {
         </div>
       </header>
 
-      <main className="container space-y-6 py-8">
-        {/* Link de divulgação + código IDB */}
-        <Card className="space-y-3 p-5">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2 text-sm font-semibold">
-              <ExternalLink className="h-4 w-4 text-primary" />
-              Seu link de divulgação
+      <main className="container space-y-8 py-8">
+        {/* === TOP CARDS: Código + Link === */}
+        <section className="grid gap-4 sm:grid-cols-2">
+          {/* Código IDB */}
+          <Card className="relative overflow-hidden p-6">
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 opacity-[0.04]">
+              <QrCode className="h-32 w-32" />
             </div>
-            {seller?.ref_code && (
-              <span className="rounded-full border border-primary/40 bg-primary/10 px-3 py-0.5 font-mono text-xs font-bold text-primary">
-                {seller.ref_code}
-              </span>
-            )}
-          </div>
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <code className="flex-1 break-all rounded-md bg-muted px-3 py-2 text-xs">
-              {seller ? `${window.location.origin}/v/${seller.ref_code}` : "—"}
-            </code>
-            <Button
-              size="sm"
-              onClick={async () => {
-                if (!seller) return;
-                try {
-                  await navigator.clipboard.writeText(
-                    `${window.location.origin}/v/${seller.ref_code}`,
-                  );
-                  toast.success("Link copiado!");
-                } catch {
-                  toast.error("Não foi possível copiar");
-                }
-              }}
-            >
-              <Copy className="mr-2 h-4 w-4" /> Copiar link
-            </Button>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Toda compra feita pelo seu link é registrada automaticamente no seu nome.
-          </p>
-        </Card>
-
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-xl font-semibold">Minhas vendas</h2>
-          <Button onClick={() => setOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" /> Adicionar venda
-          </Button>
-        </div>
-
-        <Card className="divide-y divide-border">
-          {loading ? (
-            <div className="space-y-3 p-4">
-              <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-12 w-full" />
-            </div>
-          ) : sales.length === 0 ? (
-            <p className="py-12 text-center text-sm text-muted-foreground">
-              Nenhuma venda registrada ainda.
-            </p>
-          ) : (
-            sales.map((s) => (
-              <div
-                key={s.id}
-                className="flex flex-wrap items-center justify-between gap-3 p-4"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="rounded-full bg-muted p-2">
-                    <User className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <p className="font-medium">{s.buyer_name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatDate(s.created_at)}
-                      {s.amount_cents != null && ` · ${formatBRL(s.amount_cents)}`}
-                    </p>
-                  </div>
-                </div>
+            <div className="relative space-y-4">
+              <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+                <QrCode className="h-4 w-4" />
+                Seu código de indicação
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="rounded-lg border border-primary/30 bg-primary/10 px-4 py-2 font-mono text-2xl font-bold tracking-widest text-primary">
+                  {seller?.ref_code ?? "—"}
+                </span>
                 <Button
-                  variant="ghost"
                   size="sm"
-                  onClick={() => viewReceipt(s.receipt_path)}
+                  variant="ghost"
+                  onClick={async () => {
+                    if (!seller?.ref_code) return;
+                    try {
+                      await navigator.clipboard.writeText(seller.ref_code);
+                      toast.success("Código copiado!");
+                    } catch {
+                      toast.error("Não foi possível copiar");
+                    }
+                  }}
                 >
-                  <FileText className="mr-2 h-4 w-4" /> Comprovante
+                  <Copy className="mr-2 h-4 w-4" /> Copiar código
                 </Button>
               </div>
-            ))
-          )}
-        </Card>
+              <p className="text-xs text-muted-foreground">
+                O comprador deve informar este código no campo “Fui indicado” durante o checkout.
+              </p>
+            </div>
+          </Card>
+
+          {/* Link de divulgação */}
+          <Card className="relative overflow-hidden p-6">
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 opacity-[0.04]">
+              <ExternalLink className="h-32 w-32" />
+            </div>
+            <div className="relative space-y-4">
+              <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+                <ExternalLink className="h-4 w-4" />
+                Seu link de divulgação
+              </div>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <code className="flex-1 break-all rounded-md bg-muted px-3 py-2 text-xs">
+                  {shareLink || "—"}
+                </code>
+                <Button
+                  size="sm"
+                  onClick={async () => {
+                    if (!shareLink) return;
+                    try {
+                      await navigator.clipboard.writeText(shareLink);
+                      toast.success("Link copiado!");
+                    } catch {
+                      toast.error("Não foi possível copiar");
+                    }
+                  }}
+                >
+                  <Copy className="mr-2 h-4 w-4" /> Copiar link
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Toda compra feita pelo seu link é registrada automaticamente no seu nome.
+              </p>
+            </div>
+          </Card>
+        </section>
+
+        {/* === ORIENTAÇÕES === */}
+        <section className="space-y-4">
+          <h2 className="flex items-center gap-2 text-lg font-semibold">
+            <BookOpen className="h-5 w-5 text-primary" />
+            Como usar corretamente
+          </h2>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            {/* Passo 1: Link */}
+            <Card className="p-5">
+              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                <MousePointerClick className="h-5 w-5 text-primary" />
+              </div>
+              <h3 className="mb-1 font-semibold">1. Compartilhe o link</h3>
+              <p className="text-sm text-muted-foreground">
+                Envie seu link direto para os compradores. Quando a pessoa compra por ele, a indicação é contabilizada automaticamente — sem risco de erro.
+              </p>
+            </Card>
+
+            {/* Passo 2: Código */}
+            <Card className="p-5">
+              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                <Smartphone className="h-5 w-5 text-primary" />
+              </div>
+              <h3 className="mb-1 font-semibold">2. Ou use o código</h3>
+              <p className="text-sm text-muted-foreground">
+                Se o comprador acessar o site por outro caminho, ele pode marcar “Fui indicado” e digitar seu código <strong>{seller?.ref_code ?? "—"}</strong> no checkout.
+              </p>
+            </Card>
+
+            {/* Passo 3: Controle */}
+            <Card className="p-5">
+              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                <TrendingUp className="h-5 w-5 text-primary" />
+              </div>
+              <h3 className="mb-1 font-semibold">3. Controle próprio</h3>
+              <p className="text-sm text-muted-foreground">
+                Anote seus contatos e valores em uma planilha ou caderno. Isso ajuda muito se houver divergência nos registros oficiais.
+              </p>
+            </Card>
+          </div>
+
+          {/* Avisos */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card className="flex items-start gap-3 border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/20">
+              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" />
+              <div>
+                <h4 className="font-semibold text-amber-800 dark:text-amber-300">
+                  Atenção
+                </h4>
+                <p className="text-sm text-amber-700 dark:text-amber-400">
+                  Se o comprador não usar seu link nem informar seu código, a indicação <strong>não será contabilizada</strong>. Sempre peça para a pessoa confirmar.
+                </p>
+              </div>
+            </Card>
+
+            <Card className="flex items-start gap-3 border-sky-200 bg-sky-50 p-4 dark:border-sky-900 dark:bg-sky-950/20">
+              <Lightbulb className="mt-0.5 h-5 w-5 shrink-0 text-sky-600 dark:text-sky-400" />
+              <div>
+                <h4 className="font-semibold text-sky-800 dark:text-sky-300">
+                  Dica prática
+                </h4>
+                <p className="text-sm text-sky-700 dark:text-sky-400">
+                  Sempre que receber um pagamento, registre a venda aqui no botão <strong>“Adicionar venda”</strong> anexando o comprovante PIX. Isso comprova sua participação.
+                </p>
+              </div>
+            </Card>
+          </div>
+        </section>
+
+        {/* === MINHAS VENDAS === */}
+        <section className="space-y-4">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="flex items-center gap-2 text-xl font-semibold">
+              <Users className="h-5 w-5 text-primary" />
+              Minhas vendas
+            </h2>
+            <Button onClick={() => setOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" /> Adicionar venda
+            </Button>
+          </div>
+
+          <Card className="divide-y divide-border">
+            {loading ? (
+              <div className="space-y-3 p-4">
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+              </div>
+            ) : sales.length === 0 ? (
+              <p className="py-12 text-center text-sm text-muted-foreground">
+                Nenhuma venda registrada ainda.
+              </p>
+            ) : (
+              sales.map((s) => (
+                <div
+                  key={s.id}
+                  className="flex flex-wrap items-center justify-between gap-3 p-4"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-full bg-muted p-2">
+                      <User className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <div>
+                      <p className="font-medium">{s.buyer_name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatDate(s.created_at)}
+                        {s.amount_cents != null && ` · ${formatBRL(s.amount_cents)}`}
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => viewReceipt(s.receipt_path)}
+                  >
+                    <FileText className="mr-2 h-4 w-4" /> Comprovante
+                  </Button>
+                </div>
+              ))
+            )}
+          </Card>
+        </section>
       </main>
 
       <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) resetForm(); }}>
