@@ -841,6 +841,11 @@ const Admin = () => {
                                 {seller.ref_code}
                               </span>
                             </span>
+                          ) : o.referral_label ? (
+                            <span className="inline-flex flex-col">
+                              <span className="font-medium text-amber-600 dark:text-amber-400">{o.referral_label}</span>
+                              <span className="text-[10px] text-muted-foreground">informado, não vinculado</span>
+                            </span>
                           ) : (
                             <span className="text-muted-foreground">—</span>
                           )}
