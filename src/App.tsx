@@ -43,6 +43,7 @@ const App = () => (
           <Route path="/seller/pedido/:orderId" element={<SellerOrderDetail />} />
           <Route path="/afiliacao" element={<Afiliacao />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/admin" element={<RequireAdmin><Admin /></RequireAdmin>} />
           <Route path="/admin/eventos" element={<RequireAdmin><Eventos /></RequireAdmin>} />
           <Route path="/admin/reconciliacao" element={<RequireAdmin><Reconciliacao /></RequireAdmin>} />
