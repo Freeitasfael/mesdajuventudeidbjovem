@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -91,6 +91,23 @@ export const RaffleGrid = ({ pricePerNumber }: Props) => {
     if (selected.length === 0) return;
     navigate("/checkout");
   };
+
+  // Hide the floating bar once the inline footer bar is on screen
+  const inlineBarRef = useRef<HTMLDivElement | null>(null);
+  const [inlineVisible, setInlineVisible] = useState(false);
+  useEffect(() => {
+    const el = inlineBarRef.current;
+    if (!el || selected.length === 0) {
+      setInlineVisible(false);
+      return;
+    }
+    const obs = new IntersectionObserver(
+      ([entry]) => setInlineVisible(entry.isIntersecting),
+      { root: null, threshold: 0.1 },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [selected.length]);
 
   if (error) {
     return (
