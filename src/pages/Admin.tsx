@@ -314,7 +314,7 @@ const Admin = () => {
         ]),
     ]);
     if (s.data && Array.isArray(s.data) && s.data[0]) setStats(s.data[0] as Stats);
-    if (o.data) setOrders(o.data as OrderRow[]);
+    if (o.data) setOrders(o.data as unknown as OrderRow[]);
     if (p.data) setPayments(p.data as PaymentRow[]);
     if (b.data) {
       const map: Record<string, BuyerRow> = {};
