@@ -179,17 +179,16 @@ export const RaffleGrid = ({ pricePerNumber }: Props) => {
         </div>
       )}
 
-      {/* Fixed payment footer — follows the user while any number is selected */}
-      {selected.length > 0 && (
-        <div
-          className="fixed bottom-0 left-0 right-0 border-t z-50 animate-in slide-in-from-bottom-2"
-          style={{
-            backgroundColor: "hsl(var(--hero-bg) / 0.95)",
-            borderColor: "hsl(var(--hero-gold) / 0.4)",
-            backdropFilter: "blur(8px)",
-          }}
-        >
-          <div className="container py-3 sm:py-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+      {/* Inline payment bar (original) — always at the end of the grid */}
+      <div ref={inlineRef}>
+        {selected.length > 0 && (
+          <div
+            className="rounded-xl border p-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4"
+            style={{
+              backgroundColor: "hsl(var(--hero-bg) / 0.6)",
+              borderColor: "hsl(var(--hero-gold) / 0.4)",
+            }}
+          >
             <div className="flex-1 min-w-0 text-white">
               <p className="text-sm font-medium">
                 {selected.length}{" "}
@@ -198,10 +197,7 @@ export const RaffleGrid = ({ pricePerNumber }: Props) => {
               {pricePerNumber !== null && (
                 <p className="text-xs text-white/70">
                   Total:{" "}
-                  <span
-                    className="font-bold"
-                    style={{ color: "hsl(var(--hero-gold))" }}
-                  >
+                  <span className="font-bold" style={{ color: "hsl(var(--hero-gold))" }}>
                     R$ {(totalCents / 100).toFixed(2).replace(".", ",")}
                   </span>
                 </p>
@@ -225,15 +221,70 @@ export const RaffleGrid = ({ pricePerNumber }: Props) => {
                   color: "hsl(var(--hero-bg))",
                 }}
               >
-                Continuar
+                Ir para pagamento
               </Button>
             </div>
           </div>
+        )}
+      </div>
+
+      {/* Fixed payment footer — stays in DOM, toggled by visibility of inline bar */}
+      <div
+        aria-hidden={!(selected.length > 0 && !inlineVisible)}
+        className={cn(
+          "fixed bottom-0 left-0 right-0 border-t z-50 transition-opacity duration-200",
+          selected.length > 0 && !inlineVisible
+            ? "opacity-100 pointer-events-auto"
+            : "opacity-0 pointer-events-none",
+        )}
+        style={{
+          backgroundColor: "hsl(var(--hero-bg) / 0.95)",
+          borderColor: "hsl(var(--hero-gold) / 0.4)",
+          backdropFilter: "blur(8px)",
+        }}
+      >
+        <div className="container py-3 sm:py-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+          <div className="flex-1 min-w-0 text-white">
+            <p className="text-sm font-medium">
+              {selected.length}{" "}
+              {selected.length === 1 ? "número selecionado" : "números selecionados"}
+            </p>
+            {pricePerNumber !== null && (
+              <p className="text-xs text-white/70">
+                Total:{" "}
+                <span className="font-bold" style={{ color: "hsl(var(--hero-gold))" }}>
+                  R$ {(totalCents / 100).toFixed(2).replace(".", ",")}
+                </span>
+              </p>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={clear}
+              className="border-white/20 bg-transparent text-white hover:bg-white/10 hover:text-white"
+            >
+              Limpar
+            </Button>
+            <Button
+              size="sm"
+              onClick={goToCheckout}
+              className="font-bold"
+              style={{
+                backgroundColor: "hsl(var(--hero-gold))",
+                color: "hsl(var(--hero-bg))",
+              }}
+            >
+              Ir para pagamento
+            </Button>
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };
+
 
 const LegendDot = ({ className, label }: { className: string; label: string }) => (
   <div className="flex items-center gap-2">
