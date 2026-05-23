@@ -667,16 +667,18 @@ const Admin = () => {
         </div>
       </header>
 
-      <section className="container py-6">
+      <section className="container py-4 sm:py-6">
         <Tabs defaultValue="dashboard">
-          <TabsList>
-            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-            <TabsTrigger value="orders">Pedidos</TabsTrigger>
-            <TabsTrigger value="payments">Pagamentos</TabsTrigger>
-            <TabsTrigger value="sellers">Vendedores</TabsTrigger>
-            <TabsTrigger value="settings">Configurações</TabsTrigger>
-            <TabsTrigger value="hero">Hero</TabsTrigger>
-          </TabsList>
+          <div className="-mx-2 overflow-x-auto px-2 sm:mx-0 sm:px-0">
+            <TabsList className="inline-flex w-max min-w-full sm:w-auto sm:min-w-0">
+              <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+              <TabsTrigger value="orders">Pedidos</TabsTrigger>
+              <TabsTrigger value="payments">Pagamentos</TabsTrigger>
+              <TabsTrigger value="sellers">Vendedores</TabsTrigger>
+              <TabsTrigger value="settings">Configurações</TabsTrigger>
+              <TabsTrigger value="hero">Hero</TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* DASHBOARD */}
           <TabsContent value="dashboard" className="mt-6 space-y-4">
