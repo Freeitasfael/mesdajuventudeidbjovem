@@ -121,7 +121,7 @@ const Checkout = () => {
     try { localStorage.setItem("rifa.last_phone", phone); } catch { /* ignore */ }
 
     toast.success("Números reservados! Você tem 10 minutos para pagar.");
-    navigate(`/acompanhar?orderId=${result.order_id}`);
+    navigate(`/pagamento/${result.order_id}`);
   };
 
   if (selected.length === 0) return null;
