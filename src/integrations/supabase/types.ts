@@ -195,6 +195,7 @@ export type Database = {
           created_at: string
           expires_at: string
           id: string
+          referral_label: string | null
           seller_id: string | null
           status: string
           total_cents: number
@@ -205,6 +206,7 @@ export type Database = {
           created_at?: string
           expires_at: string
           id?: string
+          referral_label?: string | null
           seller_id?: string | null
           status?: string
           total_cents: number
@@ -215,6 +217,7 @@ export type Database = {
           created_at?: string
           expires_at?: string
           id?: string
+          referral_label?: string | null
           seller_id?: string | null
           status?: string
           total_cents?: number
