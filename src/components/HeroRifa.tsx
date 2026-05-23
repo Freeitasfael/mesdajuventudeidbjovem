@@ -5,9 +5,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { TransparentLogo } from "@/components/TransparentLogo";
 import heroBg from "@/assets/hero-rifa-bg.jpg";
 import logoIdb from "@/assets/idb-jovem-logo.png";
-import prizeIphone from "@/assets/prize-iphone.jpg";
-import prizePs5 from "@/assets/prize-ps5.jpg";
-import prizeMoto from "@/assets/prize-moto.jpg";
 
 export type Prize = {
   position: string;
