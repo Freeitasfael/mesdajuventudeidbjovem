@@ -44,23 +44,9 @@ export type HeroRifaProps = {
   onCtaClick?: () => void;
 };
 
-const FALLBACK_IMAGES = [prizeIphone, prizePs5, prizeMoto];
-
-const FALLBACK_PRIZES: Prize[] = [
-  { position: "1º PRÊMIO", name: "Prêmio principal", image: null, fit: "cover", scale: 1, posX: 0, posY: 0, mediaType: "image" },
-  { position: "2º PRÊMIO", name: "Prêmio secundário", image: null, fit: "cover", scale: 1, posX: 0, posY: 0, mediaType: "image" },
-  { position: "3º PRÊMIO", name: "Prêmio bônus", image: null, fit: "cover", scale: 1, posX: 0, posY: 0, mediaType: "image" },
-];
-
-const FALLBACK_STATS: HeroStats = {
-  years: 16,
-  people: "MILHARES",
-  coverage: "TODO O PAÍS",
-};
-
 const formatPrice = (cents: number | null | undefined) => {
-  const value = typeof cents === "number" && cents > 0 ? cents : 500;
-  return `R$ ${(value / 100).toFixed(2).replace(".", ",")}`;
+  if (typeof cents !== "number" || cents <= 0) return "—";
+  return `R$ ${(cents / 100).toFixed(2).replace(".", ",")}`;
 };
 
 const isValidPrizes = (p: unknown): p is Prize[] =>
@@ -83,11 +69,14 @@ export const HeroRifa = ({
     console.log("[HeroRifa]", { pricePerNumber, prizes, stats, loading });
   }, [pricePerNumber, prizes, stats, loading]);
 
-  const safePrizes = isValidPrizes(prizes) && prizes.length > 0 ? prizes : (loading ? null : FALLBACK_PRIZES);
-  const safeStats = isValidStats(stats) ? stats : (loading ? null : FALLBACK_STATS);
-  const safePrice = typeof pricePerNumber === "number" && pricePerNumber > 0
-    ? pricePerNumber
-    : (loading ? null : 500);
+  // IMPORTANTE: nunca usar dados falsos como fallback.
+  // Se a configuração real não chegar, mostramos skeleton em vez
+  // de inventar prêmios/valores que não correspondem à rifa atual.
+  const safePrizes = isValidPrizes(prizes) && prizes.length > 0 ? prizes : null;
+  const safeStats = isValidStats(stats) ? stats : null;
+  const safePrice =
+    typeof pricePerNumber === "number" && pricePerNumber > 0 ? pricePerNumber : null;
+
 
   const handleCta = () => {
     if (onCtaClick) return onCtaClick();
