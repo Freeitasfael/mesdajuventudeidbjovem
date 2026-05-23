@@ -35,10 +35,17 @@ const Checkout = () => {
   const [pricePerNumber, setPricePerNumber] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  // Referral: auto from link (localStorage) or manual via checkbox
+  const autoRefCode =
+    typeof window !== "undefined" ? localStorage.getItem(REF_STORAGE_KEY) : null;
+  const [hasReferral, setHasReferral] = useState(false);
+  const [refInput, setRefInput] = useState("");
+
   const form = useForm<FormData>({
     resolver: zodResolver(Schema),
     defaultValues: { name: "", phone: "" },
   });
+
 
   useEffect(() => {
     document.title = "Checkout — Rifa Digital";
