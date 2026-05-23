@@ -477,6 +477,50 @@ const Admin = () => {
     }
   };
 
+  const openOrderDetail = async (o: OrderRow) => {
+    setDetailOrder(o);
+    setDetailNumbers([]);
+    setDetailLoading(true);
+    const { data, error } = await supabase
+      .from("order_numbers")
+      .select("number")
+      .eq("order_id", o.id)
+      .order("number", { ascending: true });
+    setDetailLoading(false);
+    if (error) {
+      toast.error("Erro ao carregar números: " + error.message);
+      return;
+    }
+    setDetailNumbers((data ?? []).map((r) => r.number as number));
+  };
+
+  const refundOrder = async () => {
+    if (!detailOrder) return;
+    if (
+      !confirm(
+        "Liberar TODOS os números deste pedido e marcar como reembolsado? Esta ação não pode ser desfeita.",
+      )
+    ) {
+      return;
+    }
+    setRefunding(true);
+    const { data, error } = await supabase.rpc("admin_refund_order", {
+      _order_id: detailOrder.id,
+    });
+    setRefunding(false);
+    if (error) {
+      toast.error("Erro no reembolso: " + error.message);
+      return;
+    }
+    const freed = Array.isArray(data) && data[0] ? (data[0] as { freed_numbers: number }).freed_numbers : 0;
+    toast.success(`Pedido reembolsado. ${freed} números liberados.`);
+    setDetailOrder(null);
+    setDetailNumbers([]);
+    loadAll();
+  };
+
+
+
   const createSeller = async () => {
     const name = newSellerName.trim();
     const ref = newSellerRef.trim().toLowerCase().replace(/[^a-z0-9-]/g, "");
