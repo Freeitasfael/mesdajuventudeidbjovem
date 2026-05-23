@@ -452,6 +452,12 @@ export type Database = {
           total_cents: number
         }[]
       }
+      admin_refund_order: {
+        Args: { _order_id: string }
+        Returns: {
+          freed_numbers: number
+        }[]
+      }
       confirm_payment: { Args: { _order_id: string }; Returns: undefined }
       expire_reservations: {
         Args: never
