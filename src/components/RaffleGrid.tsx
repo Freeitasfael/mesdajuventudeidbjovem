@@ -180,12 +180,11 @@ export const RaffleGrid = ({ pricePerNumber }: Props) => {
         <div className="grid grid-cols-6 sm:grid-cols-10 md:grid-cols-12 lg:grid-cols-16 gap-1.5">
           {numbers.map((n) => {
             const isSelected = selected.includes(n.number);
-            const disabled = n.status !== "available";
+            const blocked = n.status !== "available";
             return (
               <button
                 key={n.number}
-                onClick={() => !disabled && toggle(n.number)}
-                disabled={disabled}
+                onClick={() => handleNumberClick(n)}
                 className={cn(
                   "aspect-square rounded-lg text-[11px] sm:text-xs font-bold tabular-nums tracking-tight",
                   "transition-all duration-150 select-none shadow-sm",
@@ -197,9 +196,9 @@ export const RaffleGrid = ({ pricePerNumber }: Props) => {
                     isSelected &&
                     "scale-110 shadow-gold-glow cursor-pointer ring-2 ring-offset-2 ring-offset-transparent",
                   n.status === "reserved" &&
-                    "bg-number-reserved text-number-reserved-foreground cursor-not-allowed opacity-90",
+                    "bg-number-reserved text-number-reserved-foreground opacity-90",
                   n.status === "paid" &&
-                    "bg-number-paid text-number-paid-foreground cursor-not-allowed opacity-90",
+                    "bg-number-paid text-number-paid-foreground opacity-90",
                 )}
                 style={
                   n.status === "available" && isSelected
