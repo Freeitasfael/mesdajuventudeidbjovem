@@ -89,7 +89,10 @@ const Alertas = () => {
     <div className="container max-w-6xl py-8 space-y-6">
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold">Alertas administrativos</h1>
+          <Link to="/admin" className="text-sm text-muted-foreground hover:text-foreground">
+            ← Voltar para admin
+          </Link>
+          <h1 className="mt-2 text-2xl font-bold">Alertas administrativos</h1>
           <p className="text-sm text-muted-foreground">
             Notificações automáticas de erros recorrentes na reconciliação e no Mercado Pago.
           </p>
