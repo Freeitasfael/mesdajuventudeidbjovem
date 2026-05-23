@@ -698,6 +698,8 @@ const Admin = () => {
                       <SelectItem value="paid">Pago</SelectItem>
                       <SelectItem value="expired">Expirado</SelectItem>
                       <SelectItem value="cancelled">Cancelado</SelectItem>
+                      <SelectItem value="refunded">Reembolsado</SelectItem>
+
                     </SelectContent>
                   </Select>
                 </div>
