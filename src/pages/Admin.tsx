@@ -64,6 +64,7 @@ interface OrderRow {
   expires_at: string;
   buyer_id: string;
   seller_id: string | null;
+  referral_label: string | null;
 }
 
 interface PaymentRow {
