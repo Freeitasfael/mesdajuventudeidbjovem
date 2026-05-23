@@ -5,9 +5,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { TransparentLogo } from "@/components/TransparentLogo";
 import heroBg from "@/assets/hero-rifa-bg.jpg";
 import logoIdb from "@/assets/idb-jovem-logo.png";
-import prizeIphone from "@/assets/prize-iphone.jpg";
-import prizePs5 from "@/assets/prize-ps5.jpg";
-import prizeMoto from "@/assets/prize-moto.jpg";
 
 export type Prize = {
   position: string;
@@ -44,23 +41,9 @@ export type HeroRifaProps = {
   onCtaClick?: () => void;
 };
 
-const FALLBACK_IMAGES = [prizeIphone, prizePs5, prizeMoto];
-
-const FALLBACK_PRIZES: Prize[] = [
-  { position: "1º PRÊMIO", name: "Prêmio principal", image: null, fit: "cover", scale: 1, posX: 0, posY: 0, mediaType: "image" },
-  { position: "2º PRÊMIO", name: "Prêmio secundário", image: null, fit: "cover", scale: 1, posX: 0, posY: 0, mediaType: "image" },
-  { position: "3º PRÊMIO", name: "Prêmio bônus", image: null, fit: "cover", scale: 1, posX: 0, posY: 0, mediaType: "image" },
-];
-
-const FALLBACK_STATS: HeroStats = {
-  years: 16,
-  people: "MILHARES",
-  coverage: "TODO O PAÍS",
-};
-
 const formatPrice = (cents: number | null | undefined) => {
-  const value = typeof cents === "number" && cents > 0 ? cents : 500;
-  return `R$ ${(value / 100).toFixed(2).replace(".", ",")}`;
+  if (typeof cents !== "number" || cents <= 0) return "—";
+  return `R$ ${(cents / 100).toFixed(2).replace(".", ",")}`;
 };
 
 const isValidPrizes = (p: unknown): p is Prize[] =>
@@ -83,11 +66,14 @@ export const HeroRifa = ({
     console.log("[HeroRifa]", { pricePerNumber, prizes, stats, loading });
   }, [pricePerNumber, prizes, stats, loading]);
 
-  const safePrizes = isValidPrizes(prizes) && prizes.length > 0 ? prizes : (loading ? null : FALLBACK_PRIZES);
-  const safeStats = isValidStats(stats) ? stats : (loading ? null : FALLBACK_STATS);
-  const safePrice = typeof pricePerNumber === "number" && pricePerNumber > 0
-    ? pricePerNumber
-    : (loading ? null : 500);
+  // IMPORTANTE: nunca usar dados falsos como fallback.
+  // Se a configuração real não chegar, mostramos skeleton em vez
+  // de inventar prêmios/valores que não correspondem à rifa atual.
+  const safePrizes = isValidPrizes(prizes) && prizes.length > 0 ? prizes : null;
+  const safeStats = isValidStats(stats) ? stats : null;
+  const safePrice =
+    typeof pricePerNumber === "number" && pricePerNumber > 0 ? pricePerNumber : null;
+
 
   const handleCta = () => {
     if (onCtaClick) return onCtaClick();
@@ -177,7 +163,7 @@ export const HeroRifa = ({
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-white/70 sm:text-base">
             Por apenas
           </p>
-          {loading && safePrice === null ? (
+          {safePrice === null ? (
             <div className="mt-4 flex justify-center">
               <Skeleton className="h-20 w-64 rounded-xl bg-white/15 sm:h-24 sm:w-80" />
             </div>
@@ -274,8 +260,7 @@ export const HeroRifa = ({
                   <Skeleton key={i} className="aspect-[4/5] rounded-2xl bg-white/15" />
                 ))
               : safePrizes.map((prize, idx) => {
-                  const fallback = FALLBACK_IMAGES[idx] || FALLBACK_IMAGES[0];
-                  const src = prize.image || fallback;
+                  const hasImage = typeof prize.image === "string" && prize.image.length > 0;
                   const inferred = prize.mediaType || inferType(prize.image);
                   const type = inferred;
                   const fit = prize.fit === "contain" ? "contain" : "cover";
@@ -295,13 +280,21 @@ export const HeroRifa = ({
                       className="group overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm transition-all hover:scale-[1.03] hover:shadow-gold-glow"
                     >
                       <div className="relative aspect-square w-full overflow-hidden bg-black/30">
-                        <PrizeMedia
-                          src={src}
-                          type={type}
-                          fallback={fallback}
-                          alt={prize.name}
-                          style={mediaStyle}
-                        />
+                        {hasImage ? (
+                          <PrizeMedia
+                            src={prize.image as string}
+                            type={type}
+                            alt={prize.name}
+                            style={mediaStyle}
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center bg-black/40">
+                            <Trophy
+                              className="h-16 w-16 opacity-70"
+                              style={{ color: "hsl(var(--hero-gold))" }}
+                            />
+                          </div>
+                        )}
                         <span
                           className="absolute left-3 top-3 rounded-full px-3 py-1 text-xs font-extrabold uppercase tracking-wider shadow-md"
                           style={{
@@ -318,6 +311,7 @@ export const HeroRifa = ({
                     </article>
                   );
                 })}
+
           </div>
         </div>
       </div>
@@ -328,18 +322,15 @@ export const HeroRifa = ({
 type PrizeMediaProps = {
   src: string;
   type: "image" | "video";
-  fallback: string;
   alt: string;
   style: React.CSSProperties;
 };
 
-const PrizeMedia = ({ src, type, fallback, alt, style }: PrizeMediaProps) => {
+const PrizeMedia = ({ src, type, alt, style }: PrizeMediaProps) => {
   const [videoFailed, setVideoFailed] = useState(false);
-  const [imgSrc, setImgSrc] = useState(src);
 
   useEffect(() => {
     setVideoFailed(false);
-    setImgSrc(src);
   }, [src]);
 
   if (type === "video" && !videoFailed) {
@@ -354,24 +345,20 @@ const PrizeMedia = ({ src, type, fallback, alt, style }: PrizeMediaProps) => {
         className="h-full w-full transition-transform duration-500 group-hover:scale-110"
         style={style}
         onError={() => {
-          console.log("[HeroRifa] video failed, falling back to image", src);
+          console.log("[HeroRifa] video failed", src);
           setVideoFailed(true);
         }}
       />
     );
   }
 
-  const finalSrc = type === "video" && videoFailed ? fallback : imgSrc;
   return (
     <img
-      src={finalSrc}
+      src={src}
       alt={alt}
       loading="lazy"
       className="h-full w-full transition-transform duration-500 group-hover:scale-110"
       style={style}
-      onError={() => {
-        if (imgSrc !== fallback) setImgSrc(fallback);
-      }}
     />
   );
 };
