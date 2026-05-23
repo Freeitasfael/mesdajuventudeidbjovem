@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
 
     const { data: orders } = await admin
       .from("orders")
-      .select("id, status, total_cents, expires_at, created_at, buyer_id")
+      .select("id, status, total_cents, expires_at, created_at, buyer_id, referral_label")
       .in("buyer_id", buyerIds)
       .order("created_at", { ascending: false })
       .limit(10);
