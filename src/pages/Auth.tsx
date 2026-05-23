@@ -20,20 +20,16 @@ const Auth = () => {
 
   const resolveDestination = async (uid?: string): Promise<string> => {
     if (next) return next;
-    if (!uid) return "/seller";
-    // Admin → /admin; Seller → /seller; otherwise → /afiliacao
-    const [{ data: roleRow }, { data: sellerRow }] = await Promise.all([
-      supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", uid)
-        .eq("role", "admin")
-        .maybeSingle(),
-      supabase.rpc("get_my_seller").maybeSingle(),
-    ]);
+    if (!uid) return "/revendedor";
+    // Admin → /admin; todos os demais usuários são revendedores por padrão
+    const { data: roleRow } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", uid)
+      .eq("role", "admin")
+      .maybeSingle();
     if (roleRow) return "/admin";
-    if (sellerRow) return "/seller";
-    return "/afiliacao";
+    return "/revendedor";
   };
 
   useEffect(() => {
@@ -68,7 +64,7 @@ const Auth = () => {
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: `${window.location.origin}${next || "/seller"}` },
+          options: { emailRedirectTo: `${window.location.origin}${next || "/revendedor"}` },
         });
         if (error) throw error;
         toast.success("Conta criada. Verifique seu e-mail para confirmar.");
@@ -83,7 +79,7 @@ const Auth = () => {
   const handleGoogle = async () => {
     setLoading(true);
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: `${window.location.origin}${next || "/seller"}`,
+      redirect_uri: `${window.location.origin}${next || "/revendedor"}`,
     });
     if (result.error) {
       toast.error("Erro ao entrar com Google");
