@@ -1081,7 +1081,10 @@ const Admin = () => {
               </div>
               <Button onClick={saveSettings}>Salvar</Button>
             </Card>
+
+            <ResetAllDataCard onDone={loadAll} />
           </TabsContent>
+
 
           {/* HERO */}
           <TabsContent value="hero" className="mt-6 space-y-6">
@@ -1472,4 +1475,86 @@ const ManualFreeNumber = ({ onDone }: { onDone: () => void }) => {
   );
 };
 
+const RESET_PASSWORD = "IDBJOVEM";
+
+const ResetAllDataCard = ({ onDone }: { onDone: () => void }) => {
+  const [open, setOpen] = useState(false);
+  const [pwd, setPwd] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const submit = async () => {
+    if (pwd !== RESET_PASSWORD) {
+      toast.error("Senha incorreta");
+      return;
+    }
+    setBusy(true);
+    const { data, error } = await supabase.rpc("admin_reset_all_data");
+    setBusy(false);
+    if (error) {
+      toast.error("Falha ao resetar: " + error.message);
+      return;
+    }
+    const row = Array.isArray(data) && data[0]
+      ? (data[0] as { orders_deleted: number; numbers_reset: number })
+      : { orders_deleted: 0, numbers_reset: 0 };
+    toast.success(
+      `Sistema resetado. ${row.orders_deleted} pedidos apagados e ${row.numbers_reset} números liberados.`,
+    );
+    setPwd("");
+    setOpen(false);
+    onDone();
+  };
+
+  return (
+    <Card className="mt-6 max-w-lg border-destructive/40 p-6">
+      <h3 className="text-base font-semibold text-destructive">Zona de perigo</h3>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Apaga todos os pedidos, compradores, pagamentos e libera todos os números da rifa.
+        Vendedores e configurações são preservados. Esta ação não pode ser desfeita.
+      </p>
+      <Button
+        variant="destructive"
+        className="mt-4"
+        onClick={() => setOpen(true)}
+      >
+        <Trash2 className="mr-2 h-4 w-4" /> Resetar todos os dados
+      </Button>
+
+      <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setPwd(""); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirmar reset</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 text-sm">
+            <p>
+              Esta ação irá <strong>apagar todos os pedidos, pagamentos e compradores</strong>{" "}
+              e <strong>liberar todos os números</strong> da rifa.
+            </p>
+            <div className="space-y-1">
+              <Label htmlFor="reset-pwd">Senha de confirmação</Label>
+              <Input
+                id="reset-pwd"
+                type="password"
+                value={pwd}
+                onChange={(e) => setPwd(e.target.value)}
+                placeholder="Digite a senha"
+                autoComplete="off"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setOpen(false); setPwd(""); }}>
+              Cancelar
+            </Button>
+            <Button variant="destructive" onClick={submit} disabled={busy || !pwd}>
+              {busy ? "Resetando..." : "Confirmar reset"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </Card>
+  );
+};
+
 export default Admin;
+
