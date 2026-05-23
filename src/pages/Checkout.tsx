@@ -237,6 +237,41 @@ const Checkout = () => {
             </p>
           </div>
 
+          {/* Referral: auto-detected from link, or manual checkbox */}
+          {autoRefCode ? (
+            <div className="rounded-md border border-primary/30 bg-primary/5 p-3 text-xs text-muted-foreground">
+              Indicação registrada automaticamente pelo link de revendedor.
+            </div>
+          ) : (
+            <div className="space-y-2 rounded-md border border-border p-3">
+              <label className="flex items-center gap-2 text-sm font-medium cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={hasReferral}
+                  onChange={(e) => setHasReferral(e.target.checked)}
+                  className="h-4 w-4 rounded border-border"
+                />
+                Fui indicado
+              </label>
+              {hasReferral && (
+                <div className="space-y-1">
+                  <Input
+                    type="text"
+                    placeholder="Nome ou código do revendedor"
+                    value={refInput}
+                    onChange={(e) => setRefInput(e.target.value.slice(0, 120))}
+                    maxLength={120}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Informe o nome completo ou o código exato do revendedor.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+
+
           <Button type="submit" className="w-full" size="lg" disabled={submitting}>
             {submitting ? "Reservando..." : "Reservar e ir para pagamento"}
           </Button>
