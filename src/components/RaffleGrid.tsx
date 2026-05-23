@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { useSelection } from "@/hooks/useSelection";
+import { AlertTriangle, X, Trash2, Shuffle } from "lucide-react";
 
 type NumberStatus = "available" | "reserved" | "paid";
 
