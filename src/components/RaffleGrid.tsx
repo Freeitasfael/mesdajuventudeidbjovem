@@ -31,10 +31,11 @@ export const RaffleGrid = ({ pricePerNumber }: Props) => {
     if (!el) return;
     const observer = new IntersectionObserver(
       ([entry]) => setInlineVisible(entry.isIntersecting),
-      { threshold: 0.1 },
+      { threshold: 0.4 },
     );
     observer.observe(el);
     return () => observer.disconnect();
+
   }, []);
 
 
@@ -180,10 +181,11 @@ export const RaffleGrid = ({ pricePerNumber }: Props) => {
       )}
 
       {/* Inline payment bar (original) — always at the end of the grid */}
-      <div ref={inlineRef}>
+      <div ref={inlineRef} className="min-h-[120px]">
         {selected.length > 0 && (
           <div
-            className="rounded-xl border p-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4"
+            className="rounded-xl border p-4 min-h-[110px] flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4"
+
             style={{
               backgroundColor: "hsl(var(--hero-bg) / 0.6)",
               borderColor: "hsl(var(--hero-gold) / 0.4)",
