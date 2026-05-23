@@ -738,7 +738,11 @@ const Admin = () => {
                       ? sellers.find((s) => s.id === o.seller_id)
                       : null;
                     return (
-                      <tr key={o.id} className="border-t border-border">
+                      <tr
+                        key={o.id}
+                        className="border-t border-border cursor-pointer hover:bg-muted/40 transition-colors"
+                        onClick={() => openOrderDetail(o)}
+                      >
                         <td className="px-4 py-3">{fmtDate(o.created_at)}</td>
                         <td className="px-4 py-3 font-mono text-xs">
                           {o.id.slice(0, 8)}
@@ -765,6 +769,7 @@ const Admin = () => {
                         </td>
                       </tr>
                     );
+
                   })}
                   {filteredOrders.length === 0 && (
                     <tr>
