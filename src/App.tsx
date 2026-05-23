@@ -14,6 +14,7 @@ import Revendedor from "./pages/Revendedor.tsx";
 import SellerOrderDetail from "./pages/SellerOrderDetail.tsx";
 import Afiliacao from "./pages/Afiliacao.tsx";
 import Auth from "./pages/Auth.tsx";
+import ResetPassword from "./pages/ResetPassword.tsx";
 import Admin from "./pages/Admin.tsx";
 import Eventos from "./pages/admin/Eventos.tsx";
 import Reconciliacao from "./pages/admin/Reconciliacao.tsx";
@@ -42,6 +43,7 @@ const App = () => (
           <Route path="/seller/pedido/:orderId" element={<SellerOrderDetail />} />
           <Route path="/afiliacao" element={<Afiliacao />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/admin" element={<RequireAdmin><Admin /></RequireAdmin>} />
           <Route path="/admin/eventos" element={<RequireAdmin><Eventos /></RequireAdmin>} />
           <Route path="/admin/reconciliacao" element={<RequireAdmin><Reconciliacao /></RequireAdmin>} />

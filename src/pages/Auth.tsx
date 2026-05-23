@@ -8,12 +8,25 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 
+const translateError = (msg: string): string => {
+  const m = msg.toLowerCase();
+  if (m.includes("invalid login")) return "E-mail ou senha incorretos.";
+  if (m.includes("email not confirmed")) return "Confirme seu e-mail antes de entrar.";
+  if (m.includes("user already registered") || m.includes("already been registered"))
+    return "Este e-mail já tem conta. Faça login.";
+  if (m.includes("password should be at least")) return "A senha deve ter pelo menos 6 caracteres.";
+  if (m.includes("pwned") || m.includes("compromised"))
+    return "Esta senha apareceu em vazamentos públicos. Escolha outra.";
+  if (m.includes("rate limit")) return "Muitas tentativas. Aguarde alguns minutos.";
+  return msg;
+};
+
 const Auth = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const next = searchParams.get("next");
   const initialMode = searchParams.get("mode") === "signup" ? "signup" : "signin";
-  const [mode, setMode] = useState<"signin" | "signup">(initialMode);
+  const [mode, setMode] = useState<"signin" | "signup" | "forgot">(initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -21,7 +34,6 @@ const Auth = () => {
   const resolveDestination = async (uid?: string): Promise<string> => {
     if (next) return next;
     if (!uid) return "/revendedor";
-    // Admin → /admin; todos os demais usuários são revendedores por padrão
     const { data: roleRow } = await supabase
       .from("user_roles")
       .select("role")
@@ -55,22 +67,35 @@ const Auth = () => {
     setLoading(true);
     try {
       if (mode === "signin") {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-      } else {
-        const { error } = await supabase.auth.signUp({
+      } else if (mode === "signup") {
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: { emailRedirectTo: `${window.location.origin}${next || "/revendedor"}` },
         });
         if (error) throw error;
-        toast.success("Conta criada. Verifique seu e-mail para confirmar.");
+        if (!data.session) {
+          // fallback: tenta login direto (caso confirmação automática esteja ativa)
+          const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
+          if (signInErr) {
+            toast.success("Conta criada! Verifique seu e-mail para confirmar antes de entrar.");
+            return;
+          }
+        }
+        toast.success("Conta criada com sucesso!");
+      } else if (mode === "forgot") {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (error) throw error;
+        toast.success("Enviamos um link de recuperação para seu e-mail.");
+        setMode("signin");
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Erro de autenticação");
+      const raw = err instanceof Error ? err.message : "Erro de autenticação";
+      toast.error(translateError(raw));
     } finally {
       setLoading(false);
     }
@@ -87,20 +112,20 @@ const Auth = () => {
     }
   };
 
+  const title =
+    mode === "signin" ? "Entrar" : mode === "signup" ? "Criar sua conta" : "Recuperar senha";
+
   return (
     <main className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md p-6">
-        <Link
-          to="/rifa"
-          className="text-xs text-muted-foreground hover:text-foreground"
-        >
+        <Link to="/rifa" className="text-xs text-muted-foreground hover:text-foreground">
           ← Voltar para rifa
         </Link>
-        <h1 className="mt-2 text-2xl font-bold">
-          {mode === "signin" ? "Entrar" : "Criar sua conta"}
-        </h1>
+        <h1 className="mt-2 text-2xl font-bold">{title}</h1>
         <p className="mb-6 text-sm text-muted-foreground">
-          Acesse o painel de revendedor ou administrador.
+          {mode === "forgot"
+            ? "Informe seu e-mail e enviaremos um link para redefinir a senha."
+            : "Acesse o painel de revendedor ou administrador."}
         </p>
 
         <form onSubmit={handleEmail} className="space-y-4">
@@ -115,46 +140,72 @@ const Auth = () => {
               autoComplete="email"
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Senha</Label>
-            <Input
-              id="password"
-              type="password"
-              required
-              minLength={6}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete={mode === "signin" ? "current-password" : "new-password"}
-            />
-          </div>
+          {mode !== "forgot" && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Senha</Label>
+                {mode === "signin" && (
+                  <button
+                    type="button"
+                    className="text-xs text-muted-foreground hover:text-foreground"
+                    onClick={() => setMode("forgot")}
+                  >
+                    Esqueci minha senha
+                  </button>
+                )}
+              </div>
+              <Input
+                id="password"
+                type="password"
+                required
+                minLength={6}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete={mode === "signin" ? "current-password" : "new-password"}
+              />
+            </div>
+          )}
           <Button type="submit" disabled={loading} className="w-full">
-            {mode === "signin" ? "Entrar" : "Criar conta"}
+            {loading
+              ? "Aguarde..."
+              : mode === "signin"
+              ? "Entrar"
+              : mode === "signup"
+              ? "Criar conta"
+              : "Enviar link de recuperação"}
           </Button>
         </form>
 
-        <div className="my-4 flex items-center gap-3 text-xs text-muted-foreground">
-          <div className="h-px flex-1 bg-border" />
-          ou
-          <div className="h-px flex-1 bg-border" />
-        </div>
-
-        <Button
-          variant="outline"
-          className="w-full"
-          onClick={handleGoogle}
-          disabled={loading}
-        >
-          Continuar com Google
-        </Button>
+        {mode !== "forgot" && (
+          <>
+            <div className="my-4 flex items-center gap-3 text-xs text-muted-foreground">
+              <div className="h-px flex-1 bg-border" />
+              ou
+              <div className="h-px flex-1 bg-border" />
+            </div>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={handleGoogle}
+              disabled={loading}
+            >
+              Continuar com Google
+            </Button>
+          </>
+        )}
 
         <button
           type="button"
           className="mt-6 w-full text-center text-sm text-muted-foreground hover:text-foreground"
-          onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
+          onClick={() =>
+            setMode(mode === "signin" ? "signup" : "signin")
+          }
         >
-          {mode === "signin"
-            ? "Não tem conta? Criar uma"
-            : "Já tem conta? Entrar"}
+          {mode === "signup"
+            ? "Já tem conta? Entrar"
+            : mode === "forgot"
+            ? "Voltar para o login"
+            : "Não tem conta? Criar uma"}
         </button>
       </Card>
     </main>
