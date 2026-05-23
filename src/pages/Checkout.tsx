@@ -72,8 +72,8 @@ const Checkout = () => {
 
   const onSubmit = async (data: FormData) => {
     setSubmitting(true);
-    const ref_code = localStorage.getItem(REF_STORAGE_KEY) || null;
     const phone = data.phone.replace(/\D/g, "");
+    const manualRef = hasReferral ? refInput.trim() : "";
 
     const { data: result, error } = await supabase.functions.invoke(
       "reserve-numbers",
@@ -82,10 +82,12 @@ const Checkout = () => {
           name: data.name.trim(),
           phone,
           numbers: selected,
-          ref_code,
+          ref_code: autoRefCode,
+          ref_input: manualRef || null,
         },
       },
     );
+
 
     setSubmitting(false);
 
