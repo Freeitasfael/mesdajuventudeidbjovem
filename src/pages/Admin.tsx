@@ -782,7 +782,125 @@ const Admin = () => {
                 </tbody>
               </table>
             </Card>
+
+            {/* Order detail dialog */}
+            <Dialog
+              open={!!detailOrder}
+              onOpenChange={(open) => {
+                if (!open) {
+                  setDetailOrder(null);
+                  setDetailNumbers([]);
+                }
+              }}
+            >
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Detalhes do pedido</DialogTitle>
+                </DialogHeader>
+                {detailOrder && (() => {
+                  const buyer = buyers[detailOrder.buyer_id];
+                  const seller = detailOrder.seller_id
+                    ? sellers.find((s) => s.id === detailOrder.seller_id)
+                    : null;
+                  const canRefund = ["paid", "pending"].includes(detailOrder.status);
+                  return (
+                    <div className="space-y-4 text-sm">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <p className="text-xs uppercase text-muted-foreground">Pedido</p>
+                          <p className="font-mono text-xs">{detailOrder.id}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs uppercase text-muted-foreground">Status</p>
+                          <StatusBadge status={detailOrder.status} />
+                        </div>
+                        <div>
+                          <p className="text-xs uppercase text-muted-foreground">Comprador</p>
+                          <p className="font-medium">{buyer?.name ?? "—"}</p>
+                          <p className="text-xs text-muted-foreground">{buyer?.phone ?? "—"}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs uppercase text-muted-foreground">Total</p>
+                          <p className="font-semibold">{fmtBRL(detailOrder.total_cents)}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs uppercase text-muted-foreground">Data</p>
+                          <p>{fmtDate(detailOrder.created_at)}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs uppercase text-muted-foreground">Expira em</p>
+                          <p>{fmtDate(detailOrder.expires_at)}</p>
+                        </div>
+                      </div>
+
+                      <div className="rounded-md border border-border p-3">
+                        <p className="text-xs uppercase text-muted-foreground">Indicação</p>
+                        {seller ? (
+                          <div className="mt-1">
+                            <p className="font-medium">{seller.name}</p>
+                            <p className="font-mono text-xs text-muted-foreground">
+                              Código: {seller.ref_code}
+                            </p>
+                            {seller.phone && (
+                              <p className="text-xs text-muted-foreground">Tel: {seller.phone}</p>
+                            )}
+                          </div>
+                        ) : (
+                          <p className="mt-1 text-muted-foreground">Sem indicação</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <p className="mb-2 text-xs uppercase text-muted-foreground">
+                          Números comprados ({detailNumbers.length})
+                        </p>
+                        {detailLoading ? (
+                          <p className="text-xs text-muted-foreground">Carregando...</p>
+                        ) : detailNumbers.length === 0 ? (
+                          <p className="text-xs text-muted-foreground">Nenhum número.</p>
+                        ) : (
+                          <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto">
+                            {detailNumbers.map((n) => (
+                              <span
+                                key={n}
+                                className="inline-flex h-8 min-w-[2.5rem] items-center justify-center rounded-md bg-primary px-2 font-mono text-xs font-semibold text-primary-foreground"
+                              >
+                                {n.toString().padStart(3, "0")}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
+                <DialogFooter className="gap-2 sm:gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setDetailOrder(null);
+                      setDetailNumbers([]);
+                    }}
+                  >
+                    Fechar
+                  </Button>
+                  {detailOrder &&
+                    ["paid", "pending"].includes(detailOrder.status) && (
+                      <Button
+                        variant="destructive"
+                        onClick={refundOrder}
+                        disabled={refunding}
+                      >
+                        {refunding
+                          ? "Processando..."
+                          : "Liberar números e reembolsar"}
+                      </Button>
+                    )}
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </TabsContent>
+
 
           {/* SELLERS */}
           <TabsContent value="sellers" className="mt-6 space-y-6">
