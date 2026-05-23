@@ -263,8 +263,7 @@ export const HeroRifa = ({
                   <Skeleton key={i} className="aspect-[4/5] rounded-2xl bg-white/15" />
                 ))
               : safePrizes.map((prize, idx) => {
-                  const fallback = FALLBACK_IMAGES[idx] || FALLBACK_IMAGES[0];
-                  const src = prize.image || fallback;
+                  const hasImage = typeof prize.image === "string" && prize.image.length > 0;
                   const inferred = prize.mediaType || inferType(prize.image);
                   const type = inferred;
                   const fit = prize.fit === "contain" ? "contain" : "cover";
@@ -284,13 +283,21 @@ export const HeroRifa = ({
                       className="group overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm transition-all hover:scale-[1.03] hover:shadow-gold-glow"
                     >
                       <div className="relative aspect-square w-full overflow-hidden bg-black/30">
-                        <PrizeMedia
-                          src={src}
-                          type={type}
-                          fallback={fallback}
-                          alt={prize.name}
-                          style={mediaStyle}
-                        />
+                        {hasImage ? (
+                          <PrizeMedia
+                            src={prize.image as string}
+                            type={type}
+                            alt={prize.name}
+                            style={mediaStyle}
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center bg-black/40">
+                            <Trophy
+                              className="h-16 w-16 opacity-70"
+                              style={{ color: "hsl(var(--hero-gold))" }}
+                            />
+                          </div>
+                        )}
                         <span
                           className="absolute left-3 top-3 rounded-full px-3 py-1 text-xs font-extrabold uppercase tracking-wider shadow-md"
                           style={{
@@ -307,6 +314,7 @@ export const HeroRifa = ({
                     </article>
                   );
                 })}
+
           </div>
         </div>
       </div>
