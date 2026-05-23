@@ -82,18 +82,25 @@ export const SiteHeader = ({ variant = "light", breadcrumbs }: Props) => {
     : "text-muted-foreground hover:text-foreground";
   const linkActive = isDark ? "text-white" : "text-foreground";
 
-  const renderLinks = (onClick?: () => void) =>
-    NAV.map((item) => {
+  const renderLinks = (onClick?: () => void, forceLight = false) => {
+    const lBase = forceLight
+      ? "text-muted-foreground hover:text-foreground"
+      : linkBase;
+    const lActive = forceLight ? "text-foreground" : linkActive;
+    const activeBg = forceLight
+      ? "bg-muted"
+      : isDark
+      ? "bg-white/10"
+      : "bg-muted";
+    return NAV.map((item) => {
       const isHash = item.to.includes("#");
       const active =
         !isHash &&
         (location.pathname === item.to ||
           (item.to !== "/rifa" && location.pathname.startsWith(item.to)));
       const Icon = item.icon;
-      const cls = `inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium transition ${
-        active
-          ? `${linkActive} ${isDark ? "bg-white/10" : "bg-muted"}`
-          : linkBase
+      const cls = `inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition ${
+        active ? `${lActive} ${activeBg}` : lBase
       }`;
       if (isHash) {
         return (
@@ -110,6 +117,7 @@ export const SiteHeader = ({ variant = "light", breadcrumbs }: Props) => {
         </NavLink>
       );
     });
+  };
 
   const accountLabel = authed ? "Minha área" : "Login";
   const AccountIcon = authed ? LayoutDashboard : LogIn;
