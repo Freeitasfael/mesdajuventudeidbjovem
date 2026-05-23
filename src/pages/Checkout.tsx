@@ -318,7 +318,7 @@ const Checkout = () => {
                     </p>
                   </div>
                 )}
-                {!refValidating && refResult && !refResult.ok && refInput.trim().length >= 3 && (
+                {!refValidating && refResult && refResult.ok === false && refInput.trim().length >= 3 && (
                   <div className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 p-2 text-sm">
                     <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
                     <p>{refResult.message}</p>
