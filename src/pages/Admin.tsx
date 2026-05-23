@@ -102,6 +102,13 @@ const Admin = () => {
   const [revalidatingId, setRevalidatingId] = useState<string | null>(null);
   const [realtimeOk, setRealtimeOk] = useState(false);
 
+  // Order detail dialog
+  const [detailOrder, setDetailOrder] = useState<OrderRow | null>(null);
+  const [detailNumbers, setDetailNumbers] = useState<number[]>([]);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [refunding, setRefunding] = useState(false);
+
+
   // Settings
   const [title, setTitle] = useState("");
   const [priceReais, setPriceReais] = useState("");
@@ -134,7 +141,7 @@ const Admin = () => {
   const [newSellerPhone, setNewSellerPhone] = useState("");
 
   // Filtros de pedidos (Admin)
-  const [orderStatusFilter, setOrderStatusFilter] = useState<"all" | "pending" | "paid" | "expired" | "cancelled">("all");
+  const [orderStatusFilter, setOrderStatusFilter] = useState<"all" | "pending" | "paid" | "expired" | "cancelled" | "refunded">("all");
   const [orderDateFrom, setOrderDateFrom] = useState("");
   const [orderDateTo, setOrderDateTo] = useState("");
 
@@ -470,6 +477,50 @@ const Admin = () => {
     }
   };
 
+  const openOrderDetail = async (o: OrderRow) => {
+    setDetailOrder(o);
+    setDetailNumbers([]);
+    setDetailLoading(true);
+    const { data, error } = await supabase
+      .from("order_numbers")
+      .select("number")
+      .eq("order_id", o.id)
+      .order("number", { ascending: true });
+    setDetailLoading(false);
+    if (error) {
+      toast.error("Erro ao carregar números: " + error.message);
+      return;
+    }
+    setDetailNumbers((data ?? []).map((r) => r.number as number));
+  };
+
+  const refundOrder = async () => {
+    if (!detailOrder) return;
+    if (
+      !confirm(
+        "Liberar TODOS os números deste pedido e marcar como reembolsado? Esta ação não pode ser desfeita.",
+      )
+    ) {
+      return;
+    }
+    setRefunding(true);
+    const { data, error } = await supabase.rpc("admin_refund_order", {
+      _order_id: detailOrder.id,
+    });
+    setRefunding(false);
+    if (error) {
+      toast.error("Erro no reembolso: " + error.message);
+      return;
+    }
+    const freed = Array.isArray(data) && data[0] ? (data[0] as { freed_numbers: number }).freed_numbers : 0;
+    toast.success(`Pedido reembolsado. ${freed} números liberados.`);
+    setDetailOrder(null);
+    setDetailNumbers([]);
+    loadAll();
+  };
+
+
+
   const createSeller = async () => {
     const name = newSellerName.trim();
     const ref = newSellerRef.trim().toLowerCase().replace(/[^a-z0-9-]/g, "");
@@ -647,6 +698,8 @@ const Admin = () => {
                       <SelectItem value="paid">Pago</SelectItem>
                       <SelectItem value="expired">Expirado</SelectItem>
                       <SelectItem value="cancelled">Cancelado</SelectItem>
+                      <SelectItem value="refunded">Reembolsado</SelectItem>
+
                     </SelectContent>
                   </Select>
                 </div>
@@ -687,7 +740,11 @@ const Admin = () => {
                       ? sellers.find((s) => s.id === o.seller_id)
                       : null;
                     return (
-                      <tr key={o.id} className="border-t border-border">
+                      <tr
+                        key={o.id}
+                        className="border-t border-border cursor-pointer hover:bg-muted/40 transition-colors"
+                        onClick={() => openOrderDetail(o)}
+                      >
                         <td className="px-4 py-3">{fmtDate(o.created_at)}</td>
                         <td className="px-4 py-3 font-mono text-xs">
                           {o.id.slice(0, 8)}
@@ -714,6 +771,7 @@ const Admin = () => {
                         </td>
                       </tr>
                     );
+
                   })}
                   {filteredOrders.length === 0 && (
                     <tr>
@@ -726,7 +784,125 @@ const Admin = () => {
                 </tbody>
               </table>
             </Card>
+
+            {/* Order detail dialog */}
+            <Dialog
+              open={!!detailOrder}
+              onOpenChange={(open) => {
+                if (!open) {
+                  setDetailOrder(null);
+                  setDetailNumbers([]);
+                }
+              }}
+            >
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Detalhes do pedido</DialogTitle>
+                </DialogHeader>
+                {detailOrder && (() => {
+                  const buyer = buyers[detailOrder.buyer_id];
+                  const seller = detailOrder.seller_id
+                    ? sellers.find((s) => s.id === detailOrder.seller_id)
+                    : null;
+                  const canRefund = ["paid", "pending"].includes(detailOrder.status);
+                  return (
+                    <div className="space-y-4 text-sm">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <p className="text-xs uppercase text-muted-foreground">Pedido</p>
+                          <p className="font-mono text-xs">{detailOrder.id}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs uppercase text-muted-foreground">Status</p>
+                          <StatusBadge status={detailOrder.status} />
+                        </div>
+                        <div>
+                          <p className="text-xs uppercase text-muted-foreground">Comprador</p>
+                          <p className="font-medium">{buyer?.name ?? "—"}</p>
+                          <p className="text-xs text-muted-foreground">{buyer?.phone ?? "—"}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs uppercase text-muted-foreground">Total</p>
+                          <p className="font-semibold">{fmtBRL(detailOrder.total_cents)}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs uppercase text-muted-foreground">Data</p>
+                          <p>{fmtDate(detailOrder.created_at)}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs uppercase text-muted-foreground">Expira em</p>
+                          <p>{fmtDate(detailOrder.expires_at)}</p>
+                        </div>
+                      </div>
+
+                      <div className="rounded-md border border-border p-3">
+                        <p className="text-xs uppercase text-muted-foreground">Indicação</p>
+                        {seller ? (
+                          <div className="mt-1">
+                            <p className="font-medium">{seller.name}</p>
+                            <p className="font-mono text-xs text-muted-foreground">
+                              Código: {seller.ref_code}
+                            </p>
+                            {seller.phone && (
+                              <p className="text-xs text-muted-foreground">Tel: {seller.phone}</p>
+                            )}
+                          </div>
+                        ) : (
+                          <p className="mt-1 text-muted-foreground">Sem indicação</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <p className="mb-2 text-xs uppercase text-muted-foreground">
+                          Números comprados ({detailNumbers.length})
+                        </p>
+                        {detailLoading ? (
+                          <p className="text-xs text-muted-foreground">Carregando...</p>
+                        ) : detailNumbers.length === 0 ? (
+                          <p className="text-xs text-muted-foreground">Nenhum número.</p>
+                        ) : (
+                          <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto">
+                            {detailNumbers.map((n) => (
+                              <span
+                                key={n}
+                                className="inline-flex h-8 min-w-[2.5rem] items-center justify-center rounded-md bg-primary px-2 font-mono text-xs font-semibold text-primary-foreground"
+                              >
+                                {n.toString().padStart(3, "0")}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
+                <DialogFooter className="gap-2 sm:gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setDetailOrder(null);
+                      setDetailNumbers([]);
+                    }}
+                  >
+                    Fechar
+                  </Button>
+                  {detailOrder &&
+                    ["paid", "pending"].includes(detailOrder.status) && (
+                      <Button
+                        variant="destructive"
+                        onClick={refundOrder}
+                        disabled={refunding}
+                      >
+                        {refunding
+                          ? "Processando..."
+                          : "Liberar números e reembolsar"}
+                      </Button>
+                    )}
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </TabsContent>
+
 
           {/* SELLERS */}
           <TabsContent value="sellers" className="mt-6 space-y-6">
@@ -1158,6 +1334,8 @@ const StatusBadge = ({ status }: { status: string }) => {
     pending: "bg-yellow-500/15 text-yellow-700 dark:text-yellow-400",
     expired: "bg-muted text-muted-foreground",
     cancelled: "bg-destructive/15 text-destructive",
+    refunded: "bg-orange-500/15 text-orange-700 dark:text-orange-400",
+
   };
   return (
     <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${map[status] ?? "bg-muted"}`}>
