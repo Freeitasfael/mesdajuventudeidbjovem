@@ -163,7 +163,7 @@ export const HeroRifa = ({
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-white/70 sm:text-base">
             Por apenas
           </p>
-          {loading && safePrice === null ? (
+          {safePrice === null ? (
             <div className="mt-4 flex justify-center">
               <Skeleton className="h-20 w-64 rounded-xl bg-white/15 sm:h-24 sm:w-80" />
             </div>
