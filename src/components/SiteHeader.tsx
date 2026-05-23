@@ -176,8 +176,8 @@ export const SiteHeader = ({ variant = "light", breadcrumbs }: Props) => {
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[280px]">
-              <div className="mt-8 flex flex-col gap-1">{renderLinks()}</div>
+            <SheetContent side="right" className="w-[280px] bg-card text-foreground">
+              <div className="mt-8 flex flex-col gap-1">{renderLinks(undefined, true)}</div>
             </SheetContent>
           </Sheet>
         </div>
