@@ -214,6 +214,83 @@ const Admin = () => {
     toast.success(`${filteredOrders.length} pedidos exportados`);
   };
 
+  const exportRaffleCsv = async () => {
+    const t = toast.loading("Gerando lista do sorteio...");
+    try {
+      // 1. Paid numbers ordered ascending
+      const { data: nums, error: nErr } = await supabase
+        .from("numbers")
+        .select("number, order_id")
+        .eq("status", "paid")
+        .order("number", { ascending: true });
+      if (nErr) throw nErr;
+      const list = (nums ?? []) as { number: number; order_id: string | null }[];
+      if (list.length === 0) {
+        toast.dismiss(t);
+        toast.info("Nenhum número pago para exportar");
+        return;
+      }
+
+      // 2. Fetch related orders (with buyer + seller ids)
+      const orderIds = Array.from(
+        new Set(list.map((n) => n.order_id).filter(Boolean) as string[]),
+      );
+      const { data: ords, error: oErr } = await supabase
+        .from("orders")
+        .select("id, buyer_id, seller_id")
+        .in("id", orderIds);
+      if (oErr) throw oErr;
+      const orderMap = new Map(
+        (ords ?? []).map((o) => [
+          o.id as string,
+          { buyer_id: o.buyer_id as string, seller_id: o.seller_id as string | null },
+        ]),
+      );
+
+      // 3. Buyers map
+      const buyerIds = Array.from(
+        new Set(Array.from(orderMap.values()).map((o) => o.buyer_id)),
+      );
+      const { data: bs, error: bErr } = await supabase
+        .from("buyers")
+        .select("id, name, phone")
+        .in("id", buyerIds);
+      if (bErr) throw bErr;
+      const buyerMap = new Map(
+        (bs ?? []).map((b) => [b.id as string, b as BuyerRow]),
+      );
+
+      // 4. Sellers map (use state, already loaded for all sellers)
+      const sellerMap = new Map(sellers.map((s) => [s.id, s]));
+
+      const rows = list.map((n) => {
+        const ord = n.order_id ? orderMap.get(n.order_id) : undefined;
+        const buyer = ord ? buyerMap.get(ord.buyer_id) : undefined;
+        const seller = ord?.seller_id ? sellerMap.get(ord.seller_id) : undefined;
+        return [
+          n.number.toString().padStart(3, "0"),
+          buyer?.name ?? "—",
+          buyer?.phone ?? "—",
+          seller?.name ?? "—",
+        ];
+      });
+
+      const csv = buildCsv(
+        ["Número", "Comprador", "Telefone", "Indicado por"],
+        rows,
+      );
+      const stamp = new Date().toISOString().slice(0, 10);
+      downloadCsv(`sorteio-${stamp}.csv`, csv);
+      toast.dismiss(t);
+      toast.success(`${rows.length} números exportados para sorteio`);
+    } catch (err) {
+      toast.dismiss(t);
+      const msg = err instanceof Error ? err.message : "Erro desconhecido";
+      toast.error("Falha ao exportar: " + msg);
+    }
+  };
+
+
   const loadAll = async () => {
     const [s, o, p, b, sl, st] = await Promise.all([
       supabase.rpc("admin_dashboard_stats"),
