@@ -86,6 +86,41 @@ export type Database = {
         }
         Relationships: []
       }
+      manual_sales: {
+        Row: {
+          amount_cents: number | null
+          buyer_name: string
+          created_at: string
+          id: string
+          receipt_path: string
+          seller_id: string
+        }
+        Insert: {
+          amount_cents?: number | null
+          buyer_name: string
+          created_at?: string
+          id?: string
+          receipt_path: string
+          seller_id: string
+        }
+        Update: {
+          amount_cents?: number | null
+          buyer_name?: string
+          created_at?: string
+          id?: string
+          receipt_path?: string
+          seller_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manual_sales_seller_id_fkey"
+            columns: ["seller_id"]
+            isOneToOne: false
+            referencedRelation: "sellers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       numbers: {
         Row: {
           number: number
@@ -466,11 +501,29 @@ export type Database = {
         }[]
       }
       confirm_payment: { Args: { _order_id: string }; Returns: undefined }
+      ensure_my_seller: {
+        Args: never
+        Returns: {
+          id: string
+          name: string
+          ref_code: string
+        }[]
+      }
       expire_reservations: {
         Args: never
         Returns: {
           expired_orders: number
           freed_numbers: number
+        }[]
+      }
+      get_my_manual_sales: {
+        Args: never
+        Returns: {
+          amount_cents: number
+          buyer_name: string
+          created_at: string
+          id: string
+          receipt_path: string
         }[]
       }
       get_my_seller: {
@@ -543,6 +596,14 @@ export type Database = {
           total_numbers: number
           total_orders: number
         }[]
+      }
+      register_my_manual_sale: {
+        Args: {
+          _amount_cents?: number
+          _buyer_name: string
+          _receipt_path: string
+        }
+        Returns: string
       }
       register_seller_self: {
         Args: { _name: string; _phone: string }
