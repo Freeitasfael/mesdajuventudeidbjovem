@@ -236,7 +236,6 @@ export const RaffleGrid = ({ pricePerNumber }: Props) => {
         <div className="grid grid-cols-6 sm:grid-cols-10 md:grid-cols-12 lg:grid-cols-16 gap-1.5">
           {numbers.map((n) => {
             const isSelected = selected.includes(n.number);
-            const blocked = n.status !== "available";
             return (
               <button
                 key={n.number}
