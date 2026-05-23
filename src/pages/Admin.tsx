@@ -764,14 +764,14 @@ const Admin = () => {
             <ManualFreeNumber onDone={loadAll} />
 
             <Card className="space-y-3 p-4">
-              <div className="flex flex-wrap items-end gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:flex lg:flex-wrap lg:items-end">
                 <div className="space-y-1">
                   <Label className="text-xs">Status</Label>
                   <Select
                     value={orderStatusFilter}
                     onValueChange={(v) => setOrderStatusFilter(v as typeof orderStatusFilter)}
                   >
-                    <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="w-full lg:w-44"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos</SelectItem>
                       <SelectItem value="pending">Pendente</SelectItem>
@@ -785,19 +785,19 @@ const Admin = () => {
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs" htmlFor="adFrom">De</Label>
-                  <Input id="adFrom" type="date" value={orderDateFrom} onChange={(e) => setOrderDateFrom(e.target.value)} className="w-44" />
+                  <Input id="adFrom" type="date" value={orderDateFrom} onChange={(e) => setOrderDateFrom(e.target.value)} className="w-full lg:w-44" />
                 </div>
                 <div className="space-y-1">
                   <Label className="text-xs" htmlFor="adTo">Até</Label>
-                  <Input id="adTo" type="date" value={orderDateTo} onChange={(e) => setOrderDateTo(e.target.value)} className="w-44" />
+                  <Input id="adTo" type="date" value={orderDateTo} onChange={(e) => setOrderDateTo(e.target.value)} className="w-full lg:w-44" />
                 </div>
-                <Button variant="outline" size="sm" onClick={() => { setOrderStatusFilter("all"); setOrderDateFrom(""); setOrderDateTo(""); }}>
+                <Button variant="outline" size="sm" onClick={() => { setOrderStatusFilter("all"); setOrderDateFrom(""); setOrderDateTo(""); }} className="w-full sm:w-auto">
                   Limpar
                 </Button>
-                <Button size="sm" onClick={exportOrdersCsv} className="ml-auto">
+                <Button size="sm" onClick={exportOrdersCsv} className="w-full sm:w-auto lg:ml-auto">
                   <Download className="mr-2 h-4 w-4" /> Exportar pedidos ({filteredOrders.length})
                 </Button>
-                <Button size="sm" variant="secondary" onClick={exportRaffleCsv}>
+                <Button size="sm" variant="secondary" onClick={exportRaffleCsv} className="w-full sm:w-auto">
                   <Trophy className="mr-2 h-4 w-4" /> Exportar sorteio (números pagos)
                 </Button>
 
