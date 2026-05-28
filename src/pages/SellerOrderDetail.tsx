@@ -98,9 +98,9 @@ const SellerOrderDetail = () => {
 
   // Realtime: atualiza quando o status do pedido/pagamento muda
   useEffect(() => {
-    if (!orderId || !authed) return;
+    if (!orderId || !authed || !sellerId) return;
     const ch = supabase
-      .channel(`seller-order-${orderId}`)
+      .channel(`seller-${sellerId}-order-${orderId}`)
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "orders", filter: `id=eq.${orderId}` },
@@ -115,7 +115,8 @@ const SellerOrderDetail = () => {
     return () => {
       supabase.removeChannel(ch);
     };
-  }, [orderId, authed, load]);
+  }, [orderId, authed, sellerId, load]);
+
 
   const copy = async (text: string, label: string) => {
     try {
