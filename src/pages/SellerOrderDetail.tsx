@@ -54,17 +54,24 @@ const SellerOrderDetail = () => {
   const { orderId } = useParams<{ orderId: string }>();
   const [authChecked, setAuthChecked] = useState(false);
   const [authed, setAuthed] = useState(false);
+  const [sellerId, setSellerId] = useState<string | null>(null);
   const [order, setOrder] = useState<OrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     document.title = "Detalhes do pedido — Painel do Revendedor";
-    supabase.auth.getSession().then(({ data }) => {
+    supabase.auth.getSession().then(async ({ data }) => {
       setAuthed(!!data.session);
       setAuthChecked(true);
+      if (data.session) {
+        const { data: s } = await supabase.rpc("get_my_seller");
+        const row = Array.isArray(s) ? s[0] : s;
+        if (row?.id) setSellerId(row.id as string);
+      }
     });
   }, []);
+
 
   const load = useCallback(async () => {
     if (!orderId) return;
