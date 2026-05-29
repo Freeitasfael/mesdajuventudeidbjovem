@@ -157,26 +157,6 @@ export default function Auth() {
     }
   };
 
-  const handleGoogle = async () => {
-    setLoading(true);
-    try {
-      const { lovable } = await import("@/integrations/lovable/index");
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: `${window.location.origin}/revendedor`,
-      });
-      if (result.error) {
-        toast.error("Erro ao entrar com Google");
-        setLoading(false);
-        return;
-      }
-      if (result.redirected) return; // browser is redirecting to Google
-      // session set, navigate
-      window.location.href = `${window.location.origin}/revendedor`;
-    } catch (err) {
-      toast.error("Erro ao entrar com Google");
-      setLoading(false);
-    }
-  };
 
 
 
