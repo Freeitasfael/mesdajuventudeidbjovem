@@ -651,6 +651,11 @@ const Admin = () => {
           </div>
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm" asChild>
+              <Link to="/revendedor">
+                <Users className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">Revendedor</span>
+              </Link>
+            </Button>
+            <Button variant="outline" size="sm" asChild>
               <Link to="/admin/alertas">
                 <Bell className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">Alertas</span>
               </Link>
