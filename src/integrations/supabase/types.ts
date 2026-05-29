@@ -86,6 +86,60 @@ export type Database = {
         }
         Relationships: []
       }
+      entrada_orders: {
+        Row: {
+          buyer_name: string
+          buyer_phone: string
+          created_at: string
+          expires_at: string
+          id: string
+          mp_payment_id: string | null
+          product: string
+          qr_code: string | null
+          qr_code_base64: string | null
+          quantity: number
+          raw: Json | null
+          size: string | null
+          status: string
+          total_cents: number
+          updated_at: string
+        }
+        Insert: {
+          buyer_name: string
+          buyer_phone: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          mp_payment_id?: string | null
+          product: string
+          qr_code?: string | null
+          qr_code_base64?: string | null
+          quantity: number
+          raw?: Json | null
+          size?: string | null
+          status?: string
+          total_cents: number
+          updated_at?: string
+        }
+        Update: {
+          buyer_name?: string
+          buyer_phone?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          mp_payment_id?: string | null
+          product?: string
+          qr_code?: string | null
+          qr_code_base64?: string | null
+          quantity?: number
+          raw?: Json | null
+          size?: string | null
+          status?: string
+          total_cents?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       manual_sales: {
         Row: {
           amount_cents: number | null
