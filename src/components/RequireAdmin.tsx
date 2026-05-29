@@ -51,7 +51,9 @@ export const RequireAdmin = ({ children }: Props) => {
         <p className="text-muted-foreground">Verificando acesso…</p>
       </main>
     );
-  }
+  if (state === "noauth")
+    return <Navigate to={`/auth?next=${encodeURIComponent(window.location.pathname)}`} replace />;
+
   if (state === "noauth") return <Navigate to="/auth" replace />;
   if (state === "noadmin") {
     return (
