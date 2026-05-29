@@ -157,26 +157,6 @@ export default function Auth() {
     }
   };
 
-  const handleGoogle = async () => {
-    setLoading(true);
-    try {
-      const { lovable } = await import("@/integrations/lovable/index");
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: `${window.location.origin}/revendedor`,
-      });
-      if (result.error) {
-        toast.error("Erro ao entrar com Google");
-        setLoading(false);
-        return;
-      }
-      if (result.redirected) return; // browser is redirecting to Google
-      // session set, navigate
-      window.location.href = `${window.location.origin}/revendedor`;
-    } catch (err) {
-      toast.error("Erro ao entrar com Google");
-      setLoading(false);
-    }
-  };
 
 
 
@@ -302,29 +282,6 @@ export default function Auth() {
               : "Enviar link de recuperação"}
           </Button>
         </form>
-
-        {mode !== "forgot" && (
-          <>
-            <div className="my-4 flex items-center gap-3 text-xs text-muted-foreground">
-              <div className="h-px flex-1 bg-border" />
-              ou
-              <div className="h-px flex-1 bg-border" />
-            </div>
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={handleGoogle}
-              disabled={loading}
-            >
-              Continuar com Google
-            </Button>
-            {mode === "signup" && (
-              <p className="mt-2 text-xs text-muted-foreground text-center">
-                Após entrar com Google, complete seus dados na tela do revendedor.
-              </p>
-            )}
-          </>
-        )}
 
         <button
           type="button"
