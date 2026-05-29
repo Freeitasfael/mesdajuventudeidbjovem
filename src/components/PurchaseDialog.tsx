@@ -40,9 +40,24 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" 
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(false);
   const [payment, setPayment] = useState<PaymentData | null>(null);
+  const [stock, setStock] = useState<Record<string, number>>({});
   const pollRef = useRef<number | null>(null);
 
   const total = useMemo(() => PRICES[option] * qtd, [option, qtd]);
+  const pulseiraStock = stock["pulseira"] ?? 0;
+  const sizeStock = (s: string) => stock[`camiseta_${s}`] ?? 0;
+  const sizes = ["PP", "P", "M", "G", "GG", "XGG"];
+  const kitAvailable = pulseiraStock > 0 && sizes.some((s) => sizeStock(s) > 0);
+
+  // Carrega estoque público quando abre o diálogo
+  useEffect(() => {
+    if (!open) return;
+    supabase.from("entrada_stock").select("sku, stock").then(({ data }) => {
+      const map: Record<string, number> = {};
+      for (const r of data ?? []) map[r.sku as string] = r.stock as number;
+      setStock(map);
+    });
+  }, [open]);
 
   const reset = () => {
     setStep("form");
