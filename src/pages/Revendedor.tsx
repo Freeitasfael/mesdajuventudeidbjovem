@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -25,7 +25,9 @@ import {
   AlertTriangle,
   Users,
   CheckCircle2,
+  Shield,
 } from "lucide-react";
+
 
 interface ManualSale {
   id: string;
