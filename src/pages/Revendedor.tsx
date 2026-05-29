@@ -85,12 +85,31 @@ const Revendedor = () => {
     supabase.auth.getSession().then(({ data }) => {
       setAuthed(!!data.session);
       setAuthChecked(true);
+      if (data.session?.user?.id) {
+        checkAdmin(data.session.user.id);
+      }
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
       setAuthed(!!s);
+      if (s?.user?.id) {
+        checkAdmin(s.user.id);
+      } else {
+        setIsAdmin(false);
+      }
     });
     return () => sub.subscription.unsubscribe();
   }, []);
+
+  const checkAdmin = async (userId: string) => {
+    const { data } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .eq("role", "admin")
+      .maybeSingle();
+    setIsAdmin(!!data);
+  };
+
 
   const load = useCallback(async () => {
     setLoading(true);
