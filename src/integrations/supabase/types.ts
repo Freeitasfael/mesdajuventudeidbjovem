@@ -140,6 +140,27 @@ export type Database = {
         }
         Relationships: []
       }
+      entrada_stock: {
+        Row: {
+          label: string
+          sku: string
+          stock: number
+          updated_at: string
+        }
+        Insert: {
+          label: string
+          sku: string
+          stock?: number
+          updated_at?: string
+        }
+        Update: {
+          label?: string
+          sku?: string
+          stock?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       manual_sales: {
         Row: {
           amount_cents: number | null
@@ -533,6 +554,32 @@ export type Database = {
         }[]
       }
       admin_free_number: { Args: { _number: number }; Returns: undefined }
+      admin_list_entrada_orders: {
+        Args: { _limit?: number }
+        Returns: {
+          buyer_name: string
+          buyer_phone: string
+          created_at: string
+          expires_at: string
+          id: string
+          mp_payment_id: string | null
+          product: string
+          qr_code: string | null
+          qr_code_base64: string | null
+          quantity: number
+          raw: Json | null
+          size: string | null
+          status: string
+          total_cents: number
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "entrada_orders"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       admin_list_orders: {
         Args: { _limit?: number }
         Returns: {
@@ -565,6 +612,10 @@ export type Database = {
         }[]
       }
       confirm_payment: { Args: { _order_id: string }; Returns: undefined }
+      decrement_entrada_stock: {
+        Args: { _qty: number; _sku: string }
+        Returns: number
+      }
       ensure_my_seller: {
         Args: never
         Returns: {

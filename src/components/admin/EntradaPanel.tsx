@@ -1,0 +1,202 @@
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Card } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { RefreshCw, Save } from "lucide-react";
+
+interface EntradaOrder {
+  id: string;
+  created_at: string;
+  buyer_name: string;
+  buyer_phone: string;
+  product: string;
+  size: string | null;
+  quantity: number;
+  total_cents: number;
+  status: string;
+  mp_payment_id: string | null;
+}
+
+interface StockRow {
+  sku: string;
+  label: string;
+  stock: number;
+}
+
+const fmtBRL = (c: number) => `R$ ${(c / 100).toFixed(2).replace(".", ",")}`;
+const fmtDate = (s: string) => new Date(s).toLocaleString("pt-BR");
+
+function StatusBadge({ status }: { status: string }) {
+  const map: Record<string, string> = {
+    paid: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
+    pending: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
+    expired: "bg-muted text-muted-foreground",
+    cancelled: "bg-destructive/15 text-destructive",
+  };
+  return (
+    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${map[status] ?? "bg-muted"}`}>
+      {status}
+    </span>
+  );
+}
+
+export function EntradaPanel() {
+  const [orders, setOrders] = useState<EntradaOrder[]>([]);
+  const [stock, setStock] = useState<StockRow[]>([]);
+  const [editing, setEditing] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
+
+  const load = async () => {
+    setLoading(true);
+    const [o, s] = await Promise.all([
+      supabase
+        .from("entrada_orders")
+        .select("id, created_at, buyer_name, buyer_phone, product, size, quantity, total_cents, status, mp_payment_id")
+        .order("created_at", { ascending: false })
+        .limit(500),
+      supabase.from("entrada_stock").select("sku, label, stock").order("sku"),
+    ]);
+    if (o.data) setOrders(o.data as EntradaOrder[]);
+    if (s.data) setStock(s.data as StockRow[]);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    load();
+    const channel = supabase
+      .channel("admin-entrada")
+      .on("postgres_changes", { event: "*", schema: "public", table: "entrada_orders" }, () => load())
+      .on("postgres_changes", { event: "*", schema: "public", table: "entrada_stock" }, () => load())
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const saveStock = async (sku: string) => {
+    const raw = editing[sku];
+    if (raw === undefined) return;
+    const n = parseInt(raw, 10);
+    if (!Number.isFinite(n) || n < 0) {
+      toast.error("Valor inválido");
+      return;
+    }
+    const { error } = await supabase
+      .from("entrada_stock")
+      .update({ stock: n, updated_at: new Date().toISOString() })
+      .eq("sku", sku);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Estoque atualizado");
+    setEditing((p) => {
+      const c = { ...p };
+      delete c[sku];
+      return c;
+    });
+    load();
+  };
+
+  const totalReceived = orders
+    .filter((o) => o.status === "paid")
+    .reduce((acc, o) => acc + o.total_cents, 0);
+
+  return (
+    <Tabs defaultValue="transacoes" className="space-y-4">
+      <TabsList>
+        <TabsTrigger value="transacoes">Transações</TabsTrigger>
+        <TabsTrigger value="estoque">Estoque</TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="transacoes" className="space-y-3">
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            {orders.length} pedidos · {fmtBRL(totalReceived)} recebido
+          </p>
+          <Button variant="ghost" size="sm" onClick={load} disabled={loading}>
+            <RefreshCw className={`mr-2 h-3 w-3 ${loading ? "animate-spin" : ""}`} /> Recarregar
+          </Button>
+        </div>
+        <Card className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-muted/50 text-left">
+              <tr>
+                <th className="px-4 py-3">Data</th>
+                <th className="px-4 py-3">Comprador</th>
+                <th className="px-4 py-3">Telefone</th>
+                <th className="px-4 py-3">Produto</th>
+                <th className="px-4 py-3">Tamanho</th>
+                <th className="px-4 py-3">Qtd</th>
+                <th className="px-4 py-3">MP ID</th>
+                <th className="px-4 py-3">Status</th>
+                <th className="px-4 py-3 text-right">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {orders.map((o) => (
+                <tr key={o.id} className="border-t border-border">
+                  <td className="px-4 py-3 whitespace-nowrap">{fmtDate(o.created_at)}</td>
+                  <td className="px-4 py-3">{o.buyer_name}</td>
+                  <td className="px-4 py-3">{o.buyer_phone}</td>
+                  <td className="px-4 py-3 capitalize">{o.product}</td>
+                  <td className="px-4 py-3">{o.size ?? "—"}</td>
+                  <td className="px-4 py-3">{o.quantity}</td>
+                  <td className="px-4 py-3 font-mono text-xs">{o.mp_payment_id ?? "—"}</td>
+                  <td className="px-4 py-3"><StatusBadge status={o.status} /></td>
+                  <td className="px-4 py-3 text-right font-medium">{fmtBRL(o.total_cents)}</td>
+                </tr>
+              ))}
+              {orders.length === 0 && (
+                <tr>
+                  <td colSpan={9} className="px-4 py-8 text-center text-muted-foreground">
+                    Nenhuma transação ainda.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </Card>
+      </TabsContent>
+
+      <TabsContent value="estoque" className="space-y-3">
+        <Card className="p-4">
+          <h3 className="font-semibold mb-1">Controle de estoque</h3>
+          <p className="text-xs text-muted-foreground mb-4">
+            Defina manualmente a quantidade disponível. A cada pagamento confirmado o sistema baixa automaticamente. Quando chega a 0, o produto fica indisponível para compra.
+          </p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {stock.map((s) => {
+              const isEditing = editing[s.sku] !== undefined;
+              const value = isEditing ? editing[s.sku] : String(s.stock);
+              const isOut = s.stock <= 0;
+              return (
+                <div key={s.sku} className={`flex items-end gap-2 rounded-md border p-3 ${isOut ? "border-destructive/40 bg-destructive/5" : "border-border"}`}>
+                  <div className="flex-1 space-y-1">
+                    <Label className="text-xs flex items-center justify-between">
+                      <span>{s.label}</span>
+                      {isOut && <span className="text-destructive font-semibold">Esgotado</span>}
+                    </Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      value={value}
+                      onChange={(e) => setEditing((p) => ({ ...p, [s.sku]: e.target.value }))}
+                    />
+                  </div>
+                  <Button size="sm" disabled={!isEditing} onClick={() => saveStock(s.sku)}>
+                    <Save className="mr-1 h-4 w-4" /> Salvar
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+        </Card>
+      </TabsContent>
+    </Tabs>
+  );
+}

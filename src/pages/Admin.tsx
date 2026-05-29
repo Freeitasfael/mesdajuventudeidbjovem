@@ -13,6 +13,7 @@ import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { HeroRifa } from "@/components/HeroRifa";
 import { buildCsv, downloadCsv } from "@/lib/csv";
+import { EntradaPanel } from "@/components/admin/EntradaPanel";
 
 const ALLOWED_MIME = new Set([
   "image/png",
@@ -677,8 +678,14 @@ const Admin = () => {
               <TabsTrigger value="sellers">Vendedores</TabsTrigger>
               <TabsTrigger value="settings">Configurações</TabsTrigger>
               <TabsTrigger value="hero">Hero</TabsTrigger>
+              <TabsTrigger value="entrada">Entrada</TabsTrigger>
             </TabsList>
           </div>
+
+          {/* ENTRADA — transações e estoque do /entrada */}
+          <TabsContent value="entrada" className="mt-6">
+            <EntradaPanel />
+          </TabsContent>
 
           {/* DASHBOARD */}
           <TabsContent value="dashboard" className="mt-6 space-y-4">

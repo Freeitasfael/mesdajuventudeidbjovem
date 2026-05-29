@@ -40,9 +40,24 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" 
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(false);
   const [payment, setPayment] = useState<PaymentData | null>(null);
+  const [stock, setStock] = useState<Record<string, number>>({});
   const pollRef = useRef<number | null>(null);
 
   const total = useMemo(() => PRICES[option] * qtd, [option, qtd]);
+  const pulseiraStock = stock["pulseira"] ?? 0;
+  const sizeStock = (s: string) => stock[`camiseta_${s}`] ?? 0;
+  const sizes = ["PP", "P", "M", "G", "GG", "XGG"];
+  const kitAvailable = pulseiraStock > 0 && sizes.some((s) => sizeStock(s) > 0);
+
+  // Carrega estoque público quando abre o diálogo
+  useEffect(() => {
+    if (!open) return;
+    supabase.from("entrada_stock").select("sku, stock").then(({ data }) => {
+      const map: Record<string, number> = {};
+      for (const r of data ?? []) map[r.sku as string] = r.stock as number;
+      setStock(map);
+    });
+  }, [open]);
 
   const reset = () => {
     setStep("form");
@@ -139,13 +154,15 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" 
               <div className="space-y-2">
                 <Label>Opção escolhida</Label>
                 <RadioGroup value={option} onValueChange={(v) => setOption(v as Option)}>
-                  <label className="flex items-center gap-3 rounded-lg border-2 border-border p-3 cursor-pointer hover:border-primary has-[:checked]:border-primary has-[:checked]:bg-accent">
-                    <RadioGroupItem value="pulseira" />
+                  <label className={`flex items-center gap-3 rounded-lg border-2 border-border p-3 cursor-pointer hover:border-primary has-[:checked]:border-primary has-[:checked]:bg-accent ${pulseiraStock <= 0 ? "opacity-50 pointer-events-none" : ""}`}>
+                    <RadioGroupItem value="pulseira" disabled={pulseiraStock <= 0} />
                     <span className="font-medium">{LABELS.pulseira}</span>
+                    {pulseiraStock <= 0 && <span className="ml-auto text-xs font-semibold text-destructive">Indisponível</span>}
                   </label>
-                  <label className="flex items-center gap-3 rounded-lg border-2 border-border p-3 cursor-pointer hover:border-primary has-[:checked]:border-primary has-[:checked]:bg-accent">
-                    <RadioGroupItem value="kit" />
+                  <label className={`flex items-center gap-3 rounded-lg border-2 border-border p-3 cursor-pointer hover:border-primary has-[:checked]:border-primary has-[:checked]:bg-accent ${!kitAvailable ? "opacity-50 pointer-events-none" : ""}`}>
+                    <RadioGroupItem value="kit" disabled={!kitAvailable} />
                     <span className="font-medium">{LABELS.kit}</span>
+                    {!kitAvailable && <span className="ml-auto text-xs font-semibold text-destructive">Indisponível</span>}
                   </label>
                 </RadioGroup>
               </div>
@@ -155,9 +172,14 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" 
                   <Select value={tamanho} onValueChange={setTamanho}>
                     <SelectTrigger><SelectValue placeholder="Selecione o tamanho" /></SelectTrigger>
                     <SelectContent>
-                      {["PP", "P", "M", "G", "GG", "XGG"].map((t) => (
-                        <SelectItem key={t} value={t}>{t}</SelectItem>
-                      ))}
+                      {sizes.map((t) => {
+                        const left = sizeStock(t);
+                        return (
+                          <SelectItem key={t} value={t} disabled={left <= 0}>
+                            {t} {left <= 0 ? "— esgotado" : `(${left} disp.)`}
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                 </div>

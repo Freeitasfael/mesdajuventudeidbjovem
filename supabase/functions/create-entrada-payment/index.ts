@@ -68,6 +68,27 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Checagem de estoque
+    const skusToCheck = ["pulseira", ...(product === "kit" && size ? [`camiseta_${size}`] : [])];
+    const { data: stockRows } = await admin
+      .from("entrada_stock")
+      .select("sku, stock, label")
+      .in("sku", skusToCheck);
+    const stockMap = new Map((stockRows ?? []).map((r) => [r.sku as string, r]));
+    for (const sku of skusToCheck) {
+      const row = stockMap.get(sku);
+      if (!row || (row.stock as number) < quantity) {
+        return new Response(
+          JSON.stringify({
+            error: "out_of_stock",
+            message: `Sem estoque para ${row?.label ?? sku}. Disponível: ${row?.stock ?? 0}.`,
+            sku,
+          }),
+          { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+    }
+
     const total_cents = PRICES_CENTS[product] * quantity;
     const expires_at = new Date(Date.now() + 30 * 60_000).toISOString();
 
