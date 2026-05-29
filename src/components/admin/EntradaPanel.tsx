@@ -53,6 +53,23 @@ export function EntradaPanel() {
   const [pulseiraReais, setPulseiraReais] = useState("");
   const [kitReais, setKitReais] = useState("");
   const [savingPrices, setSavingPrices] = useState(false);
+  const [refundingId, setRefundingId] = useState<string | null>(null);
+
+  const refundOrder = async (o: EntradaOrder) => {
+    const msg = o.status === "paid"
+      ? `Reembolsar este pedido de ${fmtBRL(o.total_cents)}? O estoque será reposto e você deve estornar o valor manualmente no Mercado Pago. Esta ação não pode ser desfeita.`
+      : `Cancelar este pedido pendente? Esta ação não pode ser desfeita.`;
+    if (!confirm(msg)) return;
+    setRefundingId(o.id);
+    const { error } = await supabase.rpc("admin_refund_entrada_order" as any, { _order_id: o.id });
+    setRefundingId(null);
+    if (error) {
+      toast.error("Erro ao reembolsar: " + error.message);
+      return;
+    }
+    toast.success(o.status === "paid" ? "Pedido marcado como reembolsado e estoque reposto." : "Pedido cancelado.");
+    load();
+  };
 
   const load = async () => {
     setLoading(true);
