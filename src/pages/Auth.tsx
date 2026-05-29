@@ -88,11 +88,10 @@ const Auth = () => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate, next]);
+  const goToDashboard = () => {
+    navigate(resolveDestination(), { replace: true });
+  };
 
-  const goToDashboard = async () => {
-    const { data } = await supabase.auth.getSession();
-    const dest = await resolveDestination(data.session?.user.id);
-    navigate(dest, { replace: true });
   };
 
 
