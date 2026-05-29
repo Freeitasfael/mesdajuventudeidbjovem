@@ -21,7 +21,7 @@ const translateError = (msg: string): string => {
   return msg;
 };
 
-const Auth = () => {
+export default function Auth() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const next = searchParams.get("next");
@@ -330,8 +330,6 @@ const Auth = () => {
       </Card>
     </main>
   );
-};
-
-export default Auth;
+}
 
 
