@@ -1,0 +1,137 @@
+import { useEffect, useMemo, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { RefreshCw } from "lucide-react";
+
+interface OrderLite { total_cents: number; created_at: string; status: string; }
+interface EntradaLite { total_cents: number; created_at: string; status: string; product: string; }
+
+const fmtBRL = (c: number) => `R$ ${(c / 100).toFixed(2).replace(".", ",")}`;
+
+export function DashboardConsolidado() {
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  const [rifa, setRifa] = useState<OrderLite[]>([]);
+  const [entrada, setEntrada] = useState<EntradaLite[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const load = async () => {
+    setLoading(true);
+    let rifaQ = supabase.from("orders").select("total_cents, created_at, status").eq("status", "paid").limit(5000);
+    let entQ = supabase.from("entrada_orders").select("total_cents, created_at, status, product").eq("status", "paid").limit(5000);
+    if (from) {
+      const f = new Date(from + "T00:00:00").toISOString();
+      rifaQ = rifaQ.gte("created_at", f);
+      entQ = entQ.gte("created_at", f);
+    }
+    if (to) {
+      const t = new Date(to + "T23:59:59").toISOString();
+      rifaQ = rifaQ.lte("created_at", t);
+      entQ = entQ.lte("created_at", t);
+    }
+    const [r, e] = await Promise.all([rifaQ, entQ]);
+    if (r.data) setRifa(r.data as OrderLite[]);
+    if (e.data) setEntrada(e.data as EntradaLite[]);
+    setLoading(false);
+  };
+
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [from, to]);
+
+  const metrics = useMemo(() => {
+    const rifaTotal = rifa.reduce((a, o) => a + o.total_cents, 0);
+    const rifaCount = rifa.length;
+    const entTotal = entrada.reduce((a, o) => a + o.total_cents, 0);
+    const entCount = entrada.length;
+    const pulseira = entrada.filter((e) => e.product === "pulseira");
+    const kit = entrada.filter((e) => e.product === "kit");
+    const pulTotal = pulseira.reduce((a, o) => a + o.total_cents, 0);
+    const kitTotal = kit.reduce((a, o) => a + o.total_cents, 0);
+    const total = rifaTotal + entTotal;
+    const totalCount = rifaCount + entCount;
+    const ticket = totalCount > 0 ? Math.round(total / totalCount) : 0;
+    return {
+      total, totalCount, ticket,
+      rifaTotal, rifaCount,
+      entTotal, entCount,
+      pulTotal, pulCount: pulseira.length,
+      kitTotal, kitCount: kit.length,
+    };
+  }, [rifa, entrada]);
+
+  return (
+    <div className="space-y-6">
+      {/* Filtros */}
+      <Card className="p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:flex-wrap">
+          <div className="space-y-1">
+            <Label className="text-xs" htmlFor="dashFrom">De</Label>
+            <Input id="dashFrom" type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="w-full sm:w-44" />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs" htmlFor="dashTo">Até</Label>
+            <Input id="dashTo" type="date" value={to} onChange={(e) => setTo(e.target.value)} className="w-full sm:w-44" />
+          </div>
+          <div className="flex gap-2 sm:ml-auto">
+            <Button variant="outline" size="sm" onClick={() => { setFrom(""); setTo(""); }}>Limpar</Button>
+            <Button variant="ghost" size="sm" onClick={load} disabled={loading}>
+              <RefreshCw className={`mr-2 h-3 w-3 ${loading ? "animate-spin" : ""}`} /> Atualizar
+            </Button>
+          </div>
+        </div>
+        <p className="text-xs text-muted-foreground mt-3">
+          Considera apenas pedidos pagos. Sem filtro = histórico completo.
+        </p>
+      </Card>
+
+      {/* Total geral */}
+      <div>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Visão geral</h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard label="Total arrecadado" value={fmtBRL(metrics.total)} highlight />
+          <StatCard label="Total de pedidos" value={String(metrics.totalCount)} />
+          <StatCard label="Ticket médio" value={fmtBRL(metrics.ticket)} />
+          <StatCard
+            label="Distribuição"
+            value={metrics.total > 0
+              ? `Rifa ${Math.round((metrics.rifaTotal / metrics.total) * 100)}% / Entrada ${Math.round((metrics.entTotal / metrics.total) * 100)}%`
+              : "—"
+            }
+          />
+        </div>
+      </div>
+
+      {/* Rifa */}
+      <div>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Rifa</h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <StatCard label="Arrecadado (rifa)" value={fmtBRL(metrics.rifaTotal)} />
+          <StatCard label="Pedidos pagos" value={String(metrics.rifaCount)} />
+          <StatCard label="Ticket médio" value={fmtBRL(metrics.rifaCount > 0 ? Math.round(metrics.rifaTotal / metrics.rifaCount) : 0)} />
+        </div>
+      </div>
+
+      {/* Entrada */}
+      <div>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Camisetas & Pulseiras (Entrada)</h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard label="Arrecadado (entrada)" value={fmtBRL(metrics.entTotal)} />
+          <StatCard label="Pedidos pagos" value={String(metrics.entCount)} />
+          <StatCard label="Pulseiras vendidas" value={`${metrics.pulCount} · ${fmtBRL(metrics.pulTotal)}`} />
+          <StatCard label="Kits vendidos" value={`${metrics.kitCount} · ${fmtBRL(metrics.kitTotal)}`} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StatCard({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
+  return (
+    <Card className={`p-4 ${highlight ? "border-primary/40 bg-primary/5" : ""}`}>
+      <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className={`mt-1 font-bold ${highlight ? "text-3xl text-primary" : "text-2xl"}`}>{value}</p>
+    </Card>
+  );
+}

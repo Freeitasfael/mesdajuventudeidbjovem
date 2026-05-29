@@ -14,6 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { HeroRifa } from "@/components/HeroRifa";
 import { buildCsv, downloadCsv } from "@/lib/csv";
 import { EntradaPanel } from "@/components/admin/EntradaPanel";
+import { AdminsPanel } from "@/components/admin/AdminsPanel";
+import { DashboardConsolidado } from "@/components/admin/DashboardConsolidado";
 
 const ALLOWED_MIME = new Set([
   "image/png",
@@ -679,37 +681,42 @@ const Admin = () => {
               <TabsTrigger value="settings">Configurações</TabsTrigger>
               <TabsTrigger value="hero">Hero</TabsTrigger>
               <TabsTrigger value="entrada">Entrada</TabsTrigger>
+              <TabsTrigger value="admins">Admins</TabsTrigger>
             </TabsList>
           </div>
 
-          {/* ENTRADA — transações e estoque do /entrada */}
+          {/* ENTRADA — transações, estoque e preços do /entrada */}
           <TabsContent value="entrada" className="mt-6">
             <EntradaPanel />
           </TabsContent>
 
-          {/* DASHBOARD */}
+          {/* ADMINS */}
+          <TabsContent value="admins" className="mt-6">
+            <AdminsPanel />
+          </TabsContent>
+
+          {/* DASHBOARD — consolidado (rifa + entrada) com filtro por período */}
           <TabsContent value="dashboard" className="mt-6 space-y-4">
             <div className="flex items-center gap-2 text-xs">
               <Radio className={`h-3 w-3 ${realtimeOk ? "text-green-500 animate-pulse" : "text-muted-foreground"}`} />
               <span className="text-muted-foreground">
                 {realtimeOk ? "Atualizando em tempo real" : "Conectando ao tempo real..."}
               </span>
-              <Button variant="ghost" size="sm" className="ml-auto" onClick={() => loadAll()}>
-                <RefreshCw className="mr-2 h-3 w-3" /> Recarregar
-              </Button>
             </div>
-            {stats ? (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <StatCard label="Arrecadado" value={fmtBRL(stats.total_revenue_cents)} />
-                <StatCard label="Pedidos pagos" value={String(stats.paid_orders)} />
-                <StatCard label="Pedidos pendentes" value={String(stats.pending_orders)} />
-                <StatCard label="Vendedores" value={String(stats.sellers_count)} />
-                <StatCard label="Números pagos" value={String(stats.numbers_paid)} />
-                <StatCard label="Números reservados" value={String(stats.numbers_reserved)} />
-                <StatCard label="Números disponíveis" value={String(stats.numbers_available)} />
+            <DashboardConsolidado />
+            {stats && (
+              <div className="pt-2">
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">
+                  Status dos números da rifa
+                </h2>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  <StatCard label="Pedidos pendentes" value={String(stats.pending_orders)} />
+                  <StatCard label="Vendedores" value={String(stats.sellers_count)} />
+                  <StatCard label="Números pagos" value={String(stats.numbers_paid)} />
+                  <StatCard label="Números reservados" value={String(stats.numbers_reserved)} />
+                  <StatCard label="Números disponíveis" value={String(stats.numbers_available)} />
+                </div>
               </div>
-            ) : (
-              <p className="text-muted-foreground">Carregando…</p>
             )}
           </TabsContent>
 

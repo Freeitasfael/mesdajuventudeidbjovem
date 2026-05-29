@@ -9,7 +9,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const PRICES_CENTS = { pulseira: 1500, kit: 6000 } as const;
+const DEFAULT_PRICES_CENTS = { pulseira: 1500, kit: 6000 } as const;
 
 const BodySchema = z.object({
   buyer_name: z.string().trim().min(2).max(120),
@@ -89,7 +89,18 @@ Deno.serve(async (req) => {
       }
     }
 
-    const total_cents = PRICES_CENTS[product] * quantity;
+    // Lê preços configurados (fallback para defaults)
+    const { data: priceRow } = await admin
+      .from("app_settings")
+      .select("value")
+      .eq("key", "entrada_prices")
+      .maybeSingle();
+    const cfg = (priceRow?.value ?? {}) as { pulseira_cents?: number; kit_cents?: number };
+    const prices = {
+      pulseira: Number.isFinite(cfg.pulseira_cents) && (cfg.pulseira_cents as number) > 0 ? (cfg.pulseira_cents as number) : DEFAULT_PRICES_CENTS.pulseira,
+      kit: Number.isFinite(cfg.kit_cents) && (cfg.kit_cents as number) > 0 ? (cfg.kit_cents as number) : DEFAULT_PRICES_CENTS.kit,
+    };
+    const total_cents = prices[product] * quantity;
     const expires_at = new Date(Date.now() + 30 * 60_000).toISOString();
 
     const { data: order, error: insErr } = await admin
