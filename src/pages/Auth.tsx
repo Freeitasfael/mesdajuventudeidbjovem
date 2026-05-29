@@ -92,8 +92,6 @@ const Auth = () => {
     navigate(resolveDestination(), { replace: true });
   };
 
-  };
-
 
 
   const registerAsSeller = async () => {
