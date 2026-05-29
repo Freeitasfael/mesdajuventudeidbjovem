@@ -14,6 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { HeroRifa } from "@/components/HeroRifa";
 import { buildCsv, downloadCsv } from "@/lib/csv";
 import { EntradaPanel } from "@/components/admin/EntradaPanel";
+import { AdminsPanel } from "@/components/admin/AdminsPanel";
+import { DashboardConsolidado } from "@/components/admin/DashboardConsolidado";
 
 const ALLOWED_MIME = new Set([
   "image/png",
