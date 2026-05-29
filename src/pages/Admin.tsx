@@ -678,8 +678,14 @@ const Admin = () => {
               <TabsTrigger value="sellers">Vendedores</TabsTrigger>
               <TabsTrigger value="settings">Configurações</TabsTrigger>
               <TabsTrigger value="hero">Hero</TabsTrigger>
+              <TabsTrigger value="entrada">Entrada</TabsTrigger>
             </TabsList>
           </div>
+
+          {/* ENTRADA — transações e estoque do /entrada */}
+          <TabsContent value="entrada" className="mt-6">
+            <EntradaPanel />
+          </TabsContent>
 
           {/* DASHBOARD */}
           <TabsContent value="dashboard" className="mt-6 space-y-4">
