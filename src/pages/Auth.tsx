@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
+
 
 const translateError = (msg: string): string => {
   const m = msg.toLowerCase();
@@ -159,14 +159,18 @@ export default function Auth() {
 
   const handleGoogle = async () => {
     setLoading(true);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: `${window.location.origin}/revendedor`,
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/revendedor`,
+      },
     });
-    if (result.error) {
+    if (error) {
       toast.error("Erro ao entrar com Google");
       setLoading(false);
     }
   };
+
 
   const title =
     mode === "signin" ? "Entrar" : mode === "signup" ? "Criar sua conta" : "Recuperar senha";
