@@ -144,42 +144,74 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" 
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent
+        className="max-w-lg max-h-[90vh] overflow-y-auto border text-white"
+        style={{
+          backgroundColor: "hsl(var(--hero-bg))",
+          borderColor: "hsl(var(--hero-gold) / 0.3)",
+        }}
+      >
         {step === "form" && (
           <>
             <DialogHeader>
-              <DialogTitle className="text-2xl">Faça seu pedido</DialogTitle>
-              <DialogDescription>Preencha os dados para gerar o pagamento via Pix.</DialogDescription>
+              <DialogTitle className="text-2xl font-extrabold uppercase tracking-wide text-white">
+                Faça seu pedido
+              </DialogTitle>
+              <DialogDescription className="text-white/70">
+                Preencha os dados para gerar o pagamento via Pix.
+              </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4 mt-2">
               <div className="space-y-2">
-                <Label htmlFor="nome">Nome completo</Label>
-                <Input id="nome" value={nome} onChange={(e) => setNome(e.target.value)} maxLength={100} required />
+                <Label htmlFor="nome" className="text-white/85">Nome completo</Label>
+                <Input
+                  id="nome"
+                  value={nome}
+                  onChange={(e) => setNome(e.target.value)}
+                  maxLength={100}
+                  required
+                  className="bg-white/5 border-white/15 text-white placeholder:text-white/40 focus-visible:ring-[hsl(var(--hero-gold))]"
+                />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="tel">Telefone / WhatsApp</Label>
-                <Input id="tel" type="tel" value={telefone} onChange={(e) => setTelefone(e.target.value)} maxLength={20} placeholder="(11) 99999-9999" required />
+                <Label htmlFor="tel" className="text-white/85">Telefone / WhatsApp</Label>
+                <Input
+                  id="tel"
+                  type="tel"
+                  value={telefone}
+                  onChange={(e) => setTelefone(e.target.value)}
+                  maxLength={20}
+                  placeholder="(11) 99999-9999"
+                  required
+                  className="bg-white/5 border-white/15 text-white placeholder:text-white/40 focus-visible:ring-[hsl(var(--hero-gold))]"
+                />
               </div>
               <div className="space-y-2">
-                <Label>Opção escolhida</Label>
+                <Label className="text-white/85">Opção escolhida</Label>
                 <RadioGroup value={option} onValueChange={(v) => setOption(v as Option)}>
-                  <label className={`flex items-center gap-3 rounded-lg border-2 border-border p-3 cursor-pointer hover:border-primary has-[:checked]:border-primary has-[:checked]:bg-accent ${pulseiraStock <= 0 ? "opacity-50 pointer-events-none" : ""}`}>
-                    <RadioGroupItem value="pulseira" disabled={pulseiraStock <= 0} />
-                    <span className="font-medium">{LABELS.pulseira}</span>
+                  <label
+                    className={`flex items-center gap-3 rounded-lg border-2 p-3 cursor-pointer transition bg-white/5 border-white/15 hover:border-[hsl(var(--hero-gold))] has-[:checked]:border-[hsl(var(--hero-gold))] has-[:checked]:bg-[hsl(var(--hero-gold)/0.1)] ${pulseiraStock <= 0 ? "opacity-50 pointer-events-none" : ""}`}
+                  >
+                    <RadioGroupItem value="pulseira" disabled={pulseiraStock <= 0} className="border-white/40 text-[hsl(var(--hero-gold))]" />
+                    <span className="font-medium text-white">{LABELS.pulseira}</span>
                     {pulseiraStock <= 0 && <span className="ml-auto text-xs font-semibold text-destructive">Indisponível</span>}
                   </label>
-                  <label className={`flex items-center gap-3 rounded-lg border-2 border-border p-3 cursor-pointer hover:border-primary has-[:checked]:border-primary has-[:checked]:bg-accent ${!kitAvailable ? "opacity-50 pointer-events-none" : ""}`}>
-                    <RadioGroupItem value="kit" disabled={!kitAvailable} />
-                    <span className="font-medium">{LABELS.kit}</span>
+                  <label
+                    className={`flex items-center gap-3 rounded-lg border-2 p-3 cursor-pointer transition bg-white/5 border-white/15 hover:border-[hsl(var(--hero-gold))] has-[:checked]:border-[hsl(var(--hero-gold))] has-[:checked]:bg-[hsl(var(--hero-gold)/0.1)] ${!kitAvailable ? "opacity-50 pointer-events-none" : ""}`}
+                  >
+                    <RadioGroupItem value="kit" disabled={!kitAvailable} className="border-white/40 text-[hsl(var(--hero-gold))]" />
+                    <span className="font-medium text-white">{LABELS.kit}</span>
                     {!kitAvailable && <span className="ml-auto text-xs font-semibold text-destructive">Indisponível</span>}
                   </label>
                 </RadioGroup>
               </div>
               {option === "kit" && (
                 <div className="space-y-2">
-                  <Label>Tamanho da camiseta</Label>
+                  <Label className="text-white/85">Tamanho da camiseta</Label>
                   <Select value={tamanho} onValueChange={setTamanho}>
-                    <SelectTrigger><SelectValue placeholder="Selecione o tamanho" /></SelectTrigger>
+                    <SelectTrigger className="bg-white/5 border-white/15 text-white focus:ring-[hsl(var(--hero-gold))]">
+                      <SelectValue placeholder="Selecione o tamanho" />
+                    </SelectTrigger>
                     <SelectContent>
                       {sizes.map((t) => {
                         const left = sizeStock(t);
@@ -194,14 +226,36 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" 
                 </div>
               )}
               <div className="space-y-2">
-                <Label htmlFor="qtd">Quantidade</Label>
-                <Input id="qtd" type="number" min={1} max={99} value={qtd} onChange={(e) => setQtd(Math.max(1, parseInt(e.target.value) || 1))} />
+                <Label htmlFor="qtd" className="text-white/85">Quantidade</Label>
+                <Input
+                  id="qtd"
+                  type="number"
+                  min={1}
+                  max={99}
+                  value={qtd}
+                  onChange={(e) => setQtd(Math.max(1, parseInt(e.target.value) || 1))}
+                  className="bg-white/5 border-white/15 text-white focus-visible:ring-[hsl(var(--hero-gold))]"
+                />
               </div>
-              <div className="rounded-lg bg-accent p-4 flex items-center justify-between">
-                <span className="font-medium">Total</span>
-                <span className="text-2xl font-bold text-primary">R$ {total.toFixed(2).replace(".", ",")}</span>
+              <div
+                className="rounded-lg p-4 flex items-center justify-between border"
+                style={{
+                  backgroundColor: "hsl(var(--hero-gold) / 0.08)",
+                  borderColor: "hsl(var(--hero-gold) / 0.3)",
+                }}
+              >
+                <span className="font-semibold uppercase tracking-wider text-sm text-white/85">Total</span>
+                <span className="text-2xl font-extrabold text-glow-gold" style={{ color: "hsl(var(--hero-gold))" }}>
+                  R$ {total.toFixed(2).replace(".", ",")}
+                </span>
               </div>
-              <Button type="submit" size="lg" className="w-full text-base h-12" disabled={loading}>
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full text-base h-12 rounded-2xl font-extrabold uppercase tracking-wider shadow-gold-glow hover:brightness-110"
+                style={{ backgroundColor: "hsl(var(--hero-gold))", color: "hsl(var(--hero-bg))" }}
+                disabled={loading}
+              >
                 {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Gerando PIX...</> : "Continuar para pagamento"}
               </Button>
             </form>
@@ -211,17 +265,31 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" 
         {step === "payment" && payment && (
           <>
             <DialogHeader>
-              <DialogTitle className="text-2xl">Pagamento via Pix</DialogTitle>
-              <DialogDescription>Escaneie o QR Code ou use o código copia e cola.</DialogDescription>
+              <DialogTitle className="text-2xl font-extrabold uppercase tracking-wide text-white">
+                Pagamento via Pix
+              </DialogTitle>
+              <DialogDescription className="text-white/70">
+                Escaneie o QR Code ou use o código copia e cola.
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 mt-2">
-              <div className="rounded-xl bg-primary p-6 text-primary-foreground">
-                <p className="text-sm opacity-90">Valor total</p>
-                <p className="text-4xl font-bold">R$ {(payment.total_cents / 100).toFixed(2).replace(".", ",")}</p>
+              <div
+                className="rounded-xl p-6 border"
+                style={{
+                  backgroundColor: "hsl(var(--hero-gold))",
+                  color: "hsl(var(--hero-bg))",
+                  borderColor: "hsl(var(--hero-gold))",
+                }}
+              >
+                <p className="text-sm opacity-80 font-semibold uppercase tracking-wider">Valor total</p>
+                <p className="text-4xl font-extrabold">R$ {(payment.total_cents / 100).toFixed(2).replace(".", ",")}</p>
               </div>
 
               {payment.qr_code_base64 && (
-                <div className="flex flex-col items-center gap-3 rounded-xl border-2 border-border bg-white p-5">
+                <div
+                  className="flex flex-col items-center gap-3 rounded-xl border-2 bg-white p-5"
+                  style={{ borderColor: "hsl(var(--hero-gold) / 0.4)" }}
+                >
                   <span className="text-xs font-semibold tracking-widest uppercase text-muted-foreground">QR Code Mercado Pago</span>
                   <img
                     src={`data:image/png;base64,${payment.qr_code_base64}`}
@@ -233,39 +301,74 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" 
 
               {payment.qr_code && (
                 <div className="space-y-2">
-                  <Label>Pix Copia e Cola</Label>
+                  <Label className="text-white/85">Pix Copia e Cola</Label>
                   <div className="flex gap-2">
-                    <Input readOnly value={payment.qr_code} onFocus={(e) => e.target.select()} className="font-mono text-xs" />
-                    <Button type="button" variant="outline" size="icon" onClick={copyPayload}>
+                    <Input
+                      readOnly
+                      value={payment.qr_code}
+                      onFocus={(e) => e.target.select()}
+                      className="font-mono text-xs bg-white/5 border-white/15 text-white"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={copyPayload}
+                      className="border-[hsl(var(--hero-gold))] bg-transparent text-[hsl(var(--hero-gold))] hover:bg-[hsl(var(--hero-gold)/0.1)]"
+                    >
                       {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                     </Button>
                   </div>
                 </div>
               )}
 
-              <div className="rounded-lg border-l-4 border-primary bg-accent p-4 text-sm flex items-center gap-3">
-                <Loader2 className="h-4 w-4 animate-spin text-primary flex-shrink-0" />
+              <div
+                className="rounded-lg border-l-4 p-4 text-sm flex items-center gap-3 text-white/85"
+                style={{
+                  borderLeftColor: "hsl(var(--hero-gold))",
+                  backgroundColor: "hsl(var(--hero-gold) / 0.08)",
+                }}
+              >
+                <Loader2 className="h-4 w-4 animate-spin flex-shrink-0" style={{ color: "hsl(var(--hero-gold))" }} />
                 <span>Aguardando confirmação do pagamento... assim que o Pix for aprovado, esta tela será atualizada automaticamente.</span>
               </div>
 
-              <Button type="button" variant="ghost" onClick={() => setStep("form")} className="w-full">Voltar</Button>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setStep("form")}
+                className="w-full text-white/80 hover:text-white hover:bg-white/5"
+              >
+                Voltar
+              </Button>
             </div>
           </>
         )}
 
         {step === "done" && (
           <div className="text-center py-6 space-y-4">
-            <div className="mx-auto w-16 h-16 rounded-full bg-primary flex items-center justify-center">
-              <Check className="h-8 w-8 text-primary-foreground" />
+            <div
+              className="mx-auto w-16 h-16 rounded-full flex items-center justify-center shadow-gold-glow"
+              style={{ backgroundColor: "hsl(var(--hero-gold))" }}
+            >
+              <Check className="h-8 w-8" style={{ color: "hsl(var(--hero-bg))" }} />
             </div>
-            <DialogTitle className="text-2xl">Pagamento confirmado!</DialogTitle>
-            <p className="text-muted-foreground">
+            <DialogTitle className="text-2xl font-extrabold uppercase tracking-wide text-white">Pagamento confirmado!</DialogTitle>
+            <p className="text-white/70">
               Recebemos seu pagamento. Em breve você receberá mais informações sobre a retirada da sua pulseira{option === "kit" ? " e camiseta" : ""}.
             </p>
-            <Button onClick={() => handleClose(false)} size="lg" className="w-full">Fechar</Button>
+            <Button
+              onClick={() => handleClose(false)}
+              size="lg"
+              className="w-full rounded-2xl font-extrabold uppercase tracking-wider shadow-gold-glow"
+              style={{ backgroundColor: "hsl(var(--hero-gold))", color: "hsl(var(--hero-bg))" }}
+            >
+              Fechar
+            </Button>
           </div>
         )}
       </DialogContent>
     </Dialog>
   );
 }
+
