@@ -119,12 +119,17 @@ export const HeroRifa = ({
           <img
             src={logoIdb}
             alt="IDB Jovem Oficial"
+            width={320}
+            height={320}
+            fetchPriority="high"
+            decoding="async"
             className="h-auto w-48 sm:w-64 lg:w-80 transition-transform hover:scale-105"
             style={{
               backgroundColor: "transparent",
               filter: "drop-shadow(0 8px 24px hsl(var(--hero-gold) / 0.35))",
             }}
           />
+
         </div>
 
         {/* Headline */}
