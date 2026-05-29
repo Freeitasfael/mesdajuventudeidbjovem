@@ -31,18 +31,19 @@ export const RequireAdmin = ({ children }: Props) => {
       else setState("ok");
     };
 
-    supabase.auth.getSession().then(({ data }) => {
-      check(data.session?.user?.id);
-    });
-
+    // Listener first so we don't miss session restore events
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
       check(session?.user?.id);
+    });
+    supabase.auth.getSession().then(({ data }) => {
+      check(data.session?.user?.id);
     });
     return () => {
       active = false;
       sub.subscription.unsubscribe();
     };
   }, []);
+
 
   if (state === "loading") {
     return (
