@@ -541,6 +541,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_add_admin_by_email: { Args: { _email: string }; Returns: string }
       admin_dashboard_stats: {
         Args: never
         Returns: {
@@ -554,6 +555,14 @@ export type Database = {
         }[]
       }
       admin_free_number: { Args: { _number: number }; Returns: undefined }
+      admin_list_admins: {
+        Args: never
+        Returns: {
+          created_at: string
+          email: string
+          user_id: string
+        }[]
+      }
       admin_list_entrada_orders: {
         Args: { _limit?: number }
         Returns: {
@@ -604,6 +613,7 @@ export type Database = {
           freed_numbers: number
         }[]
       }
+      admin_remove_admin: { Args: { _user_id: string }; Returns: undefined }
       admin_reset_all_data: {
         Args: never
         Returns: {
