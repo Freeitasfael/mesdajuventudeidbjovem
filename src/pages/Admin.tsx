@@ -13,6 +13,7 @@ import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { HeroRifa } from "@/components/HeroRifa";
 import { buildCsv, downloadCsv } from "@/lib/csv";
+import { EntradaPanel } from "@/components/admin/EntradaPanel";
 
 const ALLOWED_MIME = new Set([
   "image/png",
