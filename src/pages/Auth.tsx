@@ -34,24 +34,22 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [alreadySignedIn, setAlreadySignedIn] = useState<string | null>(null);
 
-  const resolveDestination = async (uid?: string): Promise<string> => {
-    if (next && next.startsWith("/") && next !== "/afiliacao" && next !== "/auth") {
+  // Always send users to /revendedor after login unless an explicit
+  // `?next=` deep-link was provided. Uses relative paths so it works on
+  // the current origin (custom domain included) without touching lovable.app.
+  const resolveDestination = (): string => {
+    if (
+      next &&
+      next.startsWith("/") &&
+      !next.startsWith("//") &&
+      next !== "/auth" &&
+      next !== "/afiliacao"
+    ) {
       return next;
-    }
-    if (!uid) return "/rifa";
-    try {
-      const { data: roleRow } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", uid)
-        .eq("role", "admin")
-        .maybeSingle();
-      if (roleRow) return "/admin";
-    } catch (err) {
-      console.warn("[Auth] role lookup failed", err);
     }
     return "/revendedor";
   };
+
 
   useEffect(() => {
     document.title = "Acesso — Rifa IDB Jovem";
@@ -74,7 +72,8 @@ const Auth = () => {
       console.log("[Auth] event:", event, "hasSession:", !!session);
       if (cancelled) return;
       if (event === "SIGNED_IN" && session) {
-        const dest = await resolveDestination(session.user.id);
+        const dest = resolveDestination();
+
         console.log("[Auth] SIGNED_IN → navigating to", dest);
         navigate(dest, { replace: true });
       }
@@ -89,11 +88,10 @@ const Auth = () => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate, next]);
+  const goToDashboard = () => {
+    navigate(resolveDestination(), { replace: true });
+  };
 
-  const goToDashboard = async () => {
-    const { data } = await supabase.auth.getSession();
-    const dest = await resolveDestination(data.session?.user.id);
-    navigate(dest, { replace: true });
   };
 
 
@@ -337,3 +335,5 @@ const Auth = () => {
 };
 
 export default Auth;
+
+
