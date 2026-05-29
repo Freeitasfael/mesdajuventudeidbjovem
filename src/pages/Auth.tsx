@@ -181,6 +181,33 @@ const Auth = () => {
         <Link to="/rifa" className="text-xs text-muted-foreground hover:text-foreground">
           ← Voltar para rifa
         </Link>
+        {alreadySignedIn && (
+          <div className="mt-3 rounded-md border border-border bg-muted/40 p-3 text-xs">
+            <p className="text-muted-foreground">
+              Você já está conectado como <strong>{alreadySignedIn}</strong>.
+            </p>
+            <div className="mt-2 flex gap-2">
+              <button
+                type="button"
+                className="text-foreground underline hover:no-underline"
+                onClick={goToDashboard}
+              >
+                Ir para o painel
+              </button>
+              <span className="text-muted-foreground">·</span>
+              <button
+                type="button"
+                className="text-foreground underline hover:no-underline"
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  setAlreadySignedIn(null);
+                }}
+              >
+                Sair desta conta
+              </button>
+            </div>
+          </div>
+        )}
         <h1 className="mt-2 text-2xl font-bold">{title}</h1>
         <p className="mb-6 text-sm text-muted-foreground">
           {mode === "forgot"
