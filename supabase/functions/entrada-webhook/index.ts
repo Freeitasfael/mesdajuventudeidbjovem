@@ -85,7 +85,7 @@ Deno.serve(async (req) => {
 
     const { data: order } = await admin
       .from("entrada_orders")
-      .select("id, status")
+      .select("id, status, product, size, quantity")
       .eq("id", orderId)
       .maybeSingle();
 
@@ -117,6 +117,21 @@ Deno.serve(async (req) => {
       console.log(JSON.stringify({ fn: "entrada-webhook", level: "error", event: "update_failed", err: updErr.message, orderId }));
     } else {
       console.log(JSON.stringify({ fn: "entrada-webhook", level: "info", event: "updated", orderId, newStatus, mp_status: mp?.status }));
+
+      if (newStatus === "paid") {
+        try {
+          await admin.rpc("decrement_entrada_stock", { _sku: "pulseira", _qty: order.quantity });
+          if (order.product === "kit" && order.size) {
+            await admin.rpc("decrement_entrada_stock", {
+              _sku: `camiseta_${order.size}`,
+              _qty: order.quantity,
+            });
+          }
+          console.log(JSON.stringify({ fn: "entrada-webhook", level: "info", event: "stock_decremented", orderId, product: order.product, size: order.size, qty: order.quantity }));
+        } catch (e) {
+          console.log(JSON.stringify({ fn: "entrada-webhook", level: "error", event: "stock_decrement_failed", orderId, message: e instanceof Error ? e.message : String(e) }));
+        }
+      }
     }
 
     return new Response("ok", { status: 200, headers: corsHeaders });
