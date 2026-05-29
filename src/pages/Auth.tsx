@@ -34,35 +34,44 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
 
   const resolveDestination = async (uid?: string): Promise<string> => {
-    if (next && next !== "/afiliacao") return next;
-    if (!uid) return "/revendedor";
-    const { data: roleRow } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", uid)
-      .eq("role", "admin")
-      .maybeSingle();
-    if (roleRow) return "/admin";
+    if (next && next.startsWith("/") && next !== "/afiliacao") return next;
+    if (!uid) return "/rifa";
+    try {
+      const { data: roleRow } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", uid)
+        .eq("role", "admin")
+        .maybeSingle();
+      if (roleRow) return "/admin";
+    } catch (err) {
+      console.warn("[Auth] role lookup failed", err);
+    }
     return "/revendedor";
   };
 
   useEffect(() => {
     document.title = "Acesso — Rifa IDB Jovem";
-    supabase.auth.getSession().then(async ({ data }) => {
-      if (data.session) {
-        const dest = await resolveDestination(data.session.user.id);
-        navigate(dest, { replace: true });
-      }
-    });
+    let cancelled = false;
+    // 1) Listener first to avoid missing the SIGNED_IN event from getSession
     const { data: sub } = supabase.auth.onAuthStateChange(async (_e, session) => {
-      if (session) {
-        const dest = await resolveDestination(session.user.id);
-        navigate(dest, { replace: true });
-      }
+      if (cancelled || !session) return;
+      const dest = await resolveDestination(session.user.id);
+      navigate(dest, { replace: true });
     });
-    return () => sub.subscription.unsubscribe();
+    // 2) Then read existing session
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (cancelled || !data.session) return;
+      const dest = await resolveDestination(data.session.user.id);
+      navigate(dest, { replace: true });
+    });
+    return () => {
+      cancelled = true;
+      sub.subscription.unsubscribe();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate, next]);
+
 
   const registerAsSeller = async () => {
     const cleanPhone = whatsapp.replace(/\D/g, "");
