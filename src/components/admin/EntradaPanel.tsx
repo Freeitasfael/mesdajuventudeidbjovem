@@ -229,6 +229,40 @@ export function EntradaPanel() {
           </div>
         </Card>
       </TabsContent>
+
+      <TabsContent value="precos" className="space-y-3">
+        <Card className="p-4 max-w-xl space-y-4">
+          <div>
+            <h3 className="font-semibold">Preços dos produtos</h3>
+            <p className="text-xs text-muted-foreground">
+              Aplica-se a novas compras em /entrada. Pedidos já criados mantêm o valor original.
+            </p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1">
+              <Label>Pulseira (R$)</Label>
+              <Input
+                type="number" step="0.01" min="0.01"
+                value={pulseiraReais}
+                onChange={(e) => setPulseiraReais(e.target.value)}
+                placeholder="15.00"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label>Kit pulseira + camiseta (R$)</Label>
+              <Input
+                type="number" step="0.01" min="0.01"
+                value={kitReais}
+                onChange={(e) => setKitReais(e.target.value)}
+                placeholder="60.00"
+              />
+            </div>
+          </div>
+          <Button onClick={savePrices} disabled={savingPrices}>
+            <Save className="mr-2 h-4 w-4" /> {savingPrices ? "Salvando..." : "Salvar preços"}
+          </Button>
+        </Card>
+      </TabsContent>
     </Tabs>
   );
 }
