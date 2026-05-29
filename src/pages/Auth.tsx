@@ -34,24 +34,22 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [alreadySignedIn, setAlreadySignedIn] = useState<string | null>(null);
 
-  const resolveDestination = async (uid?: string): Promise<string> => {
-    if (next && next.startsWith("/") && next !== "/afiliacao" && next !== "/auth") {
+  // Always send users to /revendedor after login unless an explicit
+  // `?next=` deep-link was provided. Uses relative paths so it works on
+  // the current origin (custom domain included) without touching lovable.app.
+  const resolveDestination = (): string => {
+    if (
+      next &&
+      next.startsWith("/") &&
+      !next.startsWith("//") &&
+      next !== "/auth" &&
+      next !== "/afiliacao"
+    ) {
       return next;
-    }
-    if (!uid) return "/rifa";
-    try {
-      const { data: roleRow } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", uid)
-        .eq("role", "admin")
-        .maybeSingle();
-      if (roleRow) return "/admin";
-    } catch (err) {
-      console.warn("[Auth] role lookup failed", err);
     }
     return "/revendedor";
   };
+
 
   useEffect(() => {
     document.title = "Acesso — Rifa IDB Jovem";
