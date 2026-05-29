@@ -90,34 +90,20 @@ const Pagamento = () => {
         canvas.toBlob((b) => res(b), "image/png"),
       );
       if (!blob) throw new Error("blob_failed");
-      const file = new File([blob], `comprovante-${data.order.id.slice(0, 8)}.png`, { type: "image/png" });
-
       const shortId = data.order.id.slice(0, 8);
-      const shareUrl = typeof window !== "undefined" ? window.location.href : "";
+      const fileName = `comprovante-${shortId}.png`;
+      const file = new File([blob], fileName, { type: "image/png" });
+      const shareText = `Comprovante do pedido ${shortId} - Rifa IDB Jovem`;
+
       const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean };
 
-      // 1) Tenta compartilhar com arquivo (mobile nativo)
-      if (nav.canShare && nav.canShare({ files: [file] })) {
+      // 1) Mobile: usa share nativo com arquivo (usuário escolhe WhatsApp e envia para qualquer contato)
+      if (nav.canShare && nav.canShare({ files: [file] }) && typeof navigator.share === "function") {
         try {
           await navigator.share({
             files: [file],
             title: "Comprovante Rifa",
-            text: `Comprovante do pedido ${shortId}`,
-          });
-          return;
-        } catch (e) {
-          if ((e as Error).name === "AbortError") return;
-          // segue para próximos fallbacks
-        }
-      }
-
-      // 2) Tenta compartilhar apenas texto + url
-      if (typeof navigator.share === "function") {
-        try {
-          await navigator.share({
-            title: "Comprovante Rifa",
-            text: `Comprovante do pedido ${shortId}`,
-            url: shareUrl,
+            text: shareText,
           });
           return;
         } catch (e) {
@@ -125,27 +111,19 @@ const Pagamento = () => {
         }
       }
 
-      // 3) Fallback: baixa a imagem do comprovante
+      // 2) Desktop: baixa o comprovante e abre o WhatsApp Web para o usuário anexar e enviar
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `comprovante-${shortId}.png`;
+      a.download = fileName;
       document.body.appendChild(a);
       a.click();
       a.remove();
-      URL.revokeObjectURL(url);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
 
-      // 4) E tenta copiar o link do pedido para a área de transferência
-      try {
-        if (shareUrl && navigator.clipboard?.writeText) {
-          await navigator.clipboard.writeText(shareUrl);
-          toast.success("Imagem baixada e link copiado!");
-        } else {
-          toast.success("Imagem do comprovante baixada!");
-        }
-      } catch {
-        toast.success("Imagem do comprovante baixada!");
-      }
+      const waUrl = `https://web.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
+      window.open(waUrl, "_blank", "noopener,noreferrer");
+      toast.success("Comprovante baixado! Anexe no WhatsApp para enviar.");
     } catch (e) {
       console.log("[Pagamento] share error", e);
       toast.error("Não foi possível compartilhar");
