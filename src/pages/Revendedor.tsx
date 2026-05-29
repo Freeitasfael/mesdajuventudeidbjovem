@@ -61,6 +61,7 @@ const formatDate = (iso: string) =>
 const Revendedor = () => {
   const [authChecked, setAuthChecked] = useState(false);
   const [authed, setAuthed] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [seller, setSeller] = useState<SellerFull | null>(null);
   const [sales, setSales] = useState<ManualSale[]>([]);
   const [loading, setLoading] = useState(true);
@@ -77,6 +78,7 @@ const Revendedor = () => {
   const [profileChurch, setProfileChurch] = useState("");
   const [profileNeighborhood, setProfileNeighborhood] = useState("");
   const [profileSaving, setProfileSaving] = useState(false);
+
 
   useEffect(() => {
     document.title = "Minhas vendas — Revendedor";
