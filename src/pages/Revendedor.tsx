@@ -280,9 +280,18 @@ const Revendedor = () => {
               {seller?.name ? `Olá, ${seller.name.split(" ")[0]}!` : "Bem-vindo!"}
             </h1>
           </div>
-          <Button variant="outline" size="sm" onClick={handleLogout}>
-            <LogOut className="mr-2 h-4 w-4" /> Sair
-          </Button>
+          <div className="flex items-center gap-2">
+            {isAdmin && (
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/admin">
+                  <Shield className="mr-2 h-4 w-4" /> Admin
+                </Link>
+              </Button>
+            )}
+            <Button variant="outline" size="sm" onClick={handleLogout}>
+              <LogOut className="mr-2 h-4 w-4" /> Sair
+            </Button>
+          </div>
         </div>
       </header>
 
