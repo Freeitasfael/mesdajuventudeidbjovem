@@ -31,18 +31,19 @@ export const RequireAdmin = ({ children }: Props) => {
       else setState("ok");
     };
 
-    supabase.auth.getSession().then(({ data }) => {
-      check(data.session?.user?.id);
-    });
-
+    // Listener first so we don't miss session restore events
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
       check(session?.user?.id);
+    });
+    supabase.auth.getSession().then(({ data }) => {
+      check(data.session?.user?.id);
     });
     return () => {
       active = false;
       sub.subscription.unsubscribe();
     };
   }, []);
+
 
   if (state === "loading") {
     return (
@@ -51,7 +52,9 @@ export const RequireAdmin = ({ children }: Props) => {
       </main>
     );
   }
-  if (state === "noauth") return <Navigate to="/auth" replace />;
+  if (state === "noauth")
+    return <Navigate to={`/auth?next=${encodeURIComponent(window.location.pathname)}`} replace />;
+
   if (state === "noadmin") {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center gap-3 bg-background p-4 text-center">
