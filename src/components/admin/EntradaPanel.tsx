@@ -49,19 +49,28 @@ export function EntradaPanel() {
   const [stock, setStock] = useState<StockRow[]>([]);
   const [editing, setEditing] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+  const [pulseiraReais, setPulseiraReais] = useState("");
+  const [kitReais, setKitReais] = useState("");
+  const [savingPrices, setSavingPrices] = useState(false);
 
   const load = async () => {
     setLoading(true);
-    const [o, s] = await Promise.all([
+    const [o, s, p] = await Promise.all([
       supabase
         .from("entrada_orders")
         .select("id, created_at, buyer_name, buyer_phone, product, size, quantity, total_cents, status, mp_payment_id")
         .order("created_at", { ascending: false })
         .limit(500),
       supabase.from("entrada_stock").select("sku, label, stock").order("sku"),
+      supabase.from("app_settings").select("value").eq("key", "entrada_prices").maybeSingle(),
     ]);
     if (o.data) setOrders(o.data as EntradaOrder[]);
     if (s.data) setStock(s.data as StockRow[]);
+    if (p.data?.value) {
+      const v = p.data.value as { pulseira_cents?: number; kit_cents?: number };
+      if (v.pulseira_cents) setPulseiraReais((v.pulseira_cents / 100).toFixed(2));
+      if (v.kit_cents) setKitReais((v.kit_cents / 100).toFixed(2));
+    }
     setLoading(false);
   };
 
@@ -102,6 +111,28 @@ export function EntradaPanel() {
     load();
   };
 
+  const savePrices = async () => {
+    const p = Math.round(parseFloat(pulseiraReais.replace(",", ".")) * 100);
+    const k = Math.round(parseFloat(kitReais.replace(",", ".")) * 100);
+    if (!Number.isFinite(p) || p <= 0 || !Number.isFinite(k) || k <= 0) {
+      toast.error("Informe valores válidos para pulseira e kit");
+      return;
+    }
+    setSavingPrices(true);
+    const { error } = await supabase
+      .from("app_settings")
+      .upsert(
+        { key: "entrada_prices", value: { pulseira_cents: p, kit_cents: k }, updated_at: new Date().toISOString() },
+        { onConflict: "key" },
+      );
+    setSavingPrices(false);
+    if (error) {
+      toast.error("Erro ao salvar: " + error.message);
+      return;
+    }
+    toast.success("Preços atualizados");
+  };
+
   const totalReceived = orders
     .filter((o) => o.status === "paid")
     .reduce((acc, o) => acc + o.total_cents, 0);
@@ -111,6 +142,7 @@ export function EntradaPanel() {
       <TabsList>
         <TabsTrigger value="transacoes">Transações</TabsTrigger>
         <TabsTrigger value="estoque">Estoque</TabsTrigger>
+        <TabsTrigger value="precos">Preços</TabsTrigger>
       </TabsList>
 
       <TabsContent value="transacoes" className="space-y-3">
