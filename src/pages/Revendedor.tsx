@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -25,7 +25,9 @@ import {
   AlertTriangle,
   Users,
   CheckCircle2,
+  Shield,
 } from "lucide-react";
+
 
 interface ManualSale {
   id: string;
@@ -59,6 +61,7 @@ const formatDate = (iso: string) =>
 const Revendedor = () => {
   const [authChecked, setAuthChecked] = useState(false);
   const [authed, setAuthed] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [seller, setSeller] = useState<SellerFull | null>(null);
   const [sales, setSales] = useState<ManualSale[]>([]);
   const [loading, setLoading] = useState(true);
@@ -76,17 +79,37 @@ const Revendedor = () => {
   const [profileNeighborhood, setProfileNeighborhood] = useState("");
   const [profileSaving, setProfileSaving] = useState(false);
 
+
   useEffect(() => {
     document.title = "Minhas vendas — Revendedor";
     supabase.auth.getSession().then(({ data }) => {
       setAuthed(!!data.session);
       setAuthChecked(true);
+      if (data.session?.user?.id) {
+        checkAdmin(data.session.user.id);
+      }
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
       setAuthed(!!s);
+      if (s?.user?.id) {
+        checkAdmin(s.user.id);
+      } else {
+        setIsAdmin(false);
+      }
     });
     return () => sub.subscription.unsubscribe();
   }, []);
+
+  const checkAdmin = async (userId: string) => {
+    const { data } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .eq("role", "admin")
+      .maybeSingle();
+    setIsAdmin(!!data);
+  };
+
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -257,9 +280,18 @@ const Revendedor = () => {
               {seller?.name ? `Olá, ${seller.name.split(" ")[0]}!` : "Bem-vindo!"}
             </h1>
           </div>
-          <Button variant="outline" size="sm" onClick={handleLogout}>
-            <LogOut className="mr-2 h-4 w-4" /> Sair
-          </Button>
+          <div className="flex items-center gap-2">
+            {isAdmin && (
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/admin">
+                  <Shield className="mr-2 h-4 w-4" /> Admin
+                </Link>
+              </Button>
+            )}
+            <Button variant="outline" size="sm" onClick={handleLogout}>
+              <LogOut className="mr-2 h-4 w-4" /> Sair
+            </Button>
+          </div>
         </div>
       </header>
 

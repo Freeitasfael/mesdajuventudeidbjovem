@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LogOut, Plus, Trash2, Copy, Trophy, Bell, Upload, Move, Image as ImageIcon, Eye, RefreshCw, RotateCw, Radio, Download } from "lucide-react";
+import { LogOut, Plus, Trash2, Copy, Trophy, Bell, Upload, Move, Image as ImageIcon, Eye, RefreshCw, RotateCw, Radio, Download, Users } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Slider } from "@/components/ui/slider";
@@ -650,6 +650,11 @@ const Admin = () => {
             <p className="text-xs text-muted-foreground">Gerencie sua rifa</p>
           </div>
           <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/revendedor">
+                <Users className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">Revendedor</span>
+              </Link>
+            </Button>
             <Button variant="outline" size="sm" asChild>
               <Link to="/admin/alertas">
                 <Bell className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">Alertas</span>
