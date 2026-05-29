@@ -91,7 +91,6 @@ const Auth = () => {
   const goToDashboard = () => {
     navigate(resolveDestination(), { replace: true });
   };
-
   };
 
 
