@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Check, Instagram, MapPin, ArrowRight } from "lucide-react";
+import { Sparkles, Check, Instagram, MapPin, ArrowRight, Shield, Heart, Ticket } from "lucide-react";
 import { PurchaseDialog } from "@/components/PurchaseDialog";
 import { Toaster } from "@/components/ui/sonner";
-import logo from "@/assets/logo-jovem.png";
+import heroBg from "@/assets/hero-rifa-bg.jpg";
+import logoIdb from "@/assets/idb-jovem-logo.png";
 
 export default function Entrada() {
   const [open, setOpen] = useState(false);
@@ -14,156 +15,386 @@ export default function Entrada() {
     setOpen(true);
   };
 
-  const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+  const scrollTo = (id: string) =>
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <Toaster position="top-center" richColors />
+    <div
+      className="min-h-screen text-white"
+      style={{ backgroundColor: "hsl(var(--hero-bg))" }}
+    >
+      <Toaster position="top-center" richColors theme="dark" />
 
       {/* Nav */}
-      <header className="fixed top-0 left-0 right-0 z-40 backdrop-blur-md bg-background/70 border-b border-border">
+      <header
+        className="fixed top-0 left-0 right-0 z-40 backdrop-blur-md border-b"
+        style={{
+          backgroundColor: "hsl(var(--hero-bg) / 0.75)",
+          borderColor: "hsl(var(--hero-gold) / 0.15)",
+        }}
+      >
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src={logo} alt="Jovem & Teens" className="h-10 w-auto" />
-            <span className="font-bold text-lg hidden sm:inline">Mês da Juventude</span>
+            <img src={logoIdb} alt="IDB Jovem" className="h-10 w-auto" />
+            <span className="font-extrabold tracking-wider uppercase text-sm hidden sm:inline">
+              Mês da Juventude
+            </span>
           </div>
-          <Button onClick={() => scrollTo("comprar")} size="sm" className="rounded-full">Comprar</Button>
+          <Button
+            onClick={() => scrollTo("comprar")}
+            size="sm"
+            className="rounded-full font-extrabold uppercase tracking-wider"
+            style={{
+              backgroundColor: "hsl(var(--hero-gold))",
+              color: "hsl(var(--hero-bg))",
+            }}
+          >
+            Comprar
+          </Button>
         </div>
       </header>
 
       {/* Hero */}
-      <section className="relative pt-32 pb-20 md:pt-40 md:pb-28 overflow-hidden bg-gradient-to-br from-primary via-primary/90 to-primary text-primary-foreground">
-        <div className="absolute -top-20 -right-20 w-96 h-96 rounded-full bg-accent/40 blur-3xl" />
-        <div className="absolute -bottom-20 -left-20 w-96 h-96 rounded-full bg-secondary/40 blur-3xl" />
-        <div className="relative container mx-auto px-4 text-center">
+      <section
+        className="relative overflow-hidden pt-28 pb-20 md:pt-36 md:pb-28"
+        aria-label="Mês da Juventude"
+      >
+        {/* Background */}
+        <div className="absolute inset-0">
           <img
-            src={logo}
-            alt="Jovem & Teens"
-            className="mx-auto h-32 md:h-44 w-auto mb-6 drop-shadow-2xl"
+            src={heroBg}
+            alt=""
+            aria-hidden="true"
+            className="h-full w-full object-cover opacity-60"
           />
-          <div className="inline-flex items-center gap-2 rounded-full bg-background/20 backdrop-blur px-4 py-1.5 text-sm font-medium mb-6">
-            <Sparkles className="h-4 w-4" /> Evento especial 2026
+          <div
+            className="absolute inset-0"
+            style={{ background: "var(--gradient-hero-dark)", backdropFilter: "blur(2px)" }}
+          />
+          <div
+            className="pointer-events-none absolute inset-0 opacity-60"
+            style={{
+              background:
+                "radial-gradient(circle at 50% 35%, hsl(var(--hero-gold) / 0.18), transparent 55%)",
+            }}
+          />
+        </div>
+
+        <div className="relative container mx-auto px-4 text-center">
+          <div className="animate-fade-in flex justify-center mb-6">
+            <img
+              src={logoIdb}
+              alt="IDB Jovem Oficial"
+              className="h-auto w-44 sm:w-56 lg:w-72"
+              style={{
+                backgroundColor: "transparent",
+                filter: "drop-shadow(0 8px 24px hsl(var(--hero-gold) / 0.35))",
+              }}
+            />
           </div>
-          <h1 className="font-bold text-5xl md:text-7xl lg:text-8xl leading-[0.95] mb-6 tracking-tight">
-            Mês da<br />Juventude
+
+          <div
+            className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] mb-6 animate-fade-in"
+            style={{
+              borderColor: "hsl(var(--hero-gold) / 0.4)",
+              color: "hsl(var(--hero-gold))",
+              backgroundColor: "rgba(255,255,255,0.04)",
+            }}
+          >
+            <Sparkles className="h-3.5 w-3.5" /> Evento especial 2026
+          </div>
+
+          <h1 className="animate-fade-in-up text-5xl md:text-7xl lg:text-8xl font-extrabold leading-[0.95] tracking-tight mb-6">
+            GARANTA SUA
+            <br />
+            <span className="text-glow-gold" style={{ color: "hsl(var(--hero-gold))" }}>
+              ENTRADA
+            </span>
           </h1>
-          <p className="text-lg md:text-xl max-w-2xl mx-auto opacity-95 mb-10">
-            Garanta sua entrada e participe desse momento especial de celebração, comunhão e juventude!
+
+          <p className="animate-fade-in max-w-2xl mx-auto text-base sm:text-lg md:text-xl text-white/85 mb-10">
+            Participe do <span className="font-semibold text-white">Mês da Juventude</span> — um
+            momento especial de celebração, comunhão e fé.{" "}
+            <span
+              className="font-extrabold tracking-wide"
+              style={{ color: "hsl(var(--hero-gold))" }}
+            >
+              JESUS TRANSFORMA!
+            </span>
           </p>
+
           <Button
             onClick={() => scrollTo("comprar")}
             size="lg"
-            className="h-14 px-8 text-base rounded-full bg-background text-foreground hover:bg-background/90 shadow-2xl"
+            className="h-14 px-8 text-base rounded-2xl font-extrabold uppercase tracking-wider shadow-gold-glow transition-all hover:scale-[1.02] hover:brightness-110"
+            style={{
+              backgroundColor: "hsl(var(--hero-gold))",
+              color: "hsl(var(--hero-bg))",
+            }}
           >
             Comprar agora <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
+
+          {/* Trust */}
+          <ul className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm text-white/85">
+            <li className="inline-flex items-center gap-2">
+              <Shield className="h-4 w-4" style={{ color: "hsl(var(--hero-gold))" }} />
+              Pagamento seguro via Pix
+            </li>
+            <li className="inline-flex items-center gap-2">
+              <Ticket className="h-4 w-4" style={{ color: "hsl(var(--hero-gold))" }} />
+              Pulseira oficial garantida
+            </li>
+            <li className="inline-flex items-center gap-2">
+              <Heart className="h-4 w-4" style={{ color: "hsl(var(--hero-gold))" }} />
+              100% para o evento
+            </li>
+          </ul>
         </div>
       </section>
 
       {/* Sobre */}
-      <section className="py-20 md:py-28">
+      <section className="py-20 md:py-28 relative">
         <div className="container mx-auto px-4 max-w-3xl text-center">
-          <span className="text-sm font-semibold tracking-widest text-primary uppercase">Sobre o evento</span>
-          <h2 className="font-bold text-4xl md:text-5xl mt-3 mb-6 tracking-tight">
-            Uma experiência <span className="text-primary">inesquecível</span>
+          <span
+            className="text-xs font-extrabold tracking-[0.3em] uppercase"
+            style={{ color: "hsl(var(--hero-gold))" }}
+          >
+            Sobre o evento
+          </span>
+          <h2 className="font-extrabold text-4xl md:text-5xl mt-3 mb-6 tracking-tight uppercase">
+            Uma experiência{" "}
+            <span className="text-glow-gold" style={{ color: "hsl(var(--hero-gold))" }}>
+              inesquecível
+            </span>
           </h2>
-          <p className="text-lg text-muted-foreground leading-relaxed">
-            O Mês da Juventude é um evento especial preparado para reunir jovens em momentos de alegria,
-            comunhão, fé, amizade e celebração. Garanta sua pulseira de acesso e venha fazer parte dessa
-            experiência inesquecível.
+          <p className="text-lg text-white/75 leading-relaxed">
+            O Mês da Juventude é um evento especial preparado para reunir jovens em momentos de
+            alegria, comunhão, fé, amizade e celebração. Garanta sua pulseira de acesso e venha
+            fazer parte dessa experiência inesquecível.
           </p>
         </div>
       </section>
 
       {/* Comprar */}
-      <section id="comprar" className="py-20 md:py-28 bg-accent/40">
-        <div className="container mx-auto px-4">
+      <section
+        id="comprar"
+        className="py-20 md:py-28 relative"
+        style={{ backgroundColor: "hsl(0 0% 6%)" }}
+      >
+        <div
+          className="pointer-events-none absolute inset-0 opacity-50"
+          style={{
+            background:
+              "radial-gradient(circle at 50% 0%, hsl(var(--hero-gold) / 0.12), transparent 60%)",
+          }}
+        />
+        <div className="relative container mx-auto px-4">
           <div className="text-center mb-14">
-            <span className="text-sm font-semibold tracking-widest text-primary uppercase">Garanta o seu</span>
-            <h2 className="font-bold text-4xl md:text-5xl mt-3 tracking-tight">Escolha sua opção</h2>
+            <span
+              className="text-xs font-extrabold tracking-[0.3em] uppercase"
+              style={{ color: "hsl(var(--hero-gold))" }}
+            >
+              Garanta o seu
+            </span>
+            <h2 className="font-extrabold text-4xl md:text-5xl mt-3 tracking-tight uppercase">
+              Escolha sua opção
+            </h2>
           </div>
+
           <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-            {/* Card 1 */}
-            <div className="relative bg-card rounded-3xl p-8 shadow-lg border-2 border-border flex flex-col">
-              <h3 className="font-bold text-2xl mb-2">Pulseira de Acesso</h3>
-              <p className="text-muted-foreground mb-6">Garanta sua entrada para o evento do Mês da Juventude.</p>
-              <ul className="space-y-2 mb-8 text-sm">
-                <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary" /> Acesso ao evento</li>
-                <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary" /> Pulseira oficial</li>
+            {/* Card 1 — Pulseira */}
+            <div
+              className="relative rounded-3xl p-8 border backdrop-blur-md flex flex-col"
+              style={{
+                backgroundColor: "rgba(255,255,255,0.04)",
+                borderColor: "hsl(var(--hero-gold) / 0.25)",
+              }}
+            >
+              <h3 className="font-extrabold text-2xl mb-2 uppercase tracking-wide">
+                Pulseira de Acesso
+              </h3>
+              <p className="text-white/70 mb-6">
+                Garanta sua entrada para o evento do Mês da Juventude.
+              </p>
+              <ul className="space-y-2 mb-8 text-sm text-white/85">
+                <li className="flex items-center gap-2">
+                  <Check className="h-4 w-4" style={{ color: "hsl(var(--hero-gold))" }} /> Acesso
+                  ao evento
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="h-4 w-4" style={{ color: "hsl(var(--hero-gold))" }} /> Pulseira
+                  oficial
+                </li>
               </ul>
               <div className="mt-auto">
-                <div className="mb-6">
-                  <span className="text-5xl font-bold text-primary">R$ 15</span>
-                  <span className="text-muted-foreground">,00</span>
+                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-white/60 mb-1">
+                  Por apenas
+                </p>
+                <div className="mb-6 flex items-baseline gap-1">
+                  <span
+                    className="text-6xl font-extrabold text-glow-gold leading-none"
+                    style={{ color: "hsl(var(--hero-gold))" }}
+                  >
+                    R$ 15
+                  </span>
+                  <span className="text-white/60 text-xl font-bold">,00</span>
                 </div>
-                <Button onClick={() => buy("pulseira")} size="lg" variant="outline" className="w-full h-12 rounded-full border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground">
+                <Button
+                  onClick={() => buy("pulseira")}
+                  size="lg"
+                  variant="outline"
+                  className="w-full h-12 rounded-2xl border-2 font-extrabold uppercase tracking-wider bg-transparent hover:bg-transparent"
+                  style={{
+                    borderColor: "hsl(var(--hero-gold))",
+                    color: "hsl(var(--hero-gold))",
+                  }}
+                >
                   Comprar Pulseira
                 </Button>
               </div>
             </div>
 
-            {/* Card 2 — destaque */}
-            <div className="relative bg-card rounded-3xl p-8 shadow-2xl border-2 border-primary flex flex-col md:scale-105">
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-bold tracking-wider uppercase px-4 py-1.5 rounded-full shadow-lg">
+            {/* Card 2 — Kit (destaque) */}
+            <div
+              className="relative rounded-3xl p-8 border-2 shadow-gold-glow backdrop-blur-md flex flex-col md:scale-105"
+              style={{
+                backgroundColor: "rgba(255,255,255,0.06)",
+                borderColor: "hsl(var(--hero-gold))",
+              }}
+            >
+              <div
+                className="absolute -top-4 left-1/2 -translate-x-1/2 text-xs font-extrabold tracking-[0.2em] uppercase px-4 py-1.5 rounded-full shadow-xl"
+                style={{
+                  backgroundColor: "hsl(var(--hero-gold))",
+                  color: "hsl(var(--hero-bg))",
+                }}
+              >
                 ★ Mais completo
               </div>
-              <h3 className="font-bold text-2xl mb-2">Kit Pulseira + Camiseta</h3>
-              <p className="text-muted-foreground mb-6">Receba sua pulseira de acesso e a camiseta oficial do Mês da Juventude.</p>
-              <ul className="space-y-2 mb-8 text-sm">
-                <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary" /> Acesso ao evento</li>
-                <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary" /> Pulseira oficial</li>
-                <li className="flex items-center gap-2"><Check className="h-4 w-4 text-primary" /> Camiseta oficial do evento</li>
+              <h3 className="font-extrabold text-2xl mb-2 uppercase tracking-wide">
+                Kit Pulseira + Camiseta
+              </h3>
+              <p className="text-white/70 mb-6">
+                Receba sua pulseira de acesso e a camiseta oficial do Mês da Juventude.
+              </p>
+              <ul className="space-y-2 mb-8 text-sm text-white/85">
+                <li className="flex items-center gap-2">
+                  <Check className="h-4 w-4" style={{ color: "hsl(var(--hero-gold))" }} /> Acesso
+                  ao evento
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="h-4 w-4" style={{ color: "hsl(var(--hero-gold))" }} /> Pulseira
+                  oficial
+                </li>
+                <li className="flex items-center gap-2">
+                  <Check className="h-4 w-4" style={{ color: "hsl(var(--hero-gold))" }} /> Camiseta
+                  oficial do evento
+                </li>
               </ul>
               <div className="mt-auto">
-                <div className="mb-6">
-                  <span className="text-5xl font-bold text-primary">R$ 60</span>
-                  <span className="text-muted-foreground">,00</span>
+                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-white/60 mb-1">
+                  Por apenas
+                </p>
+                <div className="mb-6 flex items-baseline gap-1">
+                  <span
+                    className="text-6xl font-extrabold text-glow-gold leading-none"
+                    style={{ color: "hsl(var(--hero-gold))" }}
+                  >
+                    R$ 60
+                  </span>
+                  <span className="text-white/60 text-xl font-bold">,00</span>
                 </div>
-                <Button onClick={() => buy("kit")} size="lg" className="w-full h-12 rounded-full">
+                <Button
+                  onClick={() => buy("kit")}
+                  size="lg"
+                  className="w-full h-12 rounded-2xl font-extrabold uppercase tracking-wider shadow-xl hover:scale-[1.02] hover:brightness-110 transition-all"
+                  style={{
+                    backgroundColor: "hsl(var(--hero-gold))",
+                    color: "hsl(var(--hero-bg))",
+                  }}
+                >
                   Comprar Kit
                 </Button>
               </div>
             </div>
           </div>
 
-          <p className="text-center text-sm text-muted-foreground mt-10">
-            Pagamento exclusivo via <strong className="text-foreground">Pix</strong> · Confirmação pelo WhatsApp
+          <p className="text-center text-sm text-white/60 mt-10">
+            Pagamento exclusivo via{" "}
+            <strong className="text-white">Pix</strong> · Confirmação automática
           </p>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-foreground text-background py-12">
+      <footer
+        className="py-12 border-t"
+        style={{
+          backgroundColor: "hsl(0 0% 3%)",
+          borderColor: "hsl(var(--hero-gold) / 0.15)",
+        }}
+      >
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-3 gap-8 mb-8">
             <div>
-              <img src={logo} alt="Jovem & Teens" className="h-16 w-auto mb-3 brightness-0 invert" />
-              <p className="text-sm opacity-70">Garanta sua pulseira e participe!</p>
+              <img src={logoIdb} alt="IDB Jovem" className="h-16 w-auto mb-3" />
+              <p className="text-sm text-white/60">Garanta sua pulseira e participe!</p>
             </div>
             <div>
-              <h4 className="font-semibold mb-3">Siga nas redes</h4>
+              <h4
+                className="font-extrabold mb-3 uppercase tracking-wider text-sm"
+                style={{ color: "hsl(var(--hero-gold))" }}
+              >
+                Siga nas redes
+              </h4>
               <a
                 href="https://instagram.com/idbjovemminas"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-sm opacity-90 hover:opacity-100 transition"
+                className="inline-flex items-center gap-2 text-sm text-white/80 hover:text-white transition"
               >
-                <span className="w-10 h-10 rounded-full bg-background/10 hover:bg-background/20 flex items-center justify-center transition">
-                  <Instagram className="h-4 w-4" />
+                <span
+                  className="w-10 h-10 rounded-full flex items-center justify-center transition border"
+                  style={{
+                    borderColor: "hsl(var(--hero-gold) / 0.3)",
+                    backgroundColor: "rgba(255,255,255,0.04)",
+                  }}
+                >
+                  <Instagram
+                    className="h-4 w-4"
+                    style={{ color: "hsl(var(--hero-gold))" }}
+                  />
                 </span>
                 @idbjovemminas
               </a>
             </div>
             <div>
-              <h4 className="font-semibold mb-3">Local e data</h4>
-              <p className="text-sm opacity-70 flex items-start gap-2">
-                <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                <span>Portão 6 — Estádio João Havelange, Uberlândia<br />18 de julho de 2026</span>
+              <h4
+                className="font-extrabold mb-3 uppercase tracking-wider text-sm"
+                style={{ color: "hsl(var(--hero-gold))" }}
+              >
+                Local e data
+              </h4>
+              <p className="text-sm text-white/70 flex items-start gap-2">
+                <MapPin
+                  className="h-4 w-4 mt-0.5 flex-shrink-0"
+                  style={{ color: "hsl(var(--hero-gold))" }}
+                />
+                <span>
+                  Portão 6 — Estádio João Havelange, Uberlândia
+                  <br />
+                  18 de julho de 2026
+                </span>
               </p>
             </div>
           </div>
-          <div className="border-t border-background/10 pt-6 text-center text-xs opacity-60">
-            © {new Date().getFullYear()} Mês da Juventude. Todos os direitos reservados.
+          <div
+            className="border-t pt-6 text-center text-xs text-white/50"
+            style={{ borderColor: "hsl(var(--hero-gold) / 0.1)" }}
+          >
+            © {new Date().getFullYear()} Mês da Juventude · IDB Jovem. Todos os direitos
+            reservados.
           </div>
         </div>
       </footer>
