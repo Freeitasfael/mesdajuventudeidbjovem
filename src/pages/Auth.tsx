@@ -32,9 +32,12 @@ const Auth = () => {
   const [fullName, setFullName] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [loading, setLoading] = useState(false);
+  const [alreadySignedIn, setAlreadySignedIn] = useState<string | null>(null);
 
   const resolveDestination = async (uid?: string): Promise<string> => {
-    if (next && next.startsWith("/") && next !== "/afiliacao") return next;
+    if (next && next.startsWith("/") && next !== "/afiliacao" && next !== "/auth") {
+      return next;
+    }
     if (!uid) return "/rifa";
     try {
       const { data: roleRow } = await supabase
@@ -53,24 +56,46 @@ const Auth = () => {
   useEffect(() => {
     document.title = "Acesso — Rifa IDB Jovem";
     let cancelled = false;
-    // 1) Listener first to avoid missing the SIGNED_IN event from getSession
-    const { data: sub } = supabase.auth.onAuthStateChange(async (_e, session) => {
-      if (cancelled || !session) return;
-      const dest = await resolveDestination(session.user.id);
-      navigate(dest, { replace: true });
+
+    // Detect an existing session but DO NOT auto-redirect away from /auth.
+    // The /auth route must always be publicly viewable so users can switch
+    // accounts, recover passwords, etc. We only surface a banner offering
+    // them a shortcut to their dashboard.
+    supabase.auth.getSession().then(({ data }) => {
+      if (cancelled) return;
+      console.log("[Auth] initial session:", data.session?.user?.email ?? null);
+      if (data.session) setAlreadySignedIn(data.session.user.email ?? "");
     });
-    // 2) Then read existing session
-    supabase.auth.getSession().then(async ({ data }) => {
-      if (cancelled || !data.session) return;
-      const dest = await resolveDestination(data.session.user.id);
-      navigate(dest, { replace: true });
+
+    // Only redirect on an actual SIGNED_IN event (i.e. the user just logged
+    // in via this page). This avoids the bounce-to-home loop that happens
+    // when a previously authenticated user opens /auth directly.
+    const { data: sub } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("[Auth] event:", event, "hasSession:", !!session);
+      if (cancelled) return;
+      if (event === "SIGNED_IN" && session) {
+        const dest = await resolveDestination(session.user.id);
+        console.log("[Auth] SIGNED_IN → navigating to", dest);
+        navigate(dest, { replace: true });
+      }
+      if (event === "SIGNED_OUT") {
+        setAlreadySignedIn(null);
+      }
     });
+
     return () => {
       cancelled = true;
       sub.subscription.unsubscribe();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate, next]);
+
+  const goToDashboard = async () => {
+    const { data } = await supabase.auth.getSession();
+    const dest = await resolveDestination(data.session?.user.id);
+    navigate(dest, { replace: true });
+  };
+
 
 
   const registerAsSeller = async () => {
@@ -156,6 +181,33 @@ const Auth = () => {
         <Link to="/rifa" className="text-xs text-muted-foreground hover:text-foreground">
           ← Voltar para rifa
         </Link>
+        {alreadySignedIn && (
+          <div className="mt-3 rounded-md border border-border bg-muted/40 p-3 text-xs">
+            <p className="text-muted-foreground">
+              Você já está conectado como <strong>{alreadySignedIn}</strong>.
+            </p>
+            <div className="mt-2 flex gap-2">
+              <button
+                type="button"
+                className="text-foreground underline hover:no-underline"
+                onClick={goToDashboard}
+              >
+                Ir para o painel
+              </button>
+              <span className="text-muted-foreground">·</span>
+              <button
+                type="button"
+                className="text-foreground underline hover:no-underline"
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  setAlreadySignedIn(null);
+                }}
+              >
+                Sair desta conta
+              </button>
+            </div>
+          </div>
+        )}
         <h1 className="mt-2 text-2xl font-bold">{title}</h1>
         <p className="mb-6 text-sm text-muted-foreground">
           {mode === "forgot"
