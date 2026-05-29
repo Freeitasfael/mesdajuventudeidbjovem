@@ -283,29 +283,6 @@ export default function Auth() {
           </Button>
         </form>
 
-        {mode !== "forgot" && (
-          <>
-            <div className="my-4 flex items-center gap-3 text-xs text-muted-foreground">
-              <div className="h-px flex-1 bg-border" />
-              ou
-              <div className="h-px flex-1 bg-border" />
-            </div>
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={handleGoogle}
-              disabled={loading}
-            >
-              Continuar com Google
-            </Button>
-            {mode === "signup" && (
-              <p className="mt-2 text-xs text-muted-foreground text-center">
-                Após entrar com Google, complete seus dados na tela do revendedor.
-              </p>
-            )}
-          </>
-        )}
-
         <button
           type="button"
           className="mt-6 w-full text-center text-sm text-muted-foreground hover:text-foreground"
