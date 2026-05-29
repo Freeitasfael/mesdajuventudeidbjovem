@@ -9,7 +9,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const PRICES_CENTS = { pulseira: 1500, kit: 6000 } as const;
+const DEFAULT_PRICES_CENTS = { pulseira: 1500, kit: 6000 } as const;
 
 const BodySchema = z.object({
   buyer_name: z.string().trim().min(2).max(120),
