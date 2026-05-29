@@ -96,10 +96,13 @@ export const HeroRifa = ({
           src={heroBg}
           alt=""
           aria-hidden="true"
+          decoding="async"
+          fetchPriority="high"
           className="h-full w-full object-cover opacity-60"
           width={1920}
           height={1280}
         />
+
         <div
           className="absolute inset-0"
           style={{ background: "var(--gradient-hero-dark)", backdropFilter: "blur(2px)" }}
