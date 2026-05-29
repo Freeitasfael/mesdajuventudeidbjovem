@@ -11,11 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 type Option = "pulseira" | "kit";
 
-const PRICES: Record<Option, number> = { pulseira: 15, kit: 60 };
-const LABELS: Record<Option, string> = {
-  pulseira: "Pulseira de acesso — R$ 15,00",
-  kit: "Kit pulseira + camiseta — R$ 60,00",
-};
+const DEFAULT_PRICES: Record<Option, number> = { pulseira: 15, kit: 60 };
 
 interface Props {
   open: boolean;
