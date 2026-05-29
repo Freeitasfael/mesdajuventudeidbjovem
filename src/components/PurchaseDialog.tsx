@@ -37,21 +37,34 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" 
   const [loading, setLoading] = useState(false);
   const [payment, setPayment] = useState<PaymentData | null>(null);
   const [stock, setStock] = useState<Record<string, number>>({});
+  const [prices, setPrices] = useState<Record<Option, number>>(DEFAULT_PRICES);
   const pollRef = useRef<number | null>(null);
 
-  const total = useMemo(() => PRICES[option] * qtd, [option, qtd]);
+  const total = useMemo(() => prices[option] * qtd, [option, qtd, prices]);
   const pulseiraStock = stock["pulseira"] ?? 0;
   const sizeStock = (s: string) => stock[`camiseta_${s}`] ?? 0;
   const sizes = ["PP", "P", "M", "G", "GG", "XGG"];
   const kitAvailable = pulseiraStock > 0 && sizes.some((s) => sizeStock(s) > 0);
+  const fmtPrice = (v: number) => `R$ ${v.toFixed(2).replace(".", ",")}`;
+  const LABELS: Record<Option, string> = {
+    pulseira: `Pulseira de acesso — ${fmtPrice(prices.pulseira)}`,
+    kit: `Kit pulseira + camiseta — ${fmtPrice(prices.kit)}`,
+  };
 
-  // Carrega estoque público quando abre o diálogo
+  // Carrega estoque e preços públicos quando abre o diálogo
   useEffect(() => {
     if (!open) return;
     supabase.from("entrada_stock").select("sku, stock").then(({ data }) => {
       const map: Record<string, number> = {};
       for (const r of data ?? []) map[r.sku as string] = r.stock as number;
       setStock(map);
+    });
+    supabase.from("app_settings").select("value").eq("key", "entrada_prices").maybeSingle().then(({ data }) => {
+      const v = (data?.value ?? {}) as { pulseira_cents?: number; kit_cents?: number };
+      setPrices({
+        pulseira: v.pulseira_cents && v.pulseira_cents > 0 ? v.pulseira_cents / 100 : DEFAULT_PRICES.pulseira,
+        kit: v.kit_cents && v.kit_cents > 0 ? v.kit_cents / 100 : DEFAULT_PRICES.kit,
+      });
     });
   }, [open]);
 
