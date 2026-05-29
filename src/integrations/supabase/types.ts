@@ -607,6 +607,15 @@ export type Database = {
           total_cents: number
         }[]
       }
+      admin_refund_entrada_order: {
+        Args: { _order_id: string }
+        Returns: {
+          new_status: string
+          order_id: string
+          previous_status: string
+          restocked: boolean
+        }[]
+      }
       admin_refund_order: {
         Args: { _order_id: string }
         Returns: {

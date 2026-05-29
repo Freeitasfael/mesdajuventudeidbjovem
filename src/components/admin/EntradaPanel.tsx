@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { RefreshCw, Save } from "lucide-react";
+import { RefreshCw, Save, Undo2 } from "lucide-react";
 
 interface EntradaOrder {
   id: string;
@@ -36,6 +36,7 @@ function StatusBadge({ status }: { status: string }) {
     pending: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
     expired: "bg-muted text-muted-foreground",
     cancelled: "bg-destructive/15 text-destructive",
+    refunded: "bg-orange-500/15 text-orange-700 dark:text-orange-400",
   };
   return (
     <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${map[status] ?? "bg-muted"}`}>
@@ -52,6 +53,23 @@ export function EntradaPanel() {
   const [pulseiraReais, setPulseiraReais] = useState("");
   const [kitReais, setKitReais] = useState("");
   const [savingPrices, setSavingPrices] = useState(false);
+  const [refundingId, setRefundingId] = useState<string | null>(null);
+
+  const refundOrder = async (o: EntradaOrder) => {
+    const msg = o.status === "paid"
+      ? `Reembolsar este pedido de ${fmtBRL(o.total_cents)}? O estoque será reposto e você deve estornar o valor manualmente no Mercado Pago. Esta ação não pode ser desfeita.`
+      : `Cancelar este pedido pendente? Esta ação não pode ser desfeita.`;
+    if (!confirm(msg)) return;
+    setRefundingId(o.id);
+    const { error } = await supabase.rpc("admin_refund_entrada_order" as any, { _order_id: o.id });
+    setRefundingId(null);
+    if (error) {
+      toast.error("Erro ao reembolsar: " + error.message);
+      return;
+    }
+    toast.success(o.status === "paid" ? "Pedido marcado como reembolsado e estoque reposto." : "Pedido cancelado.");
+    load();
+  };
 
   const load = async () => {
     setLoading(true);
@@ -167,25 +185,44 @@ export function EntradaPanel() {
                 <th className="px-4 py-3">MP ID</th>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3 text-right">Total</th>
+                <th className="px-4 py-3 text-right">Ações</th>
               </tr>
             </thead>
             <tbody>
-              {orders.map((o) => (
-                <tr key={o.id} className="border-t border-border">
-                  <td className="px-4 py-3 whitespace-nowrap">{fmtDate(o.created_at)}</td>
-                  <td className="px-4 py-3">{o.buyer_name}</td>
-                  <td className="px-4 py-3">{o.buyer_phone}</td>
-                  <td className="px-4 py-3 capitalize">{o.product}</td>
-                  <td className="px-4 py-3">{o.size ?? "—"}</td>
-                  <td className="px-4 py-3">{o.quantity}</td>
-                  <td className="px-4 py-3 font-mono text-xs">{o.mp_payment_id ?? "—"}</td>
-                  <td className="px-4 py-3"><StatusBadge status={o.status} /></td>
-                  <td className="px-4 py-3 text-right font-medium">{fmtBRL(o.total_cents)}</td>
-                </tr>
-              ))}
+              {orders.map((o) => {
+                const canRefund = o.status === "paid" || o.status === "pending";
+                return (
+                  <tr key={o.id} className="border-t border-border">
+                    <td className="px-4 py-3 whitespace-nowrap">{fmtDate(o.created_at)}</td>
+                    <td className="px-4 py-3">{o.buyer_name}</td>
+                    <td className="px-4 py-3">{o.buyer_phone}</td>
+                    <td className="px-4 py-3 capitalize">{o.product}</td>
+                    <td className="px-4 py-3">{o.size ?? "—"}</td>
+                    <td className="px-4 py-3">{o.quantity}</td>
+                    <td className="px-4 py-3 font-mono text-xs">{o.mp_payment_id ?? "—"}</td>
+                    <td className="px-4 py-3"><StatusBadge status={o.status} /></td>
+                    <td className="px-4 py-3 text-right font-medium">{fmtBRL(o.total_cents)}</td>
+                    <td className="px-4 py-3 text-right">
+                      {canRefund ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => refundOrder(o)}
+                          disabled={refundingId === o.id}
+                        >
+                          <Undo2 className="mr-1 h-3 w-3" />
+                          {refundingId === o.id ? "..." : o.status === "paid" ? "Reembolsar" : "Cancelar"}
+                        </Button>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
               {orders.length === 0 && (
                 <tr>
-                  <td colSpan={9} className="px-4 py-8 text-center text-muted-foreground">
+                  <td colSpan={10} className="px-4 py-8 text-center text-muted-foreground">
                     Nenhuma transação ainda.
                   </td>
                 </tr>
