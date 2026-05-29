@@ -72,7 +72,8 @@ const Auth = () => {
       console.log("[Auth] event:", event, "hasSession:", !!session);
       if (cancelled) return;
       if (event === "SIGNED_IN" && session) {
-        const dest = await resolveDestination(session.user.id);
+        const dest = resolveDestination();
+
         console.log("[Auth] SIGNED_IN → navigating to", dest);
         navigate(dest, { replace: true });
       }
