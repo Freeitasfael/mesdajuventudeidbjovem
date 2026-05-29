@@ -185,25 +185,44 @@ export function EntradaPanel() {
                 <th className="px-4 py-3">MP ID</th>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3 text-right">Total</th>
+                <th className="px-4 py-3 text-right">Ações</th>
               </tr>
             </thead>
             <tbody>
-              {orders.map((o) => (
-                <tr key={o.id} className="border-t border-border">
-                  <td className="px-4 py-3 whitespace-nowrap">{fmtDate(o.created_at)}</td>
-                  <td className="px-4 py-3">{o.buyer_name}</td>
-                  <td className="px-4 py-3">{o.buyer_phone}</td>
-                  <td className="px-4 py-3 capitalize">{o.product}</td>
-                  <td className="px-4 py-3">{o.size ?? "—"}</td>
-                  <td className="px-4 py-3">{o.quantity}</td>
-                  <td className="px-4 py-3 font-mono text-xs">{o.mp_payment_id ?? "—"}</td>
-                  <td className="px-4 py-3"><StatusBadge status={o.status} /></td>
-                  <td className="px-4 py-3 text-right font-medium">{fmtBRL(o.total_cents)}</td>
-                </tr>
-              ))}
+              {orders.map((o) => {
+                const canRefund = o.status === "paid" || o.status === "pending";
+                return (
+                  <tr key={o.id} className="border-t border-border">
+                    <td className="px-4 py-3 whitespace-nowrap">{fmtDate(o.created_at)}</td>
+                    <td className="px-4 py-3">{o.buyer_name}</td>
+                    <td className="px-4 py-3">{o.buyer_phone}</td>
+                    <td className="px-4 py-3 capitalize">{o.product}</td>
+                    <td className="px-4 py-3">{o.size ?? "—"}</td>
+                    <td className="px-4 py-3">{o.quantity}</td>
+                    <td className="px-4 py-3 font-mono text-xs">{o.mp_payment_id ?? "—"}</td>
+                    <td className="px-4 py-3"><StatusBadge status={o.status} /></td>
+                    <td className="px-4 py-3 text-right font-medium">{fmtBRL(o.total_cents)}</td>
+                    <td className="px-4 py-3 text-right">
+                      {canRefund ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => refundOrder(o)}
+                          disabled={refundingId === o.id}
+                        >
+                          <Undo2 className="mr-1 h-3 w-3" />
+                          {refundingId === o.id ? "..." : o.status === "paid" ? "Reembolsar" : "Cancelar"}
+                        </Button>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
               {orders.length === 0 && (
                 <tr>
-                  <td colSpan={9} className="px-4 py-8 text-center text-muted-foreground">
+                  <td colSpan={10} className="px-4 py-8 text-center text-muted-foreground">
                     Nenhuma transação ainda.
                   </td>
                 </tr>
