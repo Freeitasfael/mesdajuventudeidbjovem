@@ -10,6 +10,8 @@ const corsHeaders = {
 
 const BodySchema = z.object({
   order_id: z.string().uuid(),
+  method: z.enum(["pix", "card"]).optional().default("pix"),
+  return_url: z.string().url().optional().nullable(),
 });
 
 type EventLevel = "info" | "warn" | "error";
