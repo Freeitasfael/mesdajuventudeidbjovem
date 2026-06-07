@@ -28,6 +28,7 @@ const BodySchema = z.object({
   payer_email: z.string().email().optional().nullable(),
   payer_doc_type: z.string().min(2).max(10).optional().nullable(),
   payer_doc_number: z.string().min(5).max(20).optional().nullable(),
+  device_id: z.string().min(4).max(200).optional().nullable(),
 });
 
 Deno.serve(async (req) => {
@@ -60,7 +61,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { buyer_name, buyer_phone, product, model, size, quantity, method, ref_code, return_url, card_token, installments, payment_method_id, issuer_id, payer_email, payer_doc_type, payer_doc_number } = parsed.data;
+    const { buyer_name, buyer_phone, product, model, size, quantity, method, ref_code, return_url, card_token, installments, payment_method_id, issuer_id, payer_email, payer_doc_type, payer_doc_number, device_id } = parsed.data;
 
     if (product === "kit" && (!size || size.length === 0)) {
       return new Response(JSON.stringify({ error: "size_required" }), {
@@ -133,6 +134,9 @@ Deno.serve(async (req) => {
     if (method === "card") {
       // Inline (token-based) card charge
       if (card_token) {
+        const firstName = buyer_name.split(" ")[0] ?? "Comprador";
+        const lastName = buyer_name.split(" ").slice(1).join(" ") || "Entrada";
+        const digits = buyer_phone.replace(/\D/g, "");
         const cardPayload: Record<string, unknown> = {
           transaction_amount: total_cents / 100,
           token: card_token,
@@ -142,25 +146,46 @@ Deno.serve(async (req) => {
           external_reference: order.id,
           metadata: { entrada_order_id: order.id, product, model, quantity },
           statement_descriptor: "MES JUVENTUDE",
+          binary_mode: false,
           payer: {
             email: payer_email || `entrada-${order.id.slice(0, 8)}@example.com`,
-            first_name: buyer_name.split(" ")[0] ?? "Comprador",
-            last_name: buyer_name.split(" ").slice(1).join(" ") || "Entrada",
+            first_name: firstName,
+            last_name: lastName,
             ...(payer_doc_type && payer_doc_number
               ? { identification: { type: payer_doc_type, number: payer_doc_number } }
               : {}),
+          },
+          additional_info: {
+            items: [{
+              id: `${product}_${model}`,
+              title: product === "kit" ? `Kit ${model}${size ? ` ${size}` : ""}` : "Pulseira de acesso",
+              description,
+              category_id: "tickets",
+              quantity,
+              unit_price: (total_cents / quantity) / 100,
+            }],
+            payer: {
+              first_name: firstName,
+              last_name: lastName,
+              ...(digits.length >= 10
+                ? { phone: { area_code: digits.slice(0, 2), number: digits.slice(2) } }
+                : {}),
+            },
           },
         };
         if (payment_method_id) cardPayload.payment_method_id = payment_method_id;
         if (issuer_id) cardPayload.issuer_id = issuer_id;
 
+        const mpHeaders: Record<string, string> = {
+          Authorization: `Bearer ${MP_TOKEN}`,
+          "Content-Type": "application/json",
+          "X-Idempotency-Key": `entrada-card-${order.id}`,
+        };
+        if (device_id) mpHeaders["X-meli-session-id"] = device_id;
+
         const cardRes = await fetch("https://api.mercadopago.com/v1/payments", {
           method: "POST",
-          headers: {
-            Authorization: `Bearer ${MP_TOKEN}`,
-            "Content-Type": "application/json",
-            "X-Idempotency-Key": `entrada-card-${order.id}`,
-          },
+          headers: mpHeaders,
           body: JSON.stringify(cardPayload),
         });
         const cardData = await cardRes.json();
@@ -172,8 +197,12 @@ Deno.serve(async (req) => {
             message: cardData?.message ?? "Cartão recusado", details: cardData,
           }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
+        const newStatus = cardData.status === "approved" ? "paid"
+                        : cardData.status === "rejected" || cardData.status === "cancelled" ? "cancelled"
+                        : "pending";
         await admin.from("entrada_orders").update({
           mp_payment_id: String(cardData.id),
+          status: newStatus,
           raw: cardData,
         }).eq("id", order.id);
 

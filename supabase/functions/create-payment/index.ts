@@ -20,7 +20,10 @@ const BodySchema = z.object({
   payer_email: z.string().email().optional().nullable(),
   payer_doc_type: z.string().min(2).max(10).optional().nullable(),
   payer_doc_number: z.string().min(5).max(20).optional().nullable(),
+  device_id: z.string().min(4).max(200).optional().nullable(),
 });
+
+const MAX_CARD_ATTEMPTS = 5;
 
 type EventLevel = "info" | "warn" | "error";
 
@@ -107,7 +110,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { order_id, method, return_url, card_token, installments, payment_method_id, issuer_id, payer_email, payer_doc_type, payer_doc_number } = parsed.data;
+    const { order_id, method, return_url, card_token, installments, payment_method_id, issuer_id, payer_email, payer_doc_type, payer_doc_number, device_id } = parsed.data;
 
     const { data: order, error: orderErr } = await admin
       .from("orders")
@@ -179,8 +182,26 @@ Deno.serve(async (req) => {
     const webhookUrl = `${SUPABASE_URL}/functions/v1/mp-webhook`;
 
     if (method === "card") {
+      // Limite anti-abuso: máximo de tentativas de cartão por pedido
+      const cardAttempts = (existingPayments ?? []).filter((p) => {
+        const pid = p.provider_payment_id || "";
+        return !pid.startsWith("pref:");
+      }).length;
+      if (cardAttempts >= MAX_CARD_ATTEMPTS) {
+        await logEvent(admin, "warn", "card_attempts_exceeded",
+          `Máximo de ${MAX_CARD_ATTEMPTS} tentativas de cartão atingido`, {
+            order_id, details: { attempts: cardAttempts },
+          });
+        return new Response(JSON.stringify({
+          error: "too_many_attempts",
+          message: `Limite de ${MAX_CARD_ATTEMPTS} tentativas atingido. Tente o PIX ou refaça o pedido.`,
+        }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
       // Inline (token-based) flow
       if (card_token) {
+        const firstName = buyer?.name?.split(" ")[0] ?? "Comprador";
+        const lastName = buyer?.name?.split(" ").slice(1).join(" ") || "Rifa";
         const cardPayload: Record<string, unknown> = {
           transaction_amount: amount,
           token: card_token,
@@ -190,25 +211,46 @@ Deno.serve(async (req) => {
           external_reference: order.id,
           metadata: { order_id: order.id },
           statement_descriptor: "RIFA IDB",
+          binary_mode: false,
           payer: {
             email: payer_email || `buyer-${order.buyer_id.slice(0, 8)}@example.com`,
-            first_name: buyer?.name?.split(" ")[0] ?? "Comprador",
-            last_name: buyer?.name?.split(" ").slice(1).join(" ") || "Rifa",
+            first_name: firstName,
+            last_name: lastName,
             ...(payer_doc_type && payer_doc_number
               ? { identification: { type: payer_doc_type, number: payer_doc_number } }
               : {}),
+          },
+          additional_info: {
+            items: [{
+              id: order.id,
+              title: `Rifa - Pedido ${order.id.slice(0, 8)}`,
+              description: "Compra de números da rifa IDB Jovem",
+              category_id: "tickets",
+              quantity: 1,
+              unit_price: amount,
+            }],
+            payer: {
+              first_name: firstName,
+              last_name: lastName,
+              ...(buyer?.phone
+                ? { phone: { area_code: buyer.phone.slice(0, 2), number: buyer.phone.slice(2) } }
+                : {}),
+            },
           },
         };
         if (payment_method_id) cardPayload.payment_method_id = payment_method_id;
         if (issuer_id) cardPayload.issuer_id = issuer_id;
 
+        const mpHeaders: Record<string, string> = {
+          Authorization: `Bearer ${MP_ACCESS_TOKEN}`,
+          "Content-Type": "application/json",
+          "X-Idempotency-Key": `order-${order.id}-card-${attempt}`,
+        };
+        if (device_id) mpHeaders["X-meli-session-id"] = device_id;
+
         const cardRes = await fetch("https://api.mercadopago.com/v1/payments", {
           method: "POST",
-          headers: {
-            Authorization: `Bearer ${MP_ACCESS_TOKEN}`,
-            "Content-Type": "application/json",
-            "X-Idempotency-Key": `order-${order.id}-card-${attempt}`,
-          },
+          headers: mpHeaders,
           body: JSON.stringify(cardPayload),
         });
         const cardData = await cardRes.json();
@@ -226,7 +268,8 @@ Deno.serve(async (req) => {
           order_id: order.id,
           provider: "mercadopago",
           provider_payment_id: String(cardData.id),
-          status: cardData.status === "approved" ? "approved" : "pending",
+          status: cardData.status === "approved" ? "approved" :
+                  cardData.status === "rejected" || cardData.status === "cancelled" ? "rejected" : "pending",
           amount_cents: order.total_cents,
           raw: cardData,
         }).select("id").single();
@@ -238,7 +281,7 @@ Deno.serve(async (req) => {
 
         await logEvent(admin, "info", "card_charged", "Pagamento de cartão processado", {
           order_id, payment_id: payment?.id, provider_payment_id: String(cardData.id),
-          details: { status: cardData.status, status_detail: cardData.status_detail },
+          details: { status: cardData.status, status_detail: cardData.status_detail, device_id: device_id ? "present" : "missing" },
         });
 
         return new Response(JSON.stringify({
