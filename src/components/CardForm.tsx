@@ -450,7 +450,7 @@ export function CardForm({
         <label htmlFor={`${formId}-issuer`} className={`text-xs font-semibold uppercase tracking-wide ${labelCls}`}>
           Banco emissor
         </label>
-        <select id={`${formId}-issuer`} className={selectCls} style={selectStyle} />
+        <StyledNativeSelect id={`${formId}-issuer`} isDark={isDark} placeholder="Selecione o banco" />
       </div>
       <div className="space-y-1.5">
         <label htmlFor={`${formId}-installments`} className={`text-xs font-semibold uppercase tracking-wide ${labelCls}`}>
