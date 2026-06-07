@@ -229,6 +229,7 @@ Deno.serve(async (req) => {
         payer: {
           name: buyer_name.split(" ")[0] ?? "Comprador",
           surname: buyer_name.split(" ").slice(1).join(" ") || "Entrada",
+          email: effectiveEmail,
         },
         payment_methods: {
           excluded_payment_types: [{ id: "ticket" }, { id: "atm" }, { id: "bank_transfer" }],
