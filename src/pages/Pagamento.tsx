@@ -418,72 +418,94 @@ const Pagamento = () => {
                   </div>
                 </div>
 
-                {/* QR Code */}
-                {creating || (!data.payment && !error) ? (
-                  <div className="rounded-lg border border-border bg-card p-8 text-center space-y-3">
-                    <Skeleton className="h-64 w-64 mx-auto" />
-                    <p className="text-sm text-muted-foreground">
-                      Gerando código PIX...
-                    </p>
-                  </div>
-                ) : error ? (
-                  <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-6 text-center space-y-3">
-                    <AlertCircle className="h-8 w-8 mx-auto text-destructive" />
-                    <p className="text-sm">{error}</p>
-                    <Button variant="outline" onClick={() => createPayment("pix")}>
-                      Tentar novamente
-                    </Button>
-                  </div>
-                ) : data.payment?.qr_code_base64 ? (
-                  <div className="rounded-lg border border-border bg-card p-6 space-y-4">
-                    <div className="flex justify-center">
-                      <img
-                        src={`data:image/png;base64,${data.payment.qr_code_base64}`}
-                        alt="QR Code PIX"
-                        className="w-64 h-64 rounded-md"
-                      />
-                    </div>
-                    <p className="text-xs text-center text-muted-foreground">
-                      Abra o app do seu banco e escaneie o QR Code, ou copie o código abaixo:
-                    </p>
-                    {data.payment.qr_code && (
-                      <div className="space-y-2">
-                        <div className="rounded-md bg-muted p-3 font-mono text-xs break-all">
-                          {data.payment.qr_code}
-                        </div>
-                        <Button onClick={copyPix} variant="outline" className="w-full">
-                          {copied ? (
-                            <>
-                              <Check className="h-4 w-4 mr-2" /> Copiado!
-                            </>
-                          ) : (
-                            <>
-                              <Copy className="h-4 w-4 mr-2" /> Copiar código PIX
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    )}
-                    <p className="text-xs text-center text-muted-foreground pt-2 border-t border-border">
-                      A confirmação aparece automaticamente assim que o banco processar.
-                    </p>
-                  </div>
-                ) : null}
-
-                {/* Alternativa: pagar com cartão */}
-                <div className="rounded-lg border border-border bg-card p-4 space-y-2 text-center">
-                  <p className="text-xs text-muted-foreground">
-                    Prefere pagar com cartão? Até 12x (juros do MP).
-                  </p>
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => createPayment("card")}
-                    disabled={creating}
+                {/* Method tabs */}
+                <div className="grid grid-cols-2 gap-2 rounded-lg border border-border bg-card p-1">
+                  <button
+                    type="button"
+                    onClick={() => setPayMethod("pix")}
+                    className={`flex items-center justify-center gap-2 rounded-md py-2 text-sm font-semibold transition ${
+                      payMethod === "pix" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
+                    }`}
                   >
-                    Pagar com cartão de crédito
-                  </Button>
+                    <QrCode className="h-4 w-4" /> Pix
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPayMethod("card")}
+                    className={`flex items-center justify-center gap-2 rounded-md py-2 text-sm font-semibold transition ${
+                      payMethod === "card" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
+                    }`}
+                  >
+                    <CreditCard className="h-4 w-4" /> Cartão (até 12x)
+                  </button>
                 </div>
+
+                {payMethod === "pix" ? (
+                  /* QR Code */
+                  creating || (!data.payment && !error) ? (
+                    <div className="rounded-lg border border-border bg-card p-8 text-center space-y-3">
+                      <Skeleton className="h-64 w-64 mx-auto" />
+                      <p className="text-sm text-muted-foreground">
+                        Gerando código PIX...
+                      </p>
+                    </div>
+                  ) : error ? (
+                    <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-6 text-center space-y-3">
+                      <AlertCircle className="h-8 w-8 mx-auto text-destructive" />
+                      <p className="text-sm">{error}</p>
+                      <Button variant="outline" onClick={() => createPayment("pix")}>
+                        Tentar novamente
+                      </Button>
+                    </div>
+                  ) : data.payment?.qr_code_base64 ? (
+                    <div className="rounded-lg border border-border bg-card p-6 space-y-4">
+                      <div className="flex justify-center">
+                        <img
+                          src={`data:image/png;base64,${data.payment.qr_code_base64}`}
+                          alt="QR Code PIX"
+                          className="w-64 h-64 rounded-md"
+                        />
+                      </div>
+                      <p className="text-xs text-center text-muted-foreground">
+                        Abra o app do seu banco e escaneie o QR Code, ou copie o código abaixo:
+                      </p>
+                      {data.payment.qr_code && (
+                        <div className="space-y-2">
+                          <div className="rounded-md bg-muted p-3 font-mono text-xs break-all">
+                            {data.payment.qr_code}
+                          </div>
+                          <Button onClick={copyPix} variant="outline" className="w-full">
+                            {copied ? (
+                              <>
+                                <Check className="h-4 w-4 mr-2" /> Copiado!
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="h-4 w-4 mr-2" /> Copiar código PIX
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      )}
+                      <p className="text-xs text-center text-muted-foreground pt-2 border-t border-border">
+                        A confirmação aparece automaticamente assim que o banco processar.
+                      </p>
+                    </div>
+                  ) : null
+                ) : (
+                  <div className="rounded-lg border border-border bg-card p-5">
+                    <CardForm
+                      account="rifa"
+                      amount={data.order.total_cents / 100}
+                      submitting={cardSubmitting}
+                      errorMessage={cardError}
+                      onTokenized={chargeCard}
+                    />
+                    <p className="mt-3 text-xs text-muted-foreground text-center">
+                      Pagamento processado de forma segura pelo Mercado Pago. Parcelamento com juros do MP.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
