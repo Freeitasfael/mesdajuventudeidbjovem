@@ -159,6 +159,33 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" 
     return () => { if (pollRef.current) { window.clearInterval(pollRef.current); pollRef.current = null; } };
   }, [step, payment?.order_id, payment?.method]);
 
+  const createOrderPayment = async (extra: Partial<CardTokenPayload> & { method: Method } = { method: "pix" }) => {
+    const ref_code = hasReferral && refResult && refResult.ok ? refResult.ref_code : null;
+    const { data, error } = await supabase.functions.invoke("create-entrada-payment", {
+      body: {
+        buyer_name: nome.trim(),
+        buyer_phone: telefone.trim(),
+        product: option,
+        model: option === "kit" ? model : "adulto",
+        size: option === "kit" ? tamanho : null,
+        quantity: qtd,
+        ref_code,
+        return_url: window.location.href,
+        ...extra,
+      },
+    });
+    if (error) {
+      const ctx = (error as { context?: Response }).context;
+      let msg = "Erro ao gerar pagamento";
+      try {
+        const body = ctx ? await ctx.json() : null;
+        if (body?.message) msg = body.message;
+      } catch { /* ignore */ }
+      throw new Error(msg);
+    }
+    return data as PaymentData & { status?: string; status_detail?: string };
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nome.trim() || !telefone.trim()) { toast.error("Preencha nome e telefone"); return; }
@@ -167,40 +194,16 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" 
       toast.error("Código de revendedor inválido. Corrija ou desmarque a opção."); return;
     }
 
+    if (method === "card") {
+      // Don't create order yet — collect card data first
+      setCardError(null);
+      setStep("card");
+      return;
+    }
+
     setLoading(true);
     try {
-      const ref_code = hasReferral && refResult && refResult.ok ? refResult.ref_code : null;
-      const { data, error } = await supabase.functions.invoke("create-entrada-payment", {
-        body: {
-          buyer_name: nome.trim(),
-          buyer_phone: telefone.trim(),
-          product: option,
-          model: option === "kit" ? model : "adulto",
-          size: option === "kit" ? tamanho : null,
-          quantity: qtd,
-          method,
-          ref_code,
-          return_url: window.location.href,
-        },
-      });
-      if (error) {
-        const ctx = (error as { context?: Response }).context;
-        let msg = "Erro ao gerar pagamento";
-        try {
-          const body = ctx ? await ctx.json() : null;
-          if (body?.message) msg = body.message;
-        } catch { /* ignore */ }
-        toast.error(msg);
-        return;
-      }
-      if (method === "card") {
-        if (data?.init_point) {
-          window.location.href = data.init_point;
-          return;
-        }
-        toast.error("Não foi possível abrir o pagamento por cartão.");
-        return;
-      }
+      const data = await createOrderPayment({ method: "pix" });
       if (!data?.qr_code) { toast.error("Não foi possível gerar o PIX. Tente novamente."); return; }
       setPayment(data as PaymentData);
       setStep("payment");
@@ -208,6 +211,27 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" 
       toast.error(err instanceof Error ? err.message : "Erro ao gerar pagamento");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCardTokenized = async (payload: CardTokenPayload) => {
+    setCardError(null);
+    setCardSubmitting(true);
+    try {
+      const data = await createOrderPayment({ method: "card", ...payload });
+      if (data?.status === "approved") {
+        setStep("done");
+        toast.success("Pagamento aprovado!");
+      } else if (data?.status === "in_process" || data?.status === "pending") {
+        setCardError("Pagamento em análise. Você receberá a confirmação em instantes.");
+        // optional: poll mp_payment_id via entrada-status would need order_id; keep simple
+      } else {
+        setCardError(data?.status_detail ? `Cartão recusado: ${data.status_detail}` : "Cartão recusado.");
+      }
+    } catch (err) {
+      setCardError(err instanceof Error ? err.message : "Erro ao processar cartão");
+    } finally {
+      setCardSubmitting(false);
     }
   };
 
