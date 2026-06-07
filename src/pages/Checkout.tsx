@@ -273,6 +273,28 @@ const Checkout = () => {
             </p>
           </div>
 
+          <div className="space-y-2">
+            <Label htmlFor="email">E-mail</Label>
+            <Input
+              id="email"
+              type="email"
+              inputMode="email"
+              placeholder="seu@email.com"
+              autoComplete="email"
+              {...form.register("email")}
+            />
+            {form.formState.errors.email && (
+              <p className="text-xs text-destructive">
+                {form.formState.errors.email.message}
+              </p>
+            )}
+            <p className="text-xs text-muted-foreground">
+              Usado pela operadora para validar o pagamento e enviar o comprovante.
+            </p>
+          </div>
+
+
+
           {/* Indicação por código */}
           <div className="space-y-3 rounded-md border border-border p-3">
             <label className="flex items-start gap-2 text-sm font-medium cursor-pointer">
