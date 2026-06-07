@@ -278,6 +278,14 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" 
                   className="bg-white/5 border-white/15 text-white placeholder:text-white/40 focus-visible:ring-[hsl(var(--hero-gold))]" />
               </div>
               <div className="space-y-2">
+                <Label htmlFor="email" className="text-white/85">E-mail</Label>
+                <Input id="email" type="email" inputMode="email" autoComplete="email"
+                  value={email} onChange={(e) => setEmail(e.target.value)} maxLength={180}
+                  placeholder="seu@email.com" required
+                  className="bg-white/5 border-white/15 text-white placeholder:text-white/40 focus-visible:ring-[hsl(var(--hero-gold))]" />
+                <p className="text-xs text-white/55">Necessário para confirmar o pagamento e enviar o comprovante.</p>
+              </div>
+              <div className="space-y-2">
                 <Label className="text-white/85">Opção escolhida</Label>
                 <RadioGroup value={option} onValueChange={(v) => setOption(v as Option)}>
                   <label className={`flex items-center gap-3 rounded-lg border-2 p-3 cursor-pointer transition bg-white/5 border-white/15 hover:border-[hsl(var(--hero-gold))] has-[:checked]:border-[hsl(var(--hero-gold))] has-[:checked]:bg-[hsl(var(--hero-gold)/0.1)] ${pulseiraStock <= 0 ? "opacity-50 pointer-events-none" : ""}`}>
