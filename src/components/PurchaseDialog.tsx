@@ -350,7 +350,7 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" 
                 </RadioGroup>
                 {method === "card" && (
                   <p className="text-xs text-white/60">
-                    Você será redirecionado ao ambiente seguro do Mercado Pago. Parcelamento sujeito a juros do MP.
+                    Pagamento seguro pelo Mercado Pago. Você preencherá os dados do cartão na próxima etapa. Parcelamento sujeito a juros do MP.
                   </p>
                 )}
               </div>
