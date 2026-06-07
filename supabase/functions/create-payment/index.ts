@@ -179,6 +179,79 @@ Deno.serve(async (req) => {
     const webhookUrl = `${SUPABASE_URL}/functions/v1/mp-webhook`;
 
     if (method === "card") {
+      // Inline (token-based) flow
+      if (card_token) {
+        const cardPayload: Record<string, unknown> = {
+          transaction_amount: amount,
+          token: card_token,
+          description: `Rifa - Pedido ${order.id.slice(0, 8)}`,
+          installments: Math.max(1, Math.min(24, installments ?? 1)),
+          notification_url: webhookUrl,
+          external_reference: order.id,
+          metadata: { order_id: order.id },
+          statement_descriptor: "RIFA IDB",
+          payer: {
+            email: payer_email || `buyer-${order.buyer_id.slice(0, 8)}@example.com`,
+            first_name: buyer?.name?.split(" ")[0] ?? "Comprador",
+            last_name: buyer?.name?.split(" ").slice(1).join(" ") || "Rifa",
+            ...(payer_doc_type && payer_doc_number
+              ? { identification: { type: payer_doc_type, number: payer_doc_number } }
+              : {}),
+          },
+        };
+        if (payment_method_id) cardPayload.payment_method_id = payment_method_id;
+        if (issuer_id) cardPayload.issuer_id = issuer_id;
+
+        const cardRes = await fetch("https://api.mercadopago.com/v1/payments", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${MP_ACCESS_TOKEN}`,
+            "Content-Type": "application/json",
+            "X-Idempotency-Key": `order-${order.id}-card-${attempt}`,
+          },
+          body: JSON.stringify(cardPayload),
+        });
+        const cardData = await cardRes.json();
+        if (!cardRes.ok) {
+          await logEvent(admin, "error", "card_charge_failed", "Erro do Mercado Pago ao cobrar cartão", {
+            order_id, details: { http_status: cardRes.status, mp_error: cardData },
+          });
+          return new Response(JSON.stringify({
+            error: "mp_error", status: cardRes.status,
+            message: cardData?.message ?? "Cartão recusado", details: cardData,
+          }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        await admin.from("orders").update({ payment_method: "card" }).eq("id", order.id);
+        const { data: payment } = await admin.from("payments").insert({
+          order_id: order.id,
+          provider: "mercadopago",
+          provider_payment_id: String(cardData.id),
+          status: cardData.status === "approved" ? "approved" : "pending",
+          amount_cents: order.total_cents,
+          raw: cardData,
+        }).select("id").single();
+
+        // Confirm immediately if approved
+        if (cardData.status === "approved") {
+          await admin.rpc("confirm_payment", { _order_id: order.id });
+        }
+
+        await logEvent(admin, "info", "card_charged", "Pagamento de cartão processado", {
+          order_id, payment_id: payment?.id, provider_payment_id: String(cardData.id),
+          details: { status: cardData.status, status_detail: cardData.status_detail },
+        });
+
+        return new Response(JSON.stringify({
+          method: "card",
+          payment_id: payment?.id,
+          provider_payment_id: String(cardData.id),
+          status: cardData.status,
+          status_detail: cardData.status_detail,
+          amount_cents: order.total_cents,
+        }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      // Fallback: Checkout Pro preference (redirect)
       const back = return_url || `${SUPABASE_URL}`;
       const prefPayload = {
         items: [{
