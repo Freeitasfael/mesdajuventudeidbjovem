@@ -58,6 +58,27 @@ export function EntradaPanel() {
   const [kitReais, setKitReais] = useState("");
   const [savingPrices, setSavingPrices] = useState(false);
   const [refundingId, setRefundingId] = useState<string | null>(null);
+  const [assigningId, setAssigningId] = useState<string | null>(null);
+
+  const assignSeller = async (o: EntradaOrder) => {
+    const current = o.referral_label ?? "";
+    const code = window.prompt(
+      `Atribuir/alterar revendedor do pedido ${o.id.slice(0, 8)}.\n\nDigite o código (ex: IDB001) ou deixe em branco para remover.`,
+      current,
+    );
+    if (code === null) return;
+    setAssigningId(o.id);
+    const { error } = await supabase.rpc("admin_set_entrada_order_seller" as never, {
+      _order_id: o.id, _ref_code: code.trim(),
+    } as never);
+    setAssigningId(null);
+    if (error) {
+      toast.error(error.message.includes("seller_not_found") ? "Código não encontrado" : "Erro: " + error.message);
+      return;
+    }
+    toast.success(code.trim() ? "Revendedor atualizado" : "Vínculo removido");
+    load();
+  };
 
   const refundOrder = async (o: EntradaOrder) => {
     const msg = o.status === "paid"
