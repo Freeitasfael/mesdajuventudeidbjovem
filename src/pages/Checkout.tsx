@@ -51,7 +51,7 @@ const Checkout = () => {
 
   const form = useForm<FormData>({
     resolver: zodResolver(Schema),
-    defaultValues: { name: "", phone: "" },
+    defaultValues: { name: "", phone: "", email: "" },
   });
 
   useEffect(() => {
