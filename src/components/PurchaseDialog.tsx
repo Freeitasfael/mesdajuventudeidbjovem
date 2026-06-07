@@ -166,6 +166,7 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" 
       body: {
         buyer_name: nome.trim(),
         buyer_phone: telefone.trim(),
+        buyer_email: email.trim().toLowerCase(),
         product: option,
         model: option === "kit" ? model : "adulto",
         size: option === "kit" ? tamanho : null,
