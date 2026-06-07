@@ -5,6 +5,7 @@ import { PurchaseDialog } from "@/components/PurchaseDialog";
 import { Toaster } from "@/components/ui/sonner";
 import heroBg from "@/assets/hero-rifa-bg.jpg";
 import logoIdb from "@/assets/idb-jovem-logo.png";
+import modeloImg from "@/assets/modelo-camiseta-pulseira.png.asset.json";
 
 export default function Entrada() {
   const [open, setOpen] = useState(false);
@@ -203,141 +204,217 @@ export default function Entrada() {
           }}
         />
         <div className="relative container mx-auto px-4">
-          <div className="text-center mb-14">
-            <span
-              className="text-xs font-extrabold tracking-[0.3em] uppercase"
-              style={{ color: "hsl(var(--hero-gold))" }}
-            >
-              Garanta o seu
-            </span>
-            <h2 className="font-extrabold text-4xl md:text-5xl mt-3 tracking-tight uppercase">
-              Escolha sua opção
-            </h2>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-            {/* Card 1 — Pulseira */}
-            <div
-              className="relative rounded-3xl p-8 border backdrop-blur-md flex flex-col"
-              style={{
-                backgroundColor: "rgba(255,255,255,0.04)",
-                borderColor: "hsl(var(--hero-gold) / 0.25)",
-              }}
-            >
-              <h3 className="font-extrabold text-2xl mb-2 uppercase tracking-wide">
-                Pulseira de Acesso
-              </h3>
-              <p className="text-white/70 mb-6">
-                Garanta sua entrada para o evento do Mês da Juventude.
-              </p>
-              <ul className="space-y-2 mb-8 text-sm text-white/85">
-                <li className="flex items-center gap-2">
-                  <Check className="h-4 w-4" style={{ color: "hsl(var(--hero-gold))" }} /> Acesso
-                  ao evento
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="h-4 w-4" style={{ color: "hsl(var(--hero-gold))" }} /> Pulseira
-                  oficial
-                </li>
-              </ul>
-              <div className="mt-auto">
-                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-white/60 mb-1">
-                  Por apenas
-                </p>
-                <div className="mb-6 flex items-baseline gap-1">
-                  <span
-                    className="text-6xl font-extrabold text-glow-gold leading-none"
-                    style={{ color: "hsl(var(--hero-gold))" }}
-                  >
-                    R$ 15
-                  </span>
-                  <span className="text-white/60 text-xl font-bold">,00</span>
-                </div>
-                <Button
-                  onClick={() => buy("pulseira")}
-                  size="lg"
-                  variant="outline"
-                  className="w-full h-12 rounded-2xl border-2 font-extrabold uppercase tracking-wider bg-transparent hover:bg-transparent"
+          <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-10 lg:gap-14 items-stretch">
+            {/* Coluna esquerda — conteúdo + cards */}
+            <div className="order-2 lg:order-1">
+              <div className="text-center lg:text-left mb-10 relative">
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute -inset-6 -z-10 blur-3xl opacity-60"
                   style={{
+                    background:
+                      "radial-gradient(ellipse at center, hsl(0 0% 0% / 0.9), transparent 70%)",
+                  }}
+                />
+                <span
+                  className="text-xs font-extrabold tracking-[0.3em] uppercase"
+                  style={{ color: "hsl(var(--hero-gold))" }}
+                >
+                  Garanta o seu
+                </span>
+                <h2 className="font-extrabold text-4xl md:text-5xl mt-3 tracking-tight uppercase">
+                  Escolha sua opção
+                </h2>
+              </div>
+
+              <div className="grid sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-6">
+                {/* Card 1 — Pulseira */}
+                <div
+                  className="relative rounded-3xl p-8 border backdrop-blur-md flex flex-col"
+                  style={{
+                    backgroundColor: "rgba(255,255,255,0.04)",
+                    borderColor: "hsl(var(--hero-gold) / 0.25)",
+                  }}
+                >
+                  <h3 className="font-extrabold text-2xl mb-2 uppercase tracking-wide">
+                    Pulseira de Acesso
+                  </h3>
+                  <p className="text-white/70 mb-6">
+                    Garanta sua entrada para o evento do Mês da Juventude.
+                  </p>
+                  <ul className="space-y-2 mb-8 text-sm text-white/85">
+                    <li className="flex items-center gap-2">
+                      <Check className="h-4 w-4" style={{ color: "hsl(var(--hero-gold))" }} /> Acesso
+                      ao evento
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Check className="h-4 w-4" style={{ color: "hsl(var(--hero-gold))" }} /> Pulseira
+                      oficial
+                    </li>
+                  </ul>
+                  <div className="mt-auto">
+                    <p className="text-xs font-semibold uppercase tracking-[0.3em] text-white/60 mb-1">
+                      Por apenas
+                    </p>
+                    <div className="mb-6 flex items-baseline gap-1">
+                      <span
+                        className="text-6xl font-extrabold text-glow-gold leading-none"
+                        style={{ color: "hsl(var(--hero-gold))" }}
+                      >
+                        R$ 15
+                      </span>
+                      <span className="text-white/60 text-xl font-bold">,00</span>
+                    </div>
+                    <Button
+                      onClick={() => buy("pulseira")}
+                      size="lg"
+                      variant="outline"
+                      className="w-full h-12 rounded-2xl border-2 font-extrabold uppercase tracking-wider bg-transparent hover:bg-transparent"
+                      style={{
+                        borderColor: "hsl(var(--hero-gold))",
+                        color: "hsl(var(--hero-gold))",
+                      }}
+                    >
+                      Comprar Pulseira
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Card 2 — Kit (destaque) */}
+                <div
+                  className="relative rounded-3xl p-8 border-2 backdrop-blur-md flex flex-col"
+                  style={{
+                    backgroundColor: "rgba(255,255,255,0.06)",
                     borderColor: "hsl(var(--hero-gold))",
-                    color: "hsl(var(--hero-gold))",
+                    boxShadow:
+                      "0 0 0 1px hsl(var(--hero-gold) / 0.4), 0 0 40px hsl(var(--hero-gold) / 0.35), 0 0 90px hsl(var(--hero-gold) / 0.2)",
                   }}
                 >
-                  Comprar Pulseira
-                </Button>
+                  <div
+                    className="absolute -top-4 left-1/2 -translate-x-1/2 text-xs font-extrabold tracking-[0.2em] uppercase px-4 py-1.5 rounded-full shadow-xl whitespace-nowrap"
+                    style={{
+                      backgroundColor: "hsl(var(--hero-gold))",
+                      color: "hsl(var(--hero-bg))",
+                    }}
+                  >
+                    ★ Mais completo
+                  </div>
+                  <h3 className="font-extrabold text-2xl mb-2 uppercase tracking-wide">
+                    Kit Pulseira + Camiseta
+                  </h3>
+                  <p className="text-white/70 mb-6">
+                    Receba sua pulseira de acesso e a camiseta oficial do Mês da Juventude.
+                  </p>
+                  <ul className="space-y-2 mb-8 text-sm text-white/85">
+                    <li className="flex items-center gap-2">
+                      <Check className="h-4 w-4" style={{ color: "hsl(var(--hero-gold))" }} /> Acesso
+                      ao evento
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Check className="h-4 w-4" style={{ color: "hsl(var(--hero-gold))" }} /> Pulseira
+                      oficial
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Check className="h-4 w-4" style={{ color: "hsl(var(--hero-gold))" }} /> Camiseta
+                      oficial do evento
+                    </li>
+                  </ul>
+                  <div className="mt-auto">
+                    <p className="text-xs font-semibold uppercase tracking-[0.3em] text-white/60 mb-1">
+                      Por apenas
+                    </p>
+                    <div className="mb-6 flex items-baseline gap-1">
+                      <span
+                        className="text-6xl font-extrabold text-glow-gold leading-none"
+                        style={{ color: "hsl(var(--hero-gold))" }}
+                      >
+                        R$ 60
+                      </span>
+                      <span className="text-white/60 text-xl font-bold">,00</span>
+                    </div>
+                    <Button
+                      onClick={() => buy("kit")}
+                      size="lg"
+                      className="w-full h-12 rounded-2xl font-extrabold uppercase tracking-wider shadow-xl hover:scale-[1.02] hover:brightness-110 transition-all"
+                      style={{
+                        backgroundColor: "hsl(var(--hero-gold))",
+                        color: "hsl(var(--hero-bg))",
+                      }}
+                    >
+                      Comprar Kit
+                    </Button>
+                  </div>
+                </div>
               </div>
+
+              <p className="text-center lg:text-left text-sm text-white/60 mt-10">
+                Pagamento exclusivo via{" "}
+                <strong className="text-white">Pix</strong> · Confirmação automática
+              </p>
             </div>
 
-            {/* Card 2 — Kit (destaque) */}
-            <div
-              className="relative rounded-3xl p-8 border-2 shadow-gold-glow backdrop-blur-md flex flex-col md:scale-105"
-              style={{
-                backgroundColor: "rgba(255,255,255,0.06)",
-                borderColor: "hsl(var(--hero-gold))",
-              }}
-            >
+            {/* Coluna direita — Imagem do modelo */}
+            <div className="order-1 lg:order-2 relative">
               <div
-                className="absolute -top-4 left-1/2 -translate-x-1/2 text-xs font-extrabold tracking-[0.2em] uppercase px-4 py-1.5 rounded-full shadow-xl"
-                style={{
-                  backgroundColor: "hsl(var(--hero-gold))",
-                  color: "hsl(var(--hero-bg))",
-                }}
+                className="relative w-full h-[420px] sm:h-[520px] lg:h-full min-h-[520px] rounded-3xl overflow-hidden border"
+                style={{ borderColor: "hsl(var(--hero-gold) / 0.2)" }}
               >
-                ★ Mais completo
-              </div>
-              <h3 className="font-extrabold text-2xl mb-2 uppercase tracking-wide">
-                Kit Pulseira + Camiseta
-              </h3>
-              <p className="text-white/70 mb-6">
-                Receba sua pulseira de acesso e a camiseta oficial do Mês da Juventude.
-              </p>
-              <ul className="space-y-2 mb-8 text-sm text-white/85">
-                <li className="flex items-center gap-2">
-                  <Check className="h-4 w-4" style={{ color: "hsl(var(--hero-gold))" }} /> Acesso
-                  ao evento
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="h-4 w-4" style={{ color: "hsl(var(--hero-gold))" }} /> Pulseira
-                  oficial
-                </li>
-                <li className="flex items-center gap-2">
-                  <Check className="h-4 w-4" style={{ color: "hsl(var(--hero-gold))" }} /> Camiseta
-                  oficial do evento
-                </li>
-              </ul>
-              <div className="mt-auto">
-                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-white/60 mb-1">
-                  Por apenas
-                </p>
-                <div className="mb-6 flex items-baseline gap-1">
-                  <span
-                    className="text-6xl font-extrabold text-glow-gold leading-none"
-                    style={{ color: "hsl(var(--hero-gold))" }}
-                  >
-                    R$ 60
-                  </span>
-                  <span className="text-white/60 text-xl font-bold">,00</span>
-                </div>
-                <Button
-                  onClick={() => buy("kit")}
-                  size="lg"
-                  className="w-full h-12 rounded-2xl font-extrabold uppercase tracking-wider shadow-xl hover:scale-[1.02] hover:brightness-110 transition-all"
+                <img
+                  src={modeloImg.url}
+                  alt="Modelo vestindo a camiseta oficial do evento Mês da Juventude e usando a pulseira de acesso"
+                  loading="lazy"
+                  decoding="async"
+                  className="absolute inset-0 w-full h-full object-cover object-center"
+                />
+                {/* Gradiente de integração (direita -> esquerda escuro) */}
+                <div
+                  aria-hidden
+                  className="absolute inset-0 pointer-events-none"
                   style={{
-                    backgroundColor: "hsl(var(--hero-gold))",
-                    color: "hsl(var(--hero-bg))",
+                    background:
+                      "linear-gradient(to left, transparent 35%, hsl(0 0% 0% / 0.55) 85%, hsl(0 0% 0% / 0.85) 100%)",
                   }}
-                >
-                  Comprar Kit
-                </Button>
+                />
+                {/* Gradiente inferior para legibilidade */}
+                <div
+                  aria-hidden
+                  className="absolute inset-x-0 bottom-0 h-40 pointer-events-none"
+                  style={{
+                    background:
+                      "linear-gradient(to top, hsl(0 0% 0% / 0.85), transparent)",
+                  }}
+                />
+
+                {/* Destaque apontando para a pulseira */}
+                <div className="absolute left-4 sm:left-8 bottom-24 sm:bottom-28 flex items-center gap-3">
+                  <div
+                    className="relative h-3 w-3 rounded-full"
+                    style={{
+                      backgroundColor: "hsl(var(--hero-gold))",
+                      boxShadow: "0 0 0 6px hsl(var(--hero-gold) / 0.25), 0 0 20px hsl(var(--hero-gold) / 0.7)",
+                    }}
+                  >
+                    <span
+                      className="absolute inset-0 rounded-full animate-ping"
+                      style={{ backgroundColor: "hsl(var(--hero-gold) / 0.7)" }}
+                    />
+                  </div>
+                  <div
+                    className="rounded-full px-4 py-2 text-xs sm:text-sm font-extrabold uppercase tracking-wider backdrop-blur-md border"
+                    style={{
+                      backgroundColor: "hsl(0 0% 0% / 0.65)",
+                      borderColor: "hsl(var(--hero-gold) / 0.5)",
+                      color: "hsl(var(--hero-gold))",
+                    }}
+                  >
+                    Pulseira oficial do evento
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-
-          <p className="text-center text-sm text-white/60 mt-10">
-            Pagamento exclusivo via{" "}
-            <strong className="text-white">Pix</strong> · Confirmação automática
-          </p>
         </div>
+
       </section>
 
       {/* Footer */}
