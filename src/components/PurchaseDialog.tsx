@@ -356,12 +356,12 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" 
               <div className="space-y-2">
                 <Label className="text-white/85">Opção escolhida</Label>
                 <RadioGroup value={option} onValueChange={(v) => setOption(v as Option)}>
-                  <label className={`flex items-center gap-3 rounded-lg border-2 p-3 cursor-pointer transition bg-white/5 border-white/15 hover:border-[hsl(var(--hero-gold))] has-[:checked]:border-[hsl(var(--hero-gold))] has-[:checked]:bg-[hsl(var(--hero-gold)/0.1)] ${pulseiraStock <= 0 ? "opacity-50 pointer-events-none" : ""}`}>
+                  <label className={`flex items-center gap-3 rounded-lg border-2 p-3 cursor-pointer transition-all duration-200 ease-out bg-white/5 border-white/15 hover:border-[hsl(var(--hero-gold))] hover:scale-[1.01] has-[:checked]:border-[hsl(var(--hero-gold))] has-[:checked]:bg-[hsl(var(--hero-gold)/0.12)] has-[:checked]:shadow-[0_0_0_3px_hsl(var(--hero-gold)/0.18),0_0_24px_hsl(var(--hero-gold)/0.25)] ${pulseiraStock <= 0 ? "opacity-50 pointer-events-none" : ""}`}>
                     <RadioGroupItem value="pulseira" disabled={pulseiraStock <= 0} className="border-white/40 text-[hsl(var(--hero-gold))]" />
                     <span className="font-medium text-white">{LABELS.pulseira}</span>
                     {pulseiraStock <= 0 && <span className="ml-auto text-xs font-semibold text-destructive">Indisponível</span>}
                   </label>
-                  <label className={`flex items-center gap-3 rounded-lg border-2 p-3 cursor-pointer transition bg-white/5 border-white/15 hover:border-[hsl(var(--hero-gold))] has-[:checked]:border-[hsl(var(--hero-gold))] has-[:checked]:bg-[hsl(var(--hero-gold)/0.1)] ${!kitAvailable ? "opacity-50 pointer-events-none" : ""}`}>
+                  <label className={`flex items-center gap-3 rounded-lg border-2 p-3 cursor-pointer transition-all duration-200 ease-out bg-white/5 border-white/15 hover:border-[hsl(var(--hero-gold))] hover:scale-[1.01] has-[:checked]:border-[hsl(var(--hero-gold))] has-[:checked]:bg-[hsl(var(--hero-gold)/0.12)] has-[:checked]:shadow-[0_0_0_3px_hsl(var(--hero-gold)/0.18),0_0_24px_hsl(var(--hero-gold)/0.25)] ${!kitAvailable ? "opacity-50 pointer-events-none" : ""}`}>
                     <RadioGroupItem value="kit" disabled={!kitAvailable} className="border-white/40 text-[hsl(var(--hero-gold))]" />
                     <span className="font-medium text-white">{LABELS.kit}</span>
                     {!kitAvailable && <span className="ml-auto text-xs font-semibold text-destructive">Indisponível</span>}
@@ -377,7 +377,7 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" 
                       {(Object.keys(MODEL_LABEL) as Model[]).map((m) => {
                         const hasAny = SIZES_BY_MODEL[m].some((s) => (stock[`camiseta_${m}_${s}`] ?? 0) > 0);
                         return (
-                          <label key={m} className={`flex items-center justify-center gap-2 rounded-lg border-2 p-2 cursor-pointer transition bg-white/5 border-white/15 hover:border-[hsl(var(--hero-gold))] has-[:checked]:border-[hsl(var(--hero-gold))] has-[:checked]:bg-[hsl(var(--hero-gold)/0.1)] ${!hasAny ? "opacity-50 pointer-events-none" : ""}`}>
+                          <label key={m} className={`flex items-center justify-center gap-2 rounded-lg border-2 p-2 cursor-pointer transition-all duration-200 ease-out bg-white/5 border-white/15 hover:border-[hsl(var(--hero-gold))] hover:scale-[1.01] has-[:checked]:border-[hsl(var(--hero-gold))] has-[:checked]:bg-[hsl(var(--hero-gold)/0.12)] has-[:checked]:shadow-[0_0_0_3px_hsl(var(--hero-gold)/0.18),0_0_24px_hsl(var(--hero-gold)/0.25)] ${!hasAny ? "opacity-50 pointer-events-none" : ""}`}>
                             <RadioGroupItem value={m} disabled={!hasAny} className="border-white/40 text-[hsl(var(--hero-gold))]" />
                             <span className="text-sm font-semibold text-white">{MODEL_LABEL[m]}</span>
                           </label>
@@ -419,12 +419,12 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" 
               <div className="space-y-2">
                 <Label className="text-white/85">Forma de pagamento</Label>
                 <RadioGroup value={method} onValueChange={(v) => setMethod(v as Method)} className="grid grid-cols-2 gap-2">
-                  <label className="flex items-center gap-2 rounded-lg border-2 p-3 cursor-pointer transition bg-white/5 border-white/15 hover:border-[hsl(var(--hero-gold))] has-[:checked]:border-[hsl(var(--hero-gold))] has-[:checked]:bg-[hsl(var(--hero-gold)/0.1)]">
+                  <label className="flex items-center gap-2 rounded-lg border-2 p-3 cursor-pointer transition-all duration-200 ease-out bg-white/5 border-white/15 hover:border-[hsl(var(--hero-gold))] hover:scale-[1.01] has-[:checked]:border-[hsl(var(--hero-gold))] has-[:checked]:bg-[hsl(var(--hero-gold)/0.12)] has-[:checked]:shadow-[0_0_0_3px_hsl(var(--hero-gold)/0.18),0_0_24px_hsl(var(--hero-gold)/0.25)]">
                     <RadioGroupItem value="pix" className="border-white/40 text-[hsl(var(--hero-gold))]" />
                     <QrCode className="h-4 w-4 text-[hsl(var(--hero-gold))]" />
                     <span className="font-semibold text-white">Pix</span>
                   </label>
-                  <label className="flex items-center gap-2 rounded-lg border-2 p-3 cursor-pointer transition bg-white/5 border-white/15 hover:border-[hsl(var(--hero-gold))] has-[:checked]:border-[hsl(var(--hero-gold))] has-[:checked]:bg-[hsl(var(--hero-gold)/0.1)]">
+                  <label className="flex items-center gap-2 rounded-lg border-2 p-3 cursor-pointer transition-all duration-200 ease-out bg-white/5 border-white/15 hover:border-[hsl(var(--hero-gold))] hover:scale-[1.01] has-[:checked]:border-[hsl(var(--hero-gold))] has-[:checked]:bg-[hsl(var(--hero-gold)/0.12)] has-[:checked]:shadow-[0_0_0_3px_hsl(var(--hero-gold)/0.18),0_0_24px_hsl(var(--hero-gold)/0.25)]">
                     <RadioGroupItem value="card" className="border-white/40 text-[hsl(var(--hero-gold))]" />
                     <CreditCard className="h-4 w-4 text-[hsl(var(--hero-gold))]" />
                     <span className="font-semibold text-white">Cartão (até 12x)</span>
