@@ -7,7 +7,12 @@ import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
 
 interface OrderLite { total_cents: number; created_at: string; status: string; }
-interface EntradaLite { total_cents: number; created_at: string; status: string; product: string; }
+interface EntradaLite { total_cents: number; created_at: string; status: string; product: string; quantity: number; }
+
+// Custos unitários de fabricação (R$)
+const DEFAULT_COST_CAMISETA = 38;
+const DEFAULT_COST_PULSEIRA = 1.05;
+const COST_STORAGE_KEY = "dashboard_costs_v1";
 
 const fmtBRL = (c: number) => `R$ ${(c / 100).toFixed(2).replace(".", ",")}`;
 
@@ -17,11 +22,20 @@ export function DashboardConsolidado() {
   const [rifa, setRifa] = useState<OrderLite[]>([]);
   const [entrada, setEntrada] = useState<EntradaLite[]>([]);
   const [loading, setLoading] = useState(false);
+  const [costCamiseta, setCostCamiseta] = useState<number>(() => {
+    try { const s = JSON.parse(localStorage.getItem(COST_STORAGE_KEY) || "{}"); return Number(s.camiseta) || DEFAULT_COST_CAMISETA; } catch { return DEFAULT_COST_CAMISETA; }
+  });
+  const [costPulseira, setCostPulseira] = useState<number>(() => {
+    try { const s = JSON.parse(localStorage.getItem(COST_STORAGE_KEY) || "{}"); return Number(s.pulseira) || DEFAULT_COST_PULSEIRA; } catch { return DEFAULT_COST_PULSEIRA; }
+  });
+  useEffect(() => {
+    localStorage.setItem(COST_STORAGE_KEY, JSON.stringify({ camiseta: costCamiseta, pulseira: costPulseira }));
+  }, [costCamiseta, costPulseira]);
 
   const load = async () => {
     setLoading(true);
     let rifaQ = supabase.from("orders").select("total_cents, created_at, status").eq("status", "paid").limit(5000);
-    let entQ = supabase.from("entrada_orders").select("total_cents, created_at, status, product").eq("status", "paid").limit(5000);
+    let entQ = supabase.from("entrada_orders").select("total_cents, created_at, status, product, quantity").eq("status", "paid").limit(5000);
     if (from) {
       const f = new Date(from + "T00:00:00").toISOString();
       rifaQ = rifaQ.gte("created_at", f);
@@ -49,17 +63,32 @@ export function DashboardConsolidado() {
     const kit = entrada.filter((e) => e.product === "kit");
     const pulTotal = pulseira.reduce((a, o) => a + o.total_cents, 0);
     const kitTotal = kit.reduce((a, o) => a + o.total_cents, 0);
+    // Soma de unidades (cada pedido pode ter quantity > 1)
+    const pulUnits = pulseira.reduce((a, o) => a + (o.quantity || 1), 0);
+    const kitUnits = kit.reduce((a, o) => a + (o.quantity || 1), 0);
     const total = rifaTotal + entTotal;
     const totalCount = rifaCount + entCount;
     const ticket = totalCount > 0 ? Math.round(total / totalCount) : 0;
+
+    // Custos (em centavos). Ingresso = 0. Pulseira solo = só pulseira. Kit = camiseta + pulseira.
+    const costCents = Math.round(
+      pulUnits * costPulseira * 100 +
+      kitUnits * (costCamiseta + costPulseira) * 100
+    );
+    const entradaProfit = entTotal - costCents;
+    // Rifa: custo 0 (não há custo de fabricação informado)
+    const totalProfit = rifaTotal + entradaProfit;
+    const margin = entTotal > 0 ? Math.round((entradaProfit / entTotal) * 100) : 0;
+
     return {
       total, totalCount, ticket,
       rifaTotal, rifaCount,
       entTotal, entCount,
-      pulTotal, pulCount: pulseira.length,
-      kitTotal, kitCount: kit.length,
+      pulTotal, pulCount: pulseira.length, pulUnits,
+      kitTotal, kitCount: kit.length, kitUnits,
+      costCents, entradaProfit, totalProfit, margin,
     };
-  }, [rifa, entrada]);
+  }, [rifa, entrada, costCamiseta, costPulseira]);
 
   return (
     <div className="space-y-6">
@@ -122,6 +151,37 @@ export function DashboardConsolidado() {
           <StatCard label="Pulseiras vendidas" value={`${metrics.pulCount} · ${fmtBRL(metrics.pulTotal)}`} />
           <StatCard label="Kits vendidos" value={`${metrics.kitCount} · ${fmtBRL(metrics.kitTotal)}`} />
         </div>
+      </div>
+
+      {/* Lucro real */}
+      <div>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Lucro real</h2>
+        <Card className="p-4 mb-4">
+          <p className="text-xs text-muted-foreground mb-3">
+            Custos unitários de fabricação (ingresso ao evento tem custo zero). Editáveis — salvos neste navegador.
+          </p>
+          <div className="grid gap-3 sm:grid-cols-2 max-w-md">
+            <div className="space-y-1">
+              <Label className="text-xs" htmlFor="costCam">Custo camiseta (R$)</Label>
+              <Input id="costCam" type="number" step="0.01" min="0" value={costCamiseta}
+                onChange={(e) => setCostCamiseta(Number(e.target.value) || 0)} />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs" htmlFor="costPul">Custo pulseira (R$)</Label>
+              <Input id="costPul" type="number" step="0.01" min="0" value={costPulseira}
+                onChange={(e) => setCostPulseira(Number(e.target.value) || 0)} />
+            </div>
+          </div>
+        </Card>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard label="Lucro total" value={fmtBRL(metrics.totalProfit)} highlight />
+          <StatCard label="Custo total (entrada)" value={fmtBRL(metrics.costCents)} />
+          <StatCard label="Lucro entrada" value={fmtBRL(metrics.entradaProfit)} />
+          <StatCard label="Margem entrada" value={`${metrics.margin}%`} />
+        </div>
+        <p className="text-xs text-muted-foreground mt-3">
+          {metrics.pulUnits} pulseira(s) × {fmtBRL(Math.round(costPulseira * 100))} + {metrics.kitUnits} kit(s) × {fmtBRL(Math.round((costCamiseta + costPulseira) * 100))} = {fmtBRL(metrics.costCents)} de custo. Rifa considerada sem custo de fabricação.
+        </p>
       </div>
     </div>
   );
