@@ -392,7 +392,7 @@ const Pagamento = () => {
                   <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-6 text-center space-y-3">
                     <AlertCircle className="h-8 w-8 mx-auto text-destructive" />
                     <p className="text-sm">{error}</p>
-                    <Button variant="outline" onClick={createPayment}>
+                    <Button variant="outline" onClick={() => createPayment("pix")}>
                       Tentar novamente
                     </Button>
                   </div>
