@@ -23,7 +23,7 @@ const BodySchema = z.object({
   device_id: z.string().min(4).max(200).optional().nullable(),
 });
 
-const MAX_CARD_ATTEMPTS = 5;
+const MAX_CARD_ATTEMPTS = 3;
 
 type EventLevel = "info" | "warn" | "error";
 
