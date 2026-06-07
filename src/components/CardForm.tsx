@@ -234,6 +234,16 @@ export function CardForm({
         border-color: hsl(0 0% 100% / 0.15) !important;
         transition: background-color 9999s ease-in-out 0s;
       }
+      #${formId} select { color-scheme: dark; }
+      #${formId} select option {
+        background-color: hsl(0 0% 8%);
+        color: #fff;
+      }
+      #${formId} select option:checked,
+      #${formId} select option:hover {
+        background-color: hsl(var(--hero-gold)) !important;
+        color: hsl(var(--hero-bg)) !important;
+      }
     `
     : "";
 
