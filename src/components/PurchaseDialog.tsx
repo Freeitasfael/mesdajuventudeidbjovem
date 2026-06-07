@@ -286,6 +286,54 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" 
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4 mt-2">
+              {/* Preview dinâmico do produto */}
+              <div
+                className="relative rounded-2xl border overflow-hidden p-3 flex items-center gap-4 group"
+                style={{
+                  backgroundColor: "rgba(255,255,255,0.04)",
+                  borderColor: "hsl(var(--hero-gold) / 0.25)",
+                }}
+              >
+                <div
+                  className="relative h-24 w-24 shrink-0 rounded-xl overflow-hidden border"
+                  style={{ borderColor: "hsl(var(--hero-gold) / 0.3)", backgroundColor: "hsl(0 0% 4%)" }}
+                >
+                  <div
+                    key={previewKey}
+                    className={`absolute inset-0 transition-all duration-300 ease-out ${previewLoading ? "opacity-0 scale-95" : "opacity-100 scale-100 animate-fade-in"}`}
+                  >
+                    <img
+                      src={previewData.img}
+                      alt={previewData.title}
+                      loading="lazy"
+                      decoding="async"
+                      className="w-full h-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.06]"
+                    />
+                  </div>
+                  <div
+                    aria-hidden
+                    className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    style={{
+                      background:
+                        "radial-gradient(circle at 50% 50%, hsl(var(--hero-gold) / 0.25), transparent 70%)",
+                      mixBlendMode: "screen",
+                    }}
+                  />
+                  {previewLoading && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                      <Loader2 className="h-4 w-4 animate-spin text-[hsl(var(--hero-gold))]" />
+                    </div>
+                  )}
+                </div>
+                <div key={`${previewKey}-text`} className="min-w-0 animate-fade-in">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-[hsl(var(--hero-gold))]">
+                    Sua escolha
+                  </p>
+                  <h4 className="text-base font-extrabold text-white truncate">{previewData.title}</h4>
+                  <p className="text-xs text-white/65 line-clamp-2">{previewData.desc}</p>
+                  <p className="text-sm font-bold text-white mt-1">{fmtPrice(prices[option] * qtd)}</p>
+                </div>
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="nome" className="text-white/85">Nome completo</Label>
                 <Input id="nome" value={nome} onChange={(e) => setNome(e.target.value)} maxLength={100} required
