@@ -23,6 +23,12 @@ const Schema = z.object({
     .string()
     .trim()
     .regex(/^[0-9]{10,11}$/, "Telefone deve conter 10 ou 11 dígitos (DDD + número)"),
+  email: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .email("E-mail inválido")
+    .max(180),
 });
 
 type FormData = z.infer<typeof Schema>;
