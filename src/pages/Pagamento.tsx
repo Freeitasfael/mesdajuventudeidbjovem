@@ -431,6 +431,21 @@ const Pagamento = () => {
                     </p>
                   </div>
                 ) : null}
+
+                {/* Alternativa: pagar com cartão */}
+                <div className="rounded-lg border border-border bg-card p-4 space-y-2 text-center">
+                  <p className="text-xs text-muted-foreground">
+                    Prefere pagar com cartão? Até 12x (juros do MP).
+                  </p>
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => createPayment("card")}
+                    disabled={creating}
+                  >
+                    Pagar com cartão de crédito
+                  </Button>
+                </div>
               </div>
             )}
 
