@@ -131,7 +131,7 @@ Deno.serve(async (req) => {
     // Create buyer
     const { data: buyer, error: buyerErr } = await admin
       .from("buyers")
-      .insert({ name: name.trim(), phone })
+      .insert({ name: name.trim(), phone, email })
       .select("id")
       .single();
 
