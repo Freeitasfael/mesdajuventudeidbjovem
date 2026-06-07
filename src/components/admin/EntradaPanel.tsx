@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { RefreshCw, Save, Undo2 } from "lucide-react";
+import { RefreshCw, Save, Undo2, UserPlus } from "lucide-react";
 
 interface EntradaOrder {
   id: string;
@@ -14,11 +14,15 @@ interface EntradaOrder {
   buyer_name: string;
   buyer_phone: string;
   product: string;
+  model: string | null;
   size: string | null;
   quantity: number;
   total_cents: number;
   status: string;
   mp_payment_id: string | null;
+  payment_method: string | null;
+  seller_id: string | null;
+  referral_label: string | null;
 }
 
 interface StockRow {
