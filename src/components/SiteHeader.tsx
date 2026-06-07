@@ -13,6 +13,7 @@ import {
   Ticket,
   Search,
   Handshake,
+  Sparkles,
   LogIn,
   LayoutDashboard,
   Menu,
