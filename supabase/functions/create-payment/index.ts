@@ -99,7 +99,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { order_id } = parsed.data;
+    const { order_id, method, return_url } = parsed.data;
 
     const { data: order, error: orderErr } = await admin
       .from("orders")
