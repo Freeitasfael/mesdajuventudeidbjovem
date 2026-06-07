@@ -9,6 +9,8 @@ import { Copy, Check, Loader2, CreditCard, QrCode, CheckCircle2, XCircle } from 
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { CardForm, type CardTokenPayload } from "@/components/CardForm";
+import pulseiraCloseImg from "@/assets/pulseira-close.png";
+import modeloImg from "@/assets/modelo-camiseta-pulseira.png";
 
 type Option = "pulseira" | "kit";
 type Model = "adulto" | "baby" | "infantil";
