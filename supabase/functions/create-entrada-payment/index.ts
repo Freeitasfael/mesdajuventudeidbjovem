@@ -13,6 +13,7 @@ const DEFAULT_PRICES_CENTS = { pulseira: 1500, kit: 6000 } as const;
 const BodySchema = z.object({
   buyer_name: z.string().trim().min(2).max(120),
   buyer_phone: z.string().trim().min(8).max(20),
+  buyer_email: z.string().trim().toLowerCase().email("E-mail inválido").max(180),
   product: z.enum(["pulseira", "kit"]),
   model: z.enum(["adulto", "baby", "infantil"]).optional().default("adulto"),
   size: z.string().trim().max(10).optional().nullable(),
