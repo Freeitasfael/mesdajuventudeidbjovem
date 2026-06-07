@@ -85,6 +85,155 @@ const getPublicKey = async (account: Account): Promise<string> => {
   return key;
 };
 
+/**
+ * Cross-browser styled wrapper around a native <select>. The native element
+ * is kept in the DOM (so MP SDK can read/write its value) but is visually
+ * hidden behind a fully themed custom dropdown. Selections sync both ways via
+ * a MutationObserver and a synthetic `change` event.
+ */
+interface StyledNativeSelectProps {
+  id: string;
+  isDark: boolean;
+  placeholder?: string;
+  className?: string;
+}
+function StyledNativeSelect({ id, isDark, placeholder, className }: StyledNativeSelectProps) {
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false);
+  const [options, setOptions] = useState<{ value: string; label: string; disabled: boolean }[]>([]);
+  const [selectedValue, setSelectedValue] = useState<string>("");
+
+  const sync = useCallback(() => {
+    const sel = document.getElementById(id) as HTMLSelectElement | null;
+    if (!sel) return;
+    const opts = Array.from(sel.options).map((o) => ({
+      value: o.value,
+      label: o.textContent ?? o.value,
+      disabled: o.disabled,
+    }));
+    setOptions(opts);
+    setSelectedValue(sel.value);
+  }, [id]);
+
+  useEffect(() => {
+    const sel = document.getElementById(id) as HTMLSelectElement | null;
+    if (!sel) return;
+    sync();
+    const mo = new MutationObserver(sync);
+    mo.observe(sel, { childList: true, subtree: true, attributes: true });
+    const onChange = () => sync();
+    sel.addEventListener("change", onChange);
+    return () => {
+      mo.disconnect();
+      sel.removeEventListener("change", onChange);
+    };
+  }, [id, sync]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => {
+      if (!wrapperRef.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const onEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    document.addEventListener("keydown", onEsc);
+    return () => {
+      document.removeEventListener("mousedown", onDoc);
+      document.removeEventListener("keydown", onEsc);
+    };
+  }, [open]);
+
+  const pick = (value: string) => {
+    const sel = document.getElementById(id) as HTMLSelectElement | null;
+    if (!sel) return;
+    sel.value = value;
+    sel.dispatchEvent(new Event("change", { bubbles: true }));
+    setSelectedValue(value);
+    setOpen(false);
+  };
+
+  const selectedLabel = options.find((o) => o.value === selectedValue)?.label || placeholder || "Selecione";
+
+  const triggerCls = isDark
+    ? "w-full h-11 rounded-md border border-white/15 bg-white/5 px-3 pr-9 text-sm text-white flex items-center justify-between cursor-pointer hover:border-[hsl(var(--hero-gold)/0.5)] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--hero-gold))]"
+    : "w-full h-11 rounded-md border border-input bg-background px-3 pr-9 text-sm text-foreground flex items-center justify-between cursor-pointer hover:border-foreground/40 focus:outline-none focus:ring-2 focus:ring-ring";
+
+  const panelCls = isDark
+    ? "absolute z-50 mt-1 w-full max-h-60 overflow-auto rounded-md border border-white/15 bg-[hsl(0_0%_8%)] shadow-xl py-1"
+    : "absolute z-50 mt-1 w-full max-h-60 overflow-auto rounded-md border border-input bg-popover shadow-xl py-1";
+
+  const itemCls = (active: boolean, disabled: boolean) =>
+    [
+      "flex items-center gap-2 px-3 py-2 text-sm cursor-pointer transition-colors",
+      disabled ? "opacity-40 pointer-events-none" : "",
+      active
+        ? "bg-[hsl(var(--hero-gold))] text-[hsl(var(--hero-bg))] font-semibold"
+        : isDark
+          ? "text-white hover:bg-[hsl(var(--hero-gold)/0.2)]"
+          : "text-foreground hover:bg-muted",
+    ].join(" ");
+
+  return (
+    <div ref={wrapperRef} className={`relative ${className ?? ""}`}>
+      {/* Real native select kept for MP SDK; visually hidden but focusable for forms */}
+      <select
+        id={id}
+        tabIndex={-1}
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          inset: 0,
+          opacity: 0,
+          pointerEvents: "none",
+          width: "100%",
+          height: "100%",
+        }}
+      />
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className={triggerCls}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+      >
+        <span className={selectedValue ? "" : isDark ? "text-white/40" : "text-muted-foreground"}>
+          {selectedLabel}
+        </span>
+        <ChevronDown
+          className="h-4 w-4 ml-2 transition-transform"
+          style={{
+            color: isDark ? "hsl(var(--hero-gold))" : undefined,
+            transform: open ? "rotate(180deg)" : undefined,
+          }}
+        />
+      </button>
+      {open && options.length > 0 && (
+        <ul role="listbox" className={panelCls}>
+          {options.map((o) => {
+            const active = o.value === selectedValue;
+            return (
+              <li
+                key={o.value}
+                role="option"
+                aria-selected={active}
+                onClick={() => !o.disabled && pick(o.value)}
+                className={itemCls(active, o.disabled)}
+              >
+                <Check className={`h-4 w-4 ${active ? "opacity-100" : "opacity-0"}`} />
+                <span className="flex-1">{o.label}</span>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+
+
 export function CardForm({
   account,
   amount,
