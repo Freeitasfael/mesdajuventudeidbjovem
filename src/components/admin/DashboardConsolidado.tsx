@@ -152,6 +152,37 @@ export function DashboardConsolidado() {
           <StatCard label="Kits vendidos" value={`${metrics.kitCount} · ${fmtBRL(metrics.kitTotal)}`} />
         </div>
       </div>
+
+      {/* Lucro real */}
+      <div>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Lucro real</h2>
+        <Card className="p-4 mb-4">
+          <p className="text-xs text-muted-foreground mb-3">
+            Custos unitários de fabricação (ingresso ao evento tem custo zero). Editáveis — salvos neste navegador.
+          </p>
+          <div className="grid gap-3 sm:grid-cols-2 max-w-md">
+            <div className="space-y-1">
+              <Label className="text-xs" htmlFor="costCam">Custo camiseta (R$)</Label>
+              <Input id="costCam" type="number" step="0.01" min="0" value={costCamiseta}
+                onChange={(e) => setCostCamiseta(Number(e.target.value) || 0)} />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs" htmlFor="costPul">Custo pulseira (R$)</Label>
+              <Input id="costPul" type="number" step="0.01" min="0" value={costPulseira}
+                onChange={(e) => setCostPulseira(Number(e.target.value) || 0)} />
+            </div>
+          </div>
+        </Card>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard label="Lucro total" value={fmtBRL(metrics.totalProfit)} highlight />
+          <StatCard label="Custo total (entrada)" value={fmtBRL(metrics.costCents)} />
+          <StatCard label="Lucro entrada" value={fmtBRL(metrics.entradaProfit)} />
+          <StatCard label="Margem entrada" value={`${metrics.margin}%`} />
+        </div>
+        <p className="text-xs text-muted-foreground mt-3">
+          {metrics.pulUnits} pulseira(s) × {fmtBRL(Math.round(costPulseira * 100))} + {metrics.kitUnits} kit(s) × {fmtBRL(Math.round((costCamiseta + costPulseira) * 100))} = {fmtBRL(metrics.costCents)} de custo. Rifa considerada sem custo de fabricação.
+        </p>
+      </div>
     </div>
   );
 }
