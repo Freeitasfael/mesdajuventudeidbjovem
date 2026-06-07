@@ -136,7 +136,7 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" 
 
   const reset = () => {
     setStep("form");
-    setNome(""); setTelefone(""); setOption(initialOption); setModel("adulto");
+    setNome(""); setTelefone(""); setEmail(""); setOption(initialOption); setModel("adulto");
     setTamanho(""); setQtd(1); setMethod("pix"); setHasReferral(false); setRefInput(""); setRefResult(null);
     setPayment(null); setLoading(false);
     if (pollRef.current) { window.clearInterval(pollRef.current); pollRef.current = null; }
