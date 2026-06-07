@@ -50,6 +50,7 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" 
   const [cardSubmitting, setCardSubmitting] = useState(false);
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
+  const [email, setEmail] = useState("");
   const [option, setOption] = useState<Option>(initialOption);
   const [model, setModel] = useState<Model>("adulto");
   const [tamanho, setTamanho] = useState("");
