@@ -63,17 +63,32 @@ export function DashboardConsolidado() {
     const kit = entrada.filter((e) => e.product === "kit");
     const pulTotal = pulseira.reduce((a, o) => a + o.total_cents, 0);
     const kitTotal = kit.reduce((a, o) => a + o.total_cents, 0);
+    // Soma de unidades (cada pedido pode ter quantity > 1)
+    const pulUnits = pulseira.reduce((a, o) => a + (o.quantity || 1), 0);
+    const kitUnits = kit.reduce((a, o) => a + (o.quantity || 1), 0);
     const total = rifaTotal + entTotal;
     const totalCount = rifaCount + entCount;
     const ticket = totalCount > 0 ? Math.round(total / totalCount) : 0;
+
+    // Custos (em centavos). Ingresso = 0. Pulseira solo = só pulseira. Kit = camiseta + pulseira.
+    const costCents = Math.round(
+      pulUnits * costPulseira * 100 +
+      kitUnits * (costCamiseta + costPulseira) * 100
+    );
+    const entradaProfit = entTotal - costCents;
+    // Rifa: custo 0 (não há custo de fabricação informado)
+    const totalProfit = rifaTotal + entradaProfit;
+    const margin = entTotal > 0 ? Math.round((entradaProfit / entTotal) * 100) : 0;
+
     return {
       total, totalCount, ticket,
       rifaTotal, rifaCount,
       entTotal, entCount,
-      pulTotal, pulCount: pulseira.length,
-      kitTotal, kitCount: kit.length,
+      pulTotal, pulCount: pulseira.length, pulUnits,
+      kitTotal, kitCount: kit.length, kitUnits,
+      costCents, entradaProfit, totalProfit, margin,
     };
-  }, [rifa, entrada]);
+  }, [rifa, entrada, costCamiseta, costPulseira]);
 
   return (
     <div className="space-y-6">
