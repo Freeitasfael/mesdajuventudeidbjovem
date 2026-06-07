@@ -149,6 +149,17 @@ Deno.serve(async (req) => {
       return new Response("ok", { status: 200, headers: corsHeaders });
     }
 
+    // Validação forte de external_reference: se o pagamento já existe no banco,
+    // o external_reference vindo do MP DEVE bater com o order_id do registro local.
+    if (payment && orderIdFromMp && orderIdFromMp !== payment.order_id) {
+      await logEvent(admin, "error", "external_reference_mismatch",
+        "external_reference do MP diverge do order_id salvo — confirmação bloqueada", {
+        order_id: payment.order_id, payment_id: payment.id, provider_payment_id: paymentId,
+        details: { mp_external_reference: orderIdFromMp, local_order_id: payment.order_id },
+      });
+      return new Response("ok", { status: 200, headers: corsHeaders });
+    }
+
     // Idempotência do webhook: se este pagamento já foi aprovado, não reprocessar.
     if (payment && payment.status === "approved") {
       await logEvent(admin, "info", "webhook_idempotent_skip",
