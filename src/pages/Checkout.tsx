@@ -129,6 +129,7 @@ const Checkout = () => {
         body: {
           name: data.name.trim(),
           phone,
+          email: data.email.trim().toLowerCase(),
           numbers: selected,
           ref_code: validRef,
           ref_input: null,
