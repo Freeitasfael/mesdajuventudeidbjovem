@@ -191,15 +191,24 @@ export function CardForm({
   // Theme classes
   const isDark = variant === "dark";
   const labelCls = isDark ? "text-white/80" : "text-foreground";
+  const inputBase =
+    "w-full h-11 rounded-md border px-3 text-sm focus:outline-none focus:ring-2 transition-colors";
   const inputCls = isDark
-    ? "w-full h-11 rounded-md border border-white/15 bg-white/5 px-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--hero-gold))]"
-    : "w-full h-11 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring";
+    ? `${inputBase} border-white/15 bg-white/5 text-white placeholder:text-white/40 focus:ring-[hsl(var(--hero-gold))] [color-scheme:dark]`
+    : `${inputBase} border-input bg-background text-foreground placeholder:text-muted-foreground focus:ring-ring`;
+  // Native <select> needs explicit appearance reset + caret so dropdown stays compact
+  const selectCls = `${inputCls} appearance-none bg-no-repeat bg-[length:16px] bg-[right_0.75rem_center] pr-9 cursor-pointer`;
+  const selectStyle: React.CSSProperties = {
+    backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='${
+      isDark ? "%23E5C24A" : "%23666"
+    }' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>")`,
+  };
   const errCls = isDark ? "text-red-300" : "text-destructive";
 
   const busy = internalSubmitting || submitting;
 
   return (
-    <form id={formId} className="space-y-3">
+    <form id={formId} className="space-y-4">
       <div className="space-y-1.5">
         <label htmlFor={`${formId}-cardNumber`} className={`text-xs font-semibold uppercase tracking-wide ${labelCls}`}>
           Número do cartão
@@ -232,12 +241,12 @@ export function CardForm({
         </label>
         <input id={`${formId}-cardholderEmail`} type="email" className={inputCls} autoComplete="email" />
       </div>
-      <div className="grid grid-cols-[120px_1fr] gap-3">
+      <div className="grid grid-cols-[110px_1fr] gap-3">
         <div className="space-y-1.5">
           <label htmlFor={`${formId}-identificationType`} className={`text-xs font-semibold uppercase tracking-wide ${labelCls}`}>
             Tipo
           </label>
-          <select id={`${formId}-identificationType`} className={inputCls} />
+          <select id={`${formId}-identificationType`} className={selectCls} style={selectStyle} />
         </div>
         <div className="space-y-1.5">
           <label htmlFor={`${formId}-identificationNumber`} className={`text-xs font-semibold uppercase tracking-wide ${labelCls}`}>
@@ -250,14 +259,15 @@ export function CardForm({
         <label htmlFor={`${formId}-issuer`} className={`text-xs font-semibold uppercase tracking-wide ${labelCls}`}>
           Banco emissor
         </label>
-        <select id={`${formId}-issuer`} className={inputCls} />
+        <select id={`${formId}-issuer`} className={selectCls} style={selectStyle} />
       </div>
       <div className="space-y-1.5">
         <label htmlFor={`${formId}-installments`} className={`text-xs font-semibold uppercase tracking-wide ${labelCls}`}>
           Parcelas
         </label>
-        <select id={`${formId}-installments`} className={inputCls} />
+        <select id={`${formId}-installments`} className={selectCls} style={selectStyle} />
       </div>
+
 
       {(initError || errorMessage) && (
         <p className={`text-sm ${errCls}`}>{initError ?? errorMessage}</p>
