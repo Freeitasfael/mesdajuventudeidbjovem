@@ -207,8 +207,39 @@ export function CardForm({
 
   const busy = internalSubmitting || submitting;
 
+  // Force every <select> inside the form to render as a single-line dropdown
+  // (MP SDK occasionally sets size > 1, which renders an expanded listbox).
+  // Also style browser autofill so it matches the dark theme instead of the
+  // default white/blue Chrome highlight.
+  useEffect(() => {
+    if (!ready) return;
+    const form = document.getElementById(formId);
+    if (!form) return;
+    form.querySelectorAll("select").forEach((el) => {
+      el.setAttribute("size", "1");
+      (el as HTMLSelectElement).size = 1;
+    });
+  }, [ready, formId]);
+
+  const autofillStyle = isDark
+    ? `
+      #${formId} input:-webkit-autofill,
+      #${formId} input:-webkit-autofill:hover,
+      #${formId} input:-webkit-autofill:focus,
+      #${formId} select:-webkit-autofill {
+        -webkit-text-fill-color: #fff !important;
+        -webkit-box-shadow: 0 0 0 1000px hsl(0 0% 8%) inset !important;
+        caret-color: #fff !important;
+        border-color: hsl(0 0% 100% / 0.15) !important;
+        transition: background-color 9999s ease-in-out 0s;
+      }
+    `
+    : "";
+
+
   return (
     <form id={formId} className="space-y-4">
+      {autofillStyle && <style>{autofillStyle}</style>}
       <div className="space-y-1.5">
         <label htmlFor={`${formId}-cardNumber`} className={`text-xs font-semibold uppercase tracking-wide ${labelCls}`}>
           Número do cartão
