@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { RefreshCw, Save, Undo2 } from "lucide-react";
+import { RefreshCw, Save, Undo2, UserPlus } from "lucide-react";
 
 interface EntradaOrder {
   id: string;
@@ -14,11 +14,15 @@ interface EntradaOrder {
   buyer_name: string;
   buyer_phone: string;
   product: string;
+  model: string | null;
   size: string | null;
   quantity: number;
   total_cents: number;
   status: string;
   mp_payment_id: string | null;
+  payment_method: string | null;
+  seller_id: string | null;
+  referral_label: string | null;
 }
 
 interface StockRow {
@@ -54,6 +58,27 @@ export function EntradaPanel() {
   const [kitReais, setKitReais] = useState("");
   const [savingPrices, setSavingPrices] = useState(false);
   const [refundingId, setRefundingId] = useState<string | null>(null);
+  const [assigningId, setAssigningId] = useState<string | null>(null);
+
+  const assignSeller = async (o: EntradaOrder) => {
+    const current = o.referral_label ?? "";
+    const code = window.prompt(
+      `Atribuir/alterar revendedor do pedido ${o.id.slice(0, 8)}.\n\nDigite o código (ex: IDB001) ou deixe em branco para remover.`,
+      current,
+    );
+    if (code === null) return;
+    setAssigningId(o.id);
+    const { error } = await supabase.rpc("admin_set_entrada_order_seller" as never, {
+      _order_id: o.id, _ref_code: code.trim(),
+    } as never);
+    setAssigningId(null);
+    if (error) {
+      toast.error(error.message.includes("seller_not_found") ? "Código não encontrado" : "Erro: " + error.message);
+      return;
+    }
+    toast.success(code.trim() ? "Revendedor atualizado" : "Vínculo removido");
+    load();
+  };
 
   const refundOrder = async (o: EntradaOrder) => {
     const msg = o.status === "paid"
@@ -76,13 +101,13 @@ export function EntradaPanel() {
     const [o, s, p] = await Promise.all([
       supabase
         .from("entrada_orders")
-        .select("id, created_at, buyer_name, buyer_phone, product, size, quantity, total_cents, status, mp_payment_id")
+        .select("id, created_at, buyer_name, buyer_phone, product, model, size, quantity, total_cents, status, mp_payment_id, payment_method, seller_id, referral_label")
         .order("created_at", { ascending: false })
         .limit(500),
       supabase.from("entrada_stock").select("sku, label, stock").order("sku"),
       supabase.from("app_settings").select("value").eq("key", "entrada_prices").maybeSingle(),
     ]);
-    if (o.data) setOrders(o.data as EntradaOrder[]);
+    if (o.data) setOrders(o.data as unknown as EntradaOrder[]);
     if (s.data) setStock(s.data as StockRow[]);
     if (p.data?.value) {
       const v = p.data.value as { pulseira_cents?: number; kit_cents?: number };
@@ -180,9 +205,11 @@ export function EntradaPanel() {
                 <th className="px-4 py-3">Comprador</th>
                 <th className="px-4 py-3">Telefone</th>
                 <th className="px-4 py-3">Produto</th>
-                <th className="px-4 py-3">Tamanho</th>
+                <th className="px-4 py-3">Modelo</th>
+                <th className="px-4 py-3">Tam/Idade</th>
                 <th className="px-4 py-3">Qtd</th>
-                <th className="px-4 py-3">MP ID</th>
+                <th className="px-4 py-3">Pgto</th>
+                <th className="px-4 py-3">Revendedor</th>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3 text-right">Total</th>
                 <th className="px-4 py-3 text-right">Ações</th>
@@ -197,24 +224,25 @@ export function EntradaPanel() {
                     <td className="px-4 py-3">{o.buyer_name}</td>
                     <td className="px-4 py-3">{o.buyer_phone}</td>
                     <td className="px-4 py-3 capitalize">{o.product}</td>
+                    <td className="px-4 py-3 capitalize">{o.product === "kit" ? (o.model ?? "adulto") : "—"}</td>
                     <td className="px-4 py-3">{o.size ?? "—"}</td>
                     <td className="px-4 py-3">{o.quantity}</td>
-                    <td className="px-4 py-3 font-mono text-xs">{o.mp_payment_id ?? "—"}</td>
+                    <td className="px-4 py-3 uppercase text-xs">{o.payment_method ?? "pix"}</td>
+                    <td className="px-4 py-3 text-xs">
+                      {o.referral_label ? <span className="font-medium">{o.referral_label}</span> : <span className="text-muted-foreground">—</span>}
+                    </td>
                     <td className="px-4 py-3"><StatusBadge status={o.status} /></td>
                     <td className="px-4 py-3 text-right font-medium">{fmtBRL(o.total_cents)}</td>
-                    <td className="px-4 py-3 text-right">
-                      {canRefund ? (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => refundOrder(o)}
-                          disabled={refundingId === o.id}
-                        >
+                    <td className="px-4 py-3 text-right space-x-1 whitespace-nowrap">
+                      <Button size="sm" variant="ghost" onClick={() => assignSeller(o)} disabled={assigningId === o.id}>
+                        <UserPlus className="mr-1 h-3 w-3" />
+                        {assigningId === o.id ? "..." : "Revend."}
+                      </Button>
+                      {canRefund && (
+                        <Button size="sm" variant="outline" onClick={() => refundOrder(o)} disabled={refundingId === o.id}>
                           <Undo2 className="mr-1 h-3 w-3" />
                           {refundingId === o.id ? "..." : o.status === "paid" ? "Reembolsar" : "Cancelar"}
                         </Button>
-                      ) : (
-                        <span className="text-xs text-muted-foreground">—</span>
                       )}
                     </td>
                   </tr>
@@ -222,7 +250,7 @@ export function EntradaPanel() {
               })}
               {orders.length === 0 && (
                 <tr>
-                  <td colSpan={10} className="px-4 py-8 text-center text-muted-foreground">
+                  <td colSpan={12} className="px-4 py-8 text-center text-muted-foreground">
                     Nenhuma transação ainda.
                   </td>
                 </tr>

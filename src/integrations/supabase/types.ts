@@ -93,12 +93,17 @@ export type Database = {
           created_at: string
           expires_at: string
           id: string
+          init_point: string | null
+          model: string
           mp_payment_id: string | null
+          payment_method: string
           product: string
           qr_code: string | null
           qr_code_base64: string | null
           quantity: number
           raw: Json | null
+          referral_label: string | null
+          seller_id: string | null
           size: string | null
           status: string
           total_cents: number
@@ -110,12 +115,17 @@ export type Database = {
           created_at?: string
           expires_at: string
           id?: string
+          init_point?: string | null
+          model?: string
           mp_payment_id?: string | null
+          payment_method?: string
           product: string
           qr_code?: string | null
           qr_code_base64?: string | null
           quantity: number
           raw?: Json | null
+          referral_label?: string | null
+          seller_id?: string | null
           size?: string | null
           status?: string
           total_cents: number
@@ -127,12 +137,17 @@ export type Database = {
           created_at?: string
           expires_at?: string
           id?: string
+          init_point?: string | null
+          model?: string
           mp_payment_id?: string | null
+          payment_method?: string
           product?: string
           qr_code?: string | null
           qr_code_base64?: string | null
           quantity?: number
           raw?: Json | null
+          referral_label?: string | null
+          seller_id?: string | null
           size?: string | null
           status?: string
           total_cents?: number
@@ -270,6 +285,7 @@ export type Database = {
           created_at: string
           expires_at: string
           id: string
+          payment_method: string
           referral_label: string | null
           seller_id: string | null
           status: string
@@ -281,6 +297,7 @@ export type Database = {
           created_at?: string
           expires_at: string
           id?: string
+          payment_method?: string
           referral_label?: string | null
           seller_id?: string | null
           status?: string
@@ -292,6 +309,7 @@ export type Database = {
           created_at?: string
           expires_at?: string
           id?: string
+          payment_method?: string
           referral_label?: string | null
           seller_id?: string | null
           status?: string
@@ -571,12 +589,17 @@ export type Database = {
           created_at: string
           expires_at: string
           id: string
+          init_point: string | null
+          model: string
           mp_payment_id: string | null
+          payment_method: string
           product: string
           qr_code: string | null
           qr_code_base64: string | null
           quantity: number
           raw: Json | null
+          referral_label: string | null
+          seller_id: string | null
           size: string | null
           status: string
           total_cents: number
@@ -628,6 +651,14 @@ export type Database = {
         Returns: {
           numbers_reset: number
           orders_deleted: number
+        }[]
+      }
+      admin_set_entrada_order_seller: {
+        Args: { _order_id: string; _ref_code: string }
+        Returns: {
+          order_id: string
+          referral_label: string
+          seller_id: string
         }[]
       }
       confirm_payment: { Args: { _order_id: string }; Returns: undefined }

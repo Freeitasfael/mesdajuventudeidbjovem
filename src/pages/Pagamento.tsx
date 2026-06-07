@@ -162,10 +162,11 @@ const Pagamento = () => {
     loadStatus().finally(() => setLoading(false));
   }, [loadStatus]);
 
-  const createPayment = useCallback(async () => {
+  const createPayment = useCallback(async (overrideMethod?: "pix" | "card") => {
     if (!data) return;
     if (data.order.status !== "pending") return;
-    if (data.payment) return;
+    const useMethod = overrideMethod ?? "pix";
+    if (useMethod === "pix" && data.payment) return;
 
     setCreating(true);
     setError(null);
@@ -178,15 +179,13 @@ const Pagamento = () => {
     try {
       const result = await Promise.race([
         supabase.functions.invoke("create-payment", {
-          body: { order_id: data.order.id },
+          body: { order_id: data.order.id, method: useMethod, return_url: window.location.href },
         }),
         timeoutPromise,
       ]);
 
       if ("timeout" in result) {
-        setError(
-          "O Mercado Pago está demorando para responder. Tente novamente.",
-        );
+        setError("O Mercado Pago está demorando para responder. Tente novamente.");
         return;
       }
 
@@ -194,25 +193,27 @@ const Pagamento = () => {
       if (err) {
         console.log("[Pagamento] create-payment error", err);
         const ctx = (err as { context?: Response }).context;
-        let msg = "Não foi possível gerar o PIX. Tente novamente.";
+        let msg = "Não foi possível gerar o pagamento. Tente novamente.";
         try {
           const body = ctx ? await ctx.json() : null;
           if (body?.error === "mp_not_configured") msg = body.message;
           else if (body?.message) msg = body.message;
-        } catch {
-          // ignore
-        }
+        } catch { /* ignore */ }
         setError(msg);
+        return;
+      }
+      if (useMethod === "card" && res?.init_point) {
+        window.location.href = res.init_point;
         return;
       }
       if (res?.qr_code) {
         await loadStatus();
-      } else {
+      } else if (useMethod === "pix") {
         setError("Resposta inválida do servidor. Tente novamente.");
       }
     } catch (e) {
       console.log("[Pagamento] create-payment exception", e);
-      setError("Falha de conexão ao gerar o PIX. Tente novamente.");
+      setError("Falha de conexão ao gerar o pagamento. Tente novamente.");
     } finally {
       setCreating(false);
     }
@@ -391,7 +392,7 @@ const Pagamento = () => {
                   <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-6 text-center space-y-3">
                     <AlertCircle className="h-8 w-8 mx-auto text-destructive" />
                     <p className="text-sm">{error}</p>
-                    <Button variant="outline" onClick={createPayment}>
+                    <Button variant="outline" onClick={() => createPayment("pix")}>
                       Tentar novamente
                     </Button>
                   </div>
@@ -430,6 +431,21 @@ const Pagamento = () => {
                     </p>
                   </div>
                 ) : null}
+
+                {/* Alternativa: pagar com cartão */}
+                <div className="rounded-lg border border-border bg-card p-4 space-y-2 text-center">
+                  <p className="text-xs text-muted-foreground">
+                    Prefere pagar com cartão? Até 12x (juros do MP).
+                  </p>
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => createPayment("card")}
+                    disabled={creating}
+                  >
+                    Pagar com cartão de crédito
+                  </Button>
+                </div>
               </div>
             )}
 
