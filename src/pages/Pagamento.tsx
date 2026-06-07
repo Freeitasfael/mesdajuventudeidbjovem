@@ -223,7 +223,41 @@ const Pagamento = () => {
     }
   }, [data, loadStatus]);
 
-  // Auto-create payment if order is pending and has none yet
+  const chargeCard = useCallback(async (payload: CardTokenPayload) => {
+    if (!data) return;
+    setCardError(null);
+    setCardSubmitting(true);
+    try {
+      const { data: res, error: err } = await supabase.functions.invoke("create-payment", {
+        body: { order_id: data.order.id, method: "card", ...payload },
+      });
+      if (err) {
+        const ctx = (err as { context?: Response }).context;
+        let msg = "Não foi possível processar o cartão.";
+        try {
+          const body = ctx ? await ctx.json() : null;
+          if (body?.message) msg = body.message;
+        } catch { /* ignore */ }
+        setCardError(msg);
+        return;
+      }
+      if (res?.status === "approved") {
+        await loadStatus();
+        toast.success("Pagamento aprovado!");
+      } else if (res?.status === "in_process" || res?.status === "pending") {
+        setCardError("Pagamento em análise pelo Mercado Pago. Aguarde a confirmação.");
+        await loadStatus();
+      } else {
+        setCardError(res?.status_detail ? `Cartão recusado: ${res.status_detail}` : "Cartão recusado.");
+      }
+    } catch (e) {
+      console.log("[Pagamento] card charge exception", e);
+      setCardError("Falha de conexão ao processar o cartão.");
+    } finally {
+      setCardSubmitting(false);
+    }
+  }, [data, loadStatus]);
+
   useEffect(() => {
     if (!data || creating || error) return;
     if (data.order.status !== "pending") return;
