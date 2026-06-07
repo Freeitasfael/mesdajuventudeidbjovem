@@ -376,7 +376,7 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" 
                       placeholder="Ex.: IDB001"
                       value={refInput}
                       onChange={(e) => setRefInput(e.target.value.toUpperCase().slice(0, 32))}
-                      className="font-mono tracking-wider bg-white/5 border-white/15 text-white"
+                      className="font-mono tracking-wider bg-white/5 border-white/15 text-white focus-visible:ring-[hsl(var(--hero-gold))] focus-visible:ring-offset-0"
                     />
                     {refValidating && (
                       <p className="flex items-center gap-2 text-xs text-white/60">
