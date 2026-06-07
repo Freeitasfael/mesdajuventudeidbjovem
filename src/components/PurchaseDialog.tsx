@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Copy, Check, Loader2, CreditCard, QrCode, CheckCircle2, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { CardForm, type CardTokenPayload } from "@/components/CardForm";
 
 type Option = "pulseira" | "kit";
 type Model = "adulto" | "baby" | "infantil";
@@ -44,7 +45,9 @@ interface PaymentData {
 }
 
 export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" }: Props) {
-  const [step, setStep] = useState<"form" | "payment" | "done">("form");
+  const [step, setStep] = useState<"form" | "card" | "payment" | "done">("form");
+  const [cardError, setCardError] = useState<string | null>(null);
+  const [cardSubmitting, setCardSubmitting] = useState(false);
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
   const [option, setOption] = useState<Option>(initialOption);
@@ -156,6 +159,33 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" 
     return () => { if (pollRef.current) { window.clearInterval(pollRef.current); pollRef.current = null; } };
   }, [step, payment?.order_id, payment?.method]);
 
+  const createOrderPayment = async (extra: Partial<CardTokenPayload> & { method: Method } = { method: "pix" }) => {
+    const ref_code = hasReferral && refResult && refResult.ok ? refResult.ref_code : null;
+    const { data, error } = await supabase.functions.invoke("create-entrada-payment", {
+      body: {
+        buyer_name: nome.trim(),
+        buyer_phone: telefone.trim(),
+        product: option,
+        model: option === "kit" ? model : "adulto",
+        size: option === "kit" ? tamanho : null,
+        quantity: qtd,
+        ref_code,
+        return_url: window.location.href,
+        ...extra,
+      },
+    });
+    if (error) {
+      const ctx = (error as { context?: Response }).context;
+      let msg = "Erro ao gerar pagamento";
+      try {
+        const body = ctx ? await ctx.json() : null;
+        if (body?.message) msg = body.message;
+      } catch { /* ignore */ }
+      throw new Error(msg);
+    }
+    return data as PaymentData & { status?: string; status_detail?: string };
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nome.trim() || !telefone.trim()) { toast.error("Preencha nome e telefone"); return; }
@@ -164,40 +194,16 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" 
       toast.error("Código de revendedor inválido. Corrija ou desmarque a opção."); return;
     }
 
+    if (method === "card") {
+      // Don't create order yet — collect card data first
+      setCardError(null);
+      setStep("card");
+      return;
+    }
+
     setLoading(true);
     try {
-      const ref_code = hasReferral && refResult && refResult.ok ? refResult.ref_code : null;
-      const { data, error } = await supabase.functions.invoke("create-entrada-payment", {
-        body: {
-          buyer_name: nome.trim(),
-          buyer_phone: telefone.trim(),
-          product: option,
-          model: option === "kit" ? model : "adulto",
-          size: option === "kit" ? tamanho : null,
-          quantity: qtd,
-          method,
-          ref_code,
-          return_url: window.location.href,
-        },
-      });
-      if (error) {
-        const ctx = (error as { context?: Response }).context;
-        let msg = "Erro ao gerar pagamento";
-        try {
-          const body = ctx ? await ctx.json() : null;
-          if (body?.message) msg = body.message;
-        } catch { /* ignore */ }
-        toast.error(msg);
-        return;
-      }
-      if (method === "card") {
-        if (data?.init_point) {
-          window.location.href = data.init_point;
-          return;
-        }
-        toast.error("Não foi possível abrir o pagamento por cartão.");
-        return;
-      }
+      const data = await createOrderPayment({ method: "pix" });
       if (!data?.qr_code) { toast.error("Não foi possível gerar o PIX. Tente novamente."); return; }
       setPayment(data as PaymentData);
       setStep("payment");
@@ -205,6 +211,27 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" 
       toast.error(err instanceof Error ? err.message : "Erro ao gerar pagamento");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCardTokenized = async (payload: CardTokenPayload) => {
+    setCardError(null);
+    setCardSubmitting(true);
+    try {
+      const data = await createOrderPayment({ method: "card", ...payload });
+      if (data?.status === "approved") {
+        setStep("done");
+        toast.success("Pagamento aprovado!");
+      } else if (data?.status === "in_process" || data?.status === "pending") {
+        setCardError("Pagamento em análise. Você receberá a confirmação em instantes.");
+        // optional: poll mp_payment_id via entrada-status would need order_id; keep simple
+      } else {
+        setCardError(data?.status_detail ? `Cartão recusado: ${data.status_detail}` : "Cartão recusado.");
+      }
+    } catch (err) {
+      setCardError(err instanceof Error ? err.message : "Erro ao processar cartão");
+    } finally {
+      setCardSubmitting(false);
     }
   };
 
@@ -323,7 +350,7 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" 
                 </RadioGroup>
                 {method === "card" && (
                   <p className="text-xs text-white/60">
-                    Você será redirecionado ao ambiente seguro do Mercado Pago. Parcelamento sujeito a juros do MP.
+                    Pagamento seguro pelo Mercado Pago. Você preencherá os dados do cartão na próxima etapa. Parcelamento sujeito a juros do MP.
                   </p>
                 )}
               </div>
@@ -384,12 +411,47 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" 
                 style={{ backgroundColor: "hsl(var(--hero-gold))", color: "hsl(var(--hero-bg))" }}
                 disabled={loading}>
                 {loading
-                  ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {method === "card" ? "Abrindo cartão..." : "Gerando PIX..."}</>
-                  : method === "card" ? "Pagar com cartão" : "Continuar com Pix"}
+                  ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Gerando PIX...</>
+                  : method === "card" ? "Continuar com cartão" : "Continuar com Pix"}
               </Button>
             </form>
           </>
         )}
+
+        {step === "card" && (
+          <>
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-extrabold uppercase tracking-wide text-white">
+                Pagar com cartão
+              </DialogTitle>
+              <DialogDescription className="text-white/70">
+                Preencha os dados do seu cartão. Tokenização segura via Mercado Pago.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="mt-3 space-y-4">
+              <div className="rounded-lg p-4 flex items-center justify-between border"
+                style={{ backgroundColor: "hsl(var(--hero-gold) / 0.08)", borderColor: "hsl(var(--hero-gold) / 0.3)" }}>
+                <span className="font-semibold uppercase tracking-wider text-sm text-white/85">Total</span>
+                <span className="text-2xl font-extrabold" style={{ color: "hsl(var(--hero-gold))" }}>
+                  R$ {total.toFixed(2).replace(".", ",")}
+                </span>
+              </div>
+              <CardForm
+                account="entrada"
+                amount={total}
+                variant="dark"
+                submitting={cardSubmitting}
+                errorMessage={cardError}
+                onTokenized={handleCardTokenized}
+              />
+              <Button type="button" variant="ghost" onClick={() => setStep("form")}
+                className="w-full text-white/80 hover:text-white hover:bg-white/5">
+                Voltar
+              </Button>
+            </div>
+          </>
+        )}
+
 
         {step === "payment" && payment && payment.method === "pix" && (
           <>

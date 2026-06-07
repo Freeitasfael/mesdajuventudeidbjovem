@@ -20,6 +20,14 @@ const BodySchema = z.object({
   method: z.enum(["pix", "card"]).optional().default("pix"),
   ref_code: z.string().trim().min(1).max(64).optional().nullable(),
   return_url: z.string().url().optional().nullable(),
+  // Card token flow
+  card_token: z.string().min(8).max(200).optional().nullable(),
+  installments: z.number().int().min(1).max(24).optional().nullable(),
+  payment_method_id: z.string().min(2).max(40).optional().nullable(),
+  issuer_id: z.string().min(1).max(40).optional().nullable(),
+  payer_email: z.string().email().optional().nullable(),
+  payer_doc_type: z.string().min(2).max(10).optional().nullable(),
+  payer_doc_number: z.string().min(5).max(20).optional().nullable(),
 });
 
 Deno.serve(async (req) => {
@@ -52,7 +60,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { buyer_name, buyer_phone, product, model, size, quantity, method, ref_code, return_url } = parsed.data;
+    const { buyer_name, buyer_phone, product, model, size, quantity, method, ref_code, return_url, card_token, installments, payment_method_id, issuer_id, payer_email, payer_doc_type, payer_doc_number } = parsed.data;
 
     if (product === "kit" && (!size || size.length === 0)) {
       return new Response(JSON.stringify({ error: "size_required" }), {
@@ -123,7 +131,62 @@ Deno.serve(async (req) => {
     const description = `Mês da Juventude - ${product === "kit" ? `Kit ${model}${size ? ` ${size}` : ""}` : "Pulseira de acesso"} (x${quantity})`;
 
     if (method === "card") {
-      // Preference (Checkout Pro) — suporta cartão com parcelamento
+      // Inline (token-based) card charge
+      if (card_token) {
+        const cardPayload: Record<string, unknown> = {
+          transaction_amount: total_cents / 100,
+          token: card_token,
+          description,
+          installments: Math.max(1, Math.min(24, installments ?? 1)),
+          notification_url: webhookUrl,
+          external_reference: order.id,
+          metadata: { entrada_order_id: order.id, product, model, quantity },
+          statement_descriptor: "MES JUVENTUDE",
+          payer: {
+            email: payer_email || `entrada-${order.id.slice(0, 8)}@example.com`,
+            first_name: buyer_name.split(" ")[0] ?? "Comprador",
+            last_name: buyer_name.split(" ").slice(1).join(" ") || "Entrada",
+            ...(payer_doc_type && payer_doc_number
+              ? { identification: { type: payer_doc_type, number: payer_doc_number } }
+              : {}),
+          },
+        };
+        if (payment_method_id) cardPayload.payment_method_id = payment_method_id;
+        if (issuer_id) cardPayload.issuer_id = issuer_id;
+
+        const cardRes = await fetch("https://api.mercadopago.com/v1/payments", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${MP_TOKEN}`,
+            "Content-Type": "application/json",
+            "X-Idempotency-Key": `entrada-card-${order.id}`,
+          },
+          body: JSON.stringify(cardPayload),
+        });
+        const cardData = await cardRes.json();
+        if (!cardRes.ok) {
+          console.log(JSON.stringify({ fn: "create-entrada-payment", level: "error", event: "card_error", http: cardRes.status, mp: cardData }));
+          await admin.from("entrada_orders").update({ raw: cardData }).eq("id", order.id);
+          return new Response(JSON.stringify({
+            error: "mp_error", status: cardRes.status,
+            message: cardData?.message ?? "Cartão recusado", details: cardData,
+          }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        await admin.from("entrada_orders").update({
+          mp_payment_id: String(cardData.id),
+          raw: cardData,
+        }).eq("id", order.id);
+
+        return new Response(JSON.stringify({
+          order_id: order.id, method: "card",
+          mp_payment_id: String(cardData.id),
+          status: cardData.status,
+          status_detail: cardData.status_detail,
+          total_cents, expires_at,
+        }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      // Fallback: Checkout Pro preference (redirect)
       const back = return_url || `${SUPABASE_URL}`;
       const prefPayload = {
         items: [{
