@@ -169,9 +169,21 @@ Deno.serve(async (req) => {
 
     const { data: buyer } = await admin
       .from("buyers")
-      .select("name, phone")
+      .select("name, phone, email")
       .eq("id", order.buyer_id)
       .maybeSingle();
+
+    // E-mail real do comprador é obrigatório (anti-fraude / aprovação MP).
+    // Para cartão, prioriza o e-mail do cardholder (payer_email) se vier do front.
+    const effectiveEmail = (payer_email || buyer?.email || "").trim().toLowerCase();
+    if (!effectiveEmail || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(effectiveEmail)) {
+      await logEvent(admin, "warn", "missing_payer_email",
+        "Pagamento bloqueado: e-mail do comprador ausente", { order_id });
+      return new Response(JSON.stringify({
+        error: "missing_payer_email",
+        message: "E-mail do comprador é obrigatório para gerar o pagamento.",
+      }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
 
     // Valor SEMPRE recalculado a partir do banco (nunca confiar no client)
     const amount = order.total_cents / 100;
