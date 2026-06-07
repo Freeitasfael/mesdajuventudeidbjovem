@@ -35,7 +35,7 @@ export function DashboardConsolidado() {
   const load = async () => {
     setLoading(true);
     let rifaQ = supabase.from("orders").select("total_cents, created_at, status").eq("status", "paid").limit(5000);
-    let entQ = supabase.from("entrada_orders").select("total_cents, created_at, status, product").eq("status", "paid").limit(5000);
+    let entQ = supabase.from("entrada_orders").select("total_cents, created_at, status, product, quantity").eq("status", "paid").limit(5000);
     if (from) {
       const f = new Date(from + "T00:00:00").toISOString();
       rifaQ = rifaQ.gte("created_at", f);
