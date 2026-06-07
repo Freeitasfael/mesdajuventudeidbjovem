@@ -22,6 +22,15 @@ export function DashboardConsolidado() {
   const [rifa, setRifa] = useState<OrderLite[]>([]);
   const [entrada, setEntrada] = useState<EntradaLite[]>([]);
   const [loading, setLoading] = useState(false);
+  const [costCamiseta, setCostCamiseta] = useState<number>(() => {
+    try { const s = JSON.parse(localStorage.getItem(COST_STORAGE_KEY) || "{}"); return Number(s.camiseta) || DEFAULT_COST_CAMISETA; } catch { return DEFAULT_COST_CAMISETA; }
+  });
+  const [costPulseira, setCostPulseira] = useState<number>(() => {
+    try { const s = JSON.parse(localStorage.getItem(COST_STORAGE_KEY) || "{}"); return Number(s.pulseira) || DEFAULT_COST_PULSEIRA; } catch { return DEFAULT_COST_PULSEIRA; }
+  });
+  useEffect(() => {
+    localStorage.setItem(COST_STORAGE_KEY, JSON.stringify({ camiseta: costCamiseta, pulseira: costPulseira }));
+  }, [costCamiseta, costPulseira]);
 
   const load = async () => {
     setLoading(true);
