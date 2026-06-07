@@ -17,6 +17,8 @@ export interface CardTokenPayload {
   payer_email: string;
   payer_doc_type: string;
   payer_doc_number: string;
+  /** MercadoPago.js v2 device session id — required for fraud prevention/approval score. */
+  device_id: string | null;
 }
 
 type Account = "rifa" | "entrada";
@@ -295,6 +297,9 @@ export function CardForm({
                   setInitError("Verifique os dados do cartão.");
                   return;
                 }
+                const deviceId =
+                  (window as unknown as { MP_DEVICE_SESSION_ID?: string }).MP_DEVICE_SESSION_ID ||
+                  null;
                 await onTokenized({
                   card_token: d.token,
                   installments: Number(d.installments) || 1,
@@ -303,6 +308,7 @@ export function CardForm({
                   payer_email: d.cardholderEmail,
                   payer_doc_type: d.identificationType,
                   payer_doc_number: d.identificationNumber,
+                  device_id: deviceId,
                 });
               } catch (e) {
                 console.error("[CardForm] tokenize error", e);
