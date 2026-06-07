@@ -40,17 +40,30 @@ export default function Entrada() {
               Mês da Juventude
             </span>
           </div>
-          <Button
-            onClick={() => scrollTo("comprar")}
-            size="sm"
-            className="rounded-full font-extrabold uppercase tracking-wider"
-            style={{
-              backgroundColor: "hsl(var(--hero-gold))",
-              color: "hsl(var(--hero-bg))",
-            }}
-          >
-            Comprar
-          </Button>
+          <div className="flex items-center gap-2">
+            <a
+              href="/rifa"
+              className="hidden sm:inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-extrabold uppercase tracking-wider border transition hover:bg-white/10"
+              style={{
+                borderColor: "hsl(var(--hero-gold) / 0.4)",
+                color: "hsl(var(--hero-gold))",
+              }}
+            >
+              <Ticket className="h-3.5 w-3.5" />
+              Rifa
+            </a>
+            <Button
+              onClick={() => scrollTo("comprar")}
+              size="sm"
+              className="rounded-full font-extrabold uppercase tracking-wider"
+              style={{
+                backgroundColor: "hsl(var(--hero-gold))",
+                color: "hsl(var(--hero-bg))",
+              }}
+            >
+              Comprar
+            </Button>
+          </div>
         </div>
       </header>
 
