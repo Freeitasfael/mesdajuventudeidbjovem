@@ -6,6 +6,8 @@ import { Toaster } from "@/components/ui/sonner";
 import heroBg from "@/assets/hero-rifa-bg.jpg";
 import logoIdb from "@/assets/idb-jovem-logo.png";
 import modeloImg from "@/assets/modelo-camiseta-pulseira.png.asset.json";
+import pulseiraCloseImg from "@/assets/pulseira-close.png.asset.json";
+
 
 export default function Entrada() {
   const [open, setOpen] = useState(false);
@@ -442,6 +444,39 @@ export default function Entrada() {
                   >
                     Pulseira oficial
                   </div>
+                  </div>
+                </div>
+
+                {/* Imagem flutuante — close da pulseira */}
+                <div
+                  className="absolute z-10 rounded-2xl overflow-hidden border"
+                  style={{
+                    right: "-16px",
+                    bottom: "16px",
+                    width: "140px",
+                    height: "140px",
+                    borderColor: "hsl(var(--hero-gold) / 0.35)",
+                    boxShadow:
+                      "0 20px 40px -12px hsl(0 0% 0% / 0.6), 0 0 0 1px hsl(var(--hero-gold) / 0.15)",
+                    transform: "rotate(6deg)",
+                  }}
+                >
+                  <img
+                    src={pulseiraCloseImg.url}
+                    alt="Detalhe em close da pulseira oficial do evento"
+                    loading="lazy"
+                    decoding="async"
+                    className="w-full h-full object-cover"
+                  />
+                  {/* Brilho sutil interno */}
+                  <div
+                    aria-hidden
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                      background:
+                        "radial-gradient(circle at 30% 30%, hsl(51 100% 50% / 0.12), transparent 60%)",
+                    }}
+                  />
                 </div>
               </div>
             </div>
