@@ -101,13 +101,13 @@ export function EntradaPanel() {
     const [o, s, p] = await Promise.all([
       supabase
         .from("entrada_orders")
-        .select("id, created_at, buyer_name, buyer_phone, product, size, quantity, total_cents, status, mp_payment_id")
+        .select("id, created_at, buyer_name, buyer_phone, product, model, size, quantity, total_cents, status, mp_payment_id, payment_method, seller_id, referral_label")
         .order("created_at", { ascending: false })
         .limit(500),
       supabase.from("entrada_stock").select("sku, label, stock").order("sku"),
       supabase.from("app_settings").select("value").eq("key", "entrada_prices").maybeSingle(),
     ]);
-    if (o.data) setOrders(o.data as EntradaOrder[]);
+    if (o.data) setOrders(o.data as unknown as EntradaOrder[]);
     if (s.data) setStock(s.data as StockRow[]);
     if (p.data?.value) {
       const v = p.data.value as { pulseira_cents?: number; kit_cents?: number };
