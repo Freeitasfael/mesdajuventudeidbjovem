@@ -191,6 +191,10 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nome.trim() || !telefone.trim()) { toast.error("Preencha nome e telefone"); return; }
+    const emailClean = email.trim().toLowerCase();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(emailClean)) {
+      toast.error("Informe um e-mail válido"); return;
+    }
     if (option === "kit" && !tamanho) { toast.error("Selecione o tamanho da camiseta"); return; }
     if (hasReferral && refInput.trim() && (!refResult || !refResult.ok)) {
       toast.error("Código de revendedor inválido. Corrija ou desmarque a opção."); return;
