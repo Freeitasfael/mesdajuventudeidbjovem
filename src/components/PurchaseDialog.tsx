@@ -361,11 +361,13 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" 
                     <span className="font-medium text-white">{LABELS.pulseira}</span>
                     {pulseiraStock <= 0 && <span className="ml-auto text-xs font-semibold text-destructive">Indisponível</span>}
                   </label>
-                  <label className={`flex items-center gap-3 rounded-lg border-2 p-3 cursor-pointer transition-all duration-200 ease-out bg-white/5 border-white/15 hover:border-[hsl(var(--hero-gold))] hover:scale-[1.01] has-[:checked]:border-[hsl(var(--hero-gold))] has-[:checked]:bg-[hsl(var(--hero-gold)/0.12)] has-[:checked]:shadow-[0_0_0_3px_hsl(var(--hero-gold)/0.18),0_0_24px_hsl(var(--hero-gold)/0.25)] ${!kitAvailable ? "opacity-50 pointer-events-none" : ""}`}>
-                    <RadioGroupItem value="kit" disabled={!kitAvailable} className="border-white/40 text-[hsl(var(--hero-gold))]" />
-                    <span className="font-medium text-white">{LABELS.kit}</span>
-                    {!kitAvailable && <span className="ml-auto text-xs font-semibold text-destructive">Indisponível</span>}
-                  </label>
+                  {initialOption !== "pulseira" && (
+                    <label className={`flex items-center gap-3 rounded-lg border-2 p-3 cursor-pointer transition-all duration-200 ease-out bg-white/5 border-white/15 hover:border-[hsl(var(--hero-gold))] hover:scale-[1.01] has-[:checked]:border-[hsl(var(--hero-gold))] has-[:checked]:bg-[hsl(var(--hero-gold)/0.12)] has-[:checked]:shadow-[0_0_0_3px_hsl(var(--hero-gold)/0.18),0_0_24px_hsl(var(--hero-gold)/0.25)] ${!kitAvailable ? "opacity-50 pointer-events-none" : ""}`}>
+                      <RadioGroupItem value="kit" disabled={!kitAvailable} className="border-white/40 text-[hsl(var(--hero-gold))]" />
+                      <span className="font-medium text-white">{LABELS.kit}</span>
+                      {!kitAvailable && <span className="ml-auto text-xs font-semibold text-destructive">Indisponível</span>}
+                    </label>
+                  )}
                 </RadioGroup>
               </div>
 
