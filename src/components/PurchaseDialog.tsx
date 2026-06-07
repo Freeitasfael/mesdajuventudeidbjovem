@@ -317,7 +317,7 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" 
                           const display = model === "infantil" ? `${t} anos` : t;
                           return (
                             <SelectItem key={t} value={t} disabled={left <= 0}>
-                              {display} {left <= 0 ? "— esgotado" : `(${left} disp.)`}
+                              {display} {left <= 0 ? "— esgotado" : ""}
                             </SelectItem>
                           );
                         })}
