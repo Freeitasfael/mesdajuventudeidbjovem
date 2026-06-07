@@ -429,7 +429,7 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" 
                   <label className="flex items-center gap-2 rounded-lg border-2 p-3 cursor-pointer transition-all duration-200 ease-out bg-white/5 border-white/15 hover:border-[hsl(var(--hero-gold))] hover:scale-[1.01] has-[:checked]:border-[hsl(var(--hero-gold))] has-[:checked]:bg-[hsl(var(--hero-gold)/0.12)] has-[:checked]:shadow-[0_0_0_3px_hsl(var(--hero-gold)/0.18),0_0_24px_hsl(var(--hero-gold)/0.25)]">
                     <RadioGroupItem value="card" className="border-white/40 text-[hsl(var(--hero-gold))]" />
                     <CreditCard className="h-4 w-4 text-[hsl(var(--hero-gold))]" />
-                    <span className="font-semibold text-white">Cartão (até 12x)</span>
+                    <span className="font-semibold text-white">Cartão</span>
                   </label>
                 </RadioGroup>
                 {method === "card" && (

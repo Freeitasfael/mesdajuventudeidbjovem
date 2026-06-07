@@ -436,7 +436,7 @@ const Pagamento = () => {
                       payMethod === "card" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
                     }`}
                   >
-                    <CreditCard className="h-4 w-4" /> Cartão (até 12x)
+                    <CreditCard className="h-4 w-4" /> Cartão
                   </button>
                 </div>
 
