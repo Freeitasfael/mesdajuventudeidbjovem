@@ -444,7 +444,6 @@ export default function Entrada() {
                   >
                     Pulseira oficial
                   </div>
-                  </div>
                 </div>
 
                 {/* Imagem flutuante — close da pulseira */}
