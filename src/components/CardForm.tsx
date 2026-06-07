@@ -437,7 +437,7 @@ export function CardForm({
           <label htmlFor={`${formId}-identificationType`} className={`text-xs font-semibold uppercase tracking-wide ${labelCls}`}>
             Tipo
           </label>
-          <select id={`${formId}-identificationType`} className={selectCls} style={selectStyle} />
+          <StyledNativeSelect id={`${formId}-identificationType`} isDark={isDark} placeholder="Tipo" />
         </div>
         <div className="space-y-1.5">
           <label htmlFor={`${formId}-identificationNumber`} className={`text-xs font-semibold uppercase tracking-wide ${labelCls}`}>
