@@ -85,7 +85,7 @@ Deno.serve(async (req) => {
 
     const { data: order } = await admin
       .from("entrada_orders")
-      .select("id, status, product, model, size, quantity")
+      .select("id, status, product, model, size, quantity, total_cents")
       .eq("id", orderId)
       .maybeSingle();
 
@@ -94,9 +94,31 @@ Deno.serve(async (req) => {
       return new Response("ok", { status: 200, headers: corsHeaders });
     }
 
+    // Validação forte de external_reference (defesa em profundidade)
+    if (String(mp?.external_reference ?? "") !== String(order.id)) {
+      console.log(JSON.stringify({ fn: "entrada-webhook", level: "error", event: "external_reference_mismatch", orderId, paymentId, mp_ref: mp?.external_reference }));
+      return new Response("ok", { status: 200, headers: corsHeaders });
+    }
+
     const newStatus = mapStatus(mp?.status);
     if (!newStatus) return new Response("ok", { status: 200, headers: corsHeaders });
     if (order.status === "paid") return new Response("ok", { status: 200, headers: corsHeaders });
+
+    // Validação forte de valor (apenas quando o status é aprovação)
+    if (newStatus === "paid") {
+      const receivedCents = Math.round(Number(mp?.transaction_amount ?? 0) * 100);
+      if (receivedCents !== order.total_cents) {
+        console.log(JSON.stringify({
+          fn: "entrada-webhook", level: "error", event: "amount_mismatch",
+          orderId, paymentId, expected_cents: order.total_cents, received_cents: receivedCents,
+        }));
+        return new Response("ok", { status: 200, headers: corsHeaders });
+      }
+      if (mp?.status !== "approved") {
+        console.log(JSON.stringify({ fn: "entrada-webhook", level: "warn", event: "status_not_approved", orderId, paymentId, mp_status: mp?.status }));
+        return new Response("ok", { status: 200, headers: corsHeaders });
+      }
+    }
 
     const { error: updErr } = await admin
       .from("entrada_orders")
@@ -106,6 +128,7 @@ Deno.serve(async (req) => {
     if (updErr) {
       console.log(JSON.stringify({ fn: "entrada-webhook", level: "error", event: "update_failed", err: updErr.message, orderId }));
     } else if (newStatus === "paid") {
+      console.log(JSON.stringify({ fn: "entrada-webhook", level: "info", event: "order_paid", orderId, paymentId, amount_cents: order.total_cents }));
       try {
         await admin.rpc("decrement_entrada_stock", { _sku: "pulseira", _qty: order.quantity });
         if (order.product === "kit" && order.size) {
@@ -118,6 +141,8 @@ Deno.serve(async (req) => {
       } catch (e) {
         console.log(JSON.stringify({ fn: "entrada-webhook", level: "error", event: "stock_decrement_failed", orderId, message: e instanceof Error ? e.message : String(e) }));
       }
+    } else if (newStatus === "cancelled") {
+      console.log(JSON.stringify({ fn: "entrada-webhook", level: "warn", event: "payment_rejected", orderId, paymentId, mp_status: mp?.status, mp_status_detail: mp?.status_detail }));
     }
 
     return new Response("ok", { status: 200, headers: corsHeaders });

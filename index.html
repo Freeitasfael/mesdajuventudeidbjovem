@@ -12,6 +12,22 @@
     <link rel="preconnect" href="https://vxvrjhbymztzpbekfgwz.supabase.co" crossorigin />
     <link rel="dns-prefetch" href="https://vxvrjhbymztzpbekfgwz.supabase.co" />
 
+    <!-- Domínio canônico em produção: força idbjovem.site (evita lovable.app no MP) -->
+    <script>
+      (function () {
+        try {
+          var h = location.hostname;
+          // Só redireciona o domínio publicado .lovable.app de produção.
+          // Mantém preview (id-preview--*.lovable.app) e o próprio idbjovem.site intactos.
+          if (h === "idbjovem-site.lovable.app") {
+            location.replace("https://idbjovem.site" + location.pathname + location.search + location.hash);
+          }
+        } catch (_) { /* noop */ }
+      })();
+    </script>
+
+
+
 
 
     <!-- TODO: Update og:title to match your application name -->

@@ -50,6 +50,7 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" 
   const [cardSubmitting, setCardSubmitting] = useState(false);
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
+  const [email, setEmail] = useState("");
   const [option, setOption] = useState<Option>(initialOption);
   const [model, setModel] = useState<Model>("adulto");
   const [tamanho, setTamanho] = useState("");
@@ -135,7 +136,7 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" 
 
   const reset = () => {
     setStep("form");
-    setNome(""); setTelefone(""); setOption(initialOption); setModel("adulto");
+    setNome(""); setTelefone(""); setEmail(""); setOption(initialOption); setModel("adulto");
     setTamanho(""); setQtd(1); setMethod("pix"); setHasReferral(false); setRefInput(""); setRefResult(null);
     setPayment(null); setLoading(false);
     if (pollRef.current) { window.clearInterval(pollRef.current); pollRef.current = null; }
@@ -165,6 +166,7 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" 
       body: {
         buyer_name: nome.trim(),
         buyer_phone: telefone.trim(),
+        buyer_email: email.trim().toLowerCase(),
         product: option,
         model: option === "kit" ? model : "adulto",
         size: option === "kit" ? tamanho : null,
@@ -189,6 +191,10 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nome.trim() || !telefone.trim()) { toast.error("Preencha nome e telefone"); return; }
+    const emailClean = email.trim().toLowerCase();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(emailClean)) {
+      toast.error("Informe um e-mail válido"); return;
+    }
     if (option === "kit" && !tamanho) { toast.error("Selecione o tamanho da camiseta"); return; }
     if (hasReferral && refInput.trim() && (!refResult || !refResult.ok)) {
       toast.error("Código de revendedor inválido. Corrija ou desmarque a opção."); return;
@@ -270,6 +276,14 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" 
                 <Input id="tel" type="tel" value={telefone} onChange={(e) => setTelefone(e.target.value)} maxLength={20}
                   placeholder="(11) 99999-9999" required
                   className="bg-white/5 border-white/15 text-white placeholder:text-white/40 focus-visible:ring-[hsl(var(--hero-gold))]" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-white/85">E-mail</Label>
+                <Input id="email" type="email" inputMode="email" autoComplete="email"
+                  value={email} onChange={(e) => setEmail(e.target.value)} maxLength={180}
+                  placeholder="seu@email.com" required
+                  className="bg-white/5 border-white/15 text-white placeholder:text-white/40 focus-visible:ring-[hsl(var(--hero-gold))]" />
+                <p className="text-xs text-white/55">Necessário para confirmar o pagamento e enviar o comprovante.</p>
               </div>
               <div className="space-y-2">
                 <Label className="text-white/85">Opção escolhida</Label>

@@ -68,18 +68,21 @@ export type Database = {
       buyers: {
         Row: {
           created_at: string
+          email: string | null
           id: string
           name: string
           phone: string
         }
         Insert: {
           created_at?: string
+          email?: string | null
           id?: string
           name: string
           phone: string
         }
         Update: {
           created_at?: string
+          email?: string | null
           id?: string
           name?: string
           phone?: string
@@ -88,6 +91,7 @@ export type Database = {
       }
       entrada_orders: {
         Row: {
+          buyer_email: string | null
           buyer_name: string
           buyer_phone: string
           created_at: string
@@ -110,6 +114,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          buyer_email?: string | null
           buyer_name: string
           buyer_phone: string
           created_at?: string
@@ -132,6 +137,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          buyer_email?: string | null
           buyer_name?: string
           buyer_phone?: string
           created_at?: string
@@ -584,6 +590,7 @@ export type Database = {
       admin_list_entrada_orders: {
         Args: { _limit?: number }
         Returns: {
+          buyer_email: string | null
           buyer_name: string
           buyer_phone: string
           created_at: string

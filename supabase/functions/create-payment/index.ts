@@ -23,7 +23,7 @@ const BodySchema = z.object({
   device_id: z.string().min(4).max(200).optional().nullable(),
 });
 
-const MAX_CARD_ATTEMPTS = 5;
+const MAX_CARD_ATTEMPTS = 3;
 
 type EventLevel = "info" | "warn" | "error";
 
@@ -169,9 +169,21 @@ Deno.serve(async (req) => {
 
     const { data: buyer } = await admin
       .from("buyers")
-      .select("name, phone")
+      .select("name, phone, email")
       .eq("id", order.buyer_id)
       .maybeSingle();
+
+    // E-mail real do comprador é obrigatório (anti-fraude / aprovação MP).
+    // Para cartão, prioriza o e-mail do cardholder (payer_email) se vier do front.
+    const effectiveEmail = (payer_email || buyer?.email || "").trim().toLowerCase();
+    if (!effectiveEmail || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(effectiveEmail)) {
+      await logEvent(admin, "warn", "missing_payer_email",
+        "Pagamento bloqueado: e-mail do comprador ausente", { order_id });
+      return new Response(JSON.stringify({
+        error: "missing_payer_email",
+        message: "E-mail do comprador é obrigatório para gerar o pagamento.",
+      }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
 
     // Valor SEMPRE recalculado a partir do banco (nunca confiar no client)
     const amount = order.total_cents / 100;
@@ -213,7 +225,7 @@ Deno.serve(async (req) => {
           statement_descriptor: "RIFA IDB",
           binary_mode: false,
           payer: {
-            email: payer_email || `buyer-${order.buyer_id.slice(0, 8)}@example.com`,
+            email: effectiveEmail,
             first_name: firstName,
             last_name: lastName,
             ...(payer_doc_type && payer_doc_number
@@ -304,6 +316,7 @@ Deno.serve(async (req) => {
         payer: {
           name: buyer?.name?.split(" ")[0] ?? "Comprador",
           surname: buyer?.name?.split(" ").slice(1).join(" ") || "Rifa",
+          email: effectiveEmail,
         },
         payment_methods: {
           excluded_payment_types: [{ id: "ticket" }, { id: "atm" }, { id: "bank_transfer" }],
@@ -361,7 +374,7 @@ Deno.serve(async (req) => {
       external_reference: order.id,
       metadata: { order_id: order.id },
       payer: {
-        email: `buyer-${order.buyer_id.slice(0, 8)}@example.com`,
+        email: effectiveEmail,
         first_name: buyer?.name?.split(" ")[0] ?? "Comprador",
         last_name: buyer?.name?.split(" ").slice(1).join(" ") ?? "Rifa",
       },

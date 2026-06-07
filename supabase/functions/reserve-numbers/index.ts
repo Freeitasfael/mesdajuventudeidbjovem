@@ -25,6 +25,7 @@ const BodySchema = z.object({
     .string()
     .trim()
     .regex(/^[0-9]{10,11}$/, "Telefone deve ter 10 ou 11 dígitos"),
+  email: z.string().trim().toLowerCase().email("E-mail inválido").max(180),
   numbers: z.array(z.number().int().min(1).max(600)).min(1).max(50),
   ref_code: z.string().trim().min(1).max(64).optional().nullable(),
   ref_input: z.string().trim().min(1).max(120).optional().nullable(),
@@ -61,7 +62,7 @@ Deno.serve(async (req) => {
 
     // Dedupe numbers
     const numbers = Array.from(new Set(parsed.data.numbers));
-    const { name, phone, ref_code, ref_input } = parsed.data;
+    const { name, phone, email, ref_code, ref_input } = parsed.data;
 
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE, {
       auth: { persistSession: false },
@@ -130,7 +131,7 @@ Deno.serve(async (req) => {
     // Create buyer
     const { data: buyer, error: buyerErr } = await admin
       .from("buyers")
-      .insert({ name: name.trim(), phone })
+      .insert({ name: name.trim(), phone, email })
       .select("id")
       .single();
 

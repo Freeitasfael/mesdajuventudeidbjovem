@@ -23,6 +23,12 @@ const Schema = z.object({
     .string()
     .trim()
     .regex(/^[0-9]{10,11}$/, "Telefone deve conter 10 ou 11 dígitos (DDD + número)"),
+  email: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .email("E-mail inválido")
+    .max(180),
 });
 
 type FormData = z.infer<typeof Schema>;
@@ -45,7 +51,7 @@ const Checkout = () => {
 
   const form = useForm<FormData>({
     resolver: zodResolver(Schema),
-    defaultValues: { name: "", phone: "" },
+    defaultValues: { name: "", phone: "", email: "" },
   });
 
   useEffect(() => {
@@ -123,6 +129,7 @@ const Checkout = () => {
         body: {
           name: data.name.trim(),
           phone,
+          email: data.email.trim().toLowerCase(),
           numbers: selected,
           ref_code: validRef,
           ref_input: null,
@@ -265,6 +272,28 @@ const Checkout = () => {
               Apenas números, com DDD. Ex: 11987654321
             </p>
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="email">E-mail</Label>
+            <Input
+              id="email"
+              type="email"
+              inputMode="email"
+              placeholder="seu@email.com"
+              autoComplete="email"
+              {...form.register("email")}
+            />
+            {form.formState.errors.email && (
+              <p className="text-xs text-destructive">
+                {form.formState.errors.email.message}
+              </p>
+            )}
+            <p className="text-xs text-muted-foreground">
+              Usado pela operadora para validar o pagamento e enviar o comprovante.
+            </p>
+          </div>
+
+
 
           {/* Indicação por código */}
           <div className="space-y-3 rounded-md border border-border p-3">

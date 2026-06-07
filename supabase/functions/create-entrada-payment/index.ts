@@ -13,6 +13,7 @@ const DEFAULT_PRICES_CENTS = { pulseira: 1500, kit: 6000 } as const;
 const BodySchema = z.object({
   buyer_name: z.string().trim().min(2).max(120),
   buyer_phone: z.string().trim().min(8).max(20),
+  buyer_email: z.string().trim().toLowerCase().email("E-mail inválido").max(180),
   product: z.enum(["pulseira", "kit"]),
   model: z.enum(["adulto", "baby", "infantil"]).optional().default("adulto"),
   size: z.string().trim().max(10).optional().nullable(),
@@ -61,7 +62,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { buyer_name, buyer_phone, product, model, size, quantity, method, ref_code, return_url, card_token, installments, payment_method_id, issuer_id, payer_email, payer_doc_type, payer_doc_number, device_id } = parsed.data;
+    const { buyer_name, buyer_phone, buyer_email, product, model, size, quantity, method, ref_code, return_url, card_token, installments, payment_method_id, issuer_id, payer_email, payer_doc_type, payer_doc_number, device_id } = parsed.data;
+    const effectiveEmail = (payer_email || buyer_email).trim().toLowerCase();
 
     if (product === "kit" && (!size || size.length === 0)) {
       return new Response(JSON.stringify({ error: "size_required" }), {
@@ -113,7 +115,7 @@ Deno.serve(async (req) => {
     const { data: order, error: insErr } = await admin
       .from("entrada_orders")
       .insert({
-        buyer_name, buyer_phone, product, model,
+        buyer_name, buyer_phone, buyer_email: effectiveEmail, product, model,
         size: product === "kit" ? size : null,
         quantity, total_cents, status: "pending", expires_at,
         payment_method: method,
@@ -148,7 +150,7 @@ Deno.serve(async (req) => {
           statement_descriptor: "MES JUVENTUDE",
           binary_mode: false,
           payer: {
-            email: payer_email || `entrada-${order.id.slice(0, 8)}@example.com`,
+            email: effectiveEmail,
             first_name: firstName,
             last_name: lastName,
             ...(payer_doc_type && payer_doc_number
@@ -227,6 +229,7 @@ Deno.serve(async (req) => {
         payer: {
           name: buyer_name.split(" ")[0] ?? "Comprador",
           surname: buyer_name.split(" ").slice(1).join(" ") || "Entrada",
+          email: effectiveEmail,
         },
         payment_methods: {
           excluded_payment_types: [{ id: "ticket" }, { id: "atm" }, { id: "bank_transfer" }],
@@ -277,7 +280,7 @@ Deno.serve(async (req) => {
       external_reference: order.id,
       metadata: { entrada_order_id: order.id, product, model, quantity },
       payer: {
-        email: `entrada-${order.id.slice(0, 8)}@example.com`,
+        email: effectiveEmail,
         first_name: buyer_name.split(" ")[0] ?? "Comprador",
         last_name: buyer_name.split(" ").slice(1).join(" ") || "Entrada",
       },
