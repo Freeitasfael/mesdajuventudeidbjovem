@@ -25,6 +25,7 @@ const BodySchema = z.object({
     .string()
     .trim()
     .regex(/^[0-9]{10,11}$/, "Telefone deve ter 10 ou 11 dígitos"),
+  email: z.string().trim().toLowerCase().email("E-mail inválido").max(180),
   numbers: z.array(z.number().int().min(1).max(600)).min(1).max(50),
   ref_code: z.string().trim().min(1).max(64).optional().nullable(),
   ref_input: z.string().trim().min(1).max(120).optional().nullable(),
