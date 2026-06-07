@@ -411,8 +411,8 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" 
                 style={{ backgroundColor: "hsl(var(--hero-gold))", color: "hsl(var(--hero-bg))" }}
                 disabled={loading}>
                 {loading
-                  ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {method === "card" ? "Abrindo cartão..." : "Gerando PIX..."}</>
-                  : method === "card" ? "Pagar com cartão" : "Continuar com Pix"}
+                  ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Gerando PIX...</>
+                  : method === "card" ? "Continuar com cartão" : "Continuar com Pix"}
               </Button>
             </form>
           </>
