@@ -456,7 +456,7 @@ export function CardForm({
         <label htmlFor={`${formId}-installments`} className={`text-xs font-semibold uppercase tracking-wide ${labelCls}`}>
           Parcelas
         </label>
-        <select id={`${formId}-installments`} className={selectCls} style={selectStyle} />
+        <StyledNativeSelect id={`${formId}-installments`} isDark={isDark} placeholder="Selecione as parcelas" />
       </div>
 
 
