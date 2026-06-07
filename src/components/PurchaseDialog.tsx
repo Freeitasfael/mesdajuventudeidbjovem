@@ -303,7 +303,7 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" 
                     className={`absolute inset-0 transition-all duration-300 ease-out ${previewLoading ? "opacity-0 scale-95" : "opacity-100 scale-100 animate-fade-in"}`}
                   >
                     <img
-                      src={previewData.img}
+                      src={previewData.img.url}
                       alt={previewData.title}
                       loading="lazy"
                       decoding="async"
