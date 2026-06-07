@@ -205,9 +205,11 @@ export function EntradaPanel() {
                 <th className="px-4 py-3">Comprador</th>
                 <th className="px-4 py-3">Telefone</th>
                 <th className="px-4 py-3">Produto</th>
-                <th className="px-4 py-3">Tamanho</th>
+                <th className="px-4 py-3">Modelo</th>
+                <th className="px-4 py-3">Tam/Idade</th>
                 <th className="px-4 py-3">Qtd</th>
-                <th className="px-4 py-3">MP ID</th>
+                <th className="px-4 py-3">Pgto</th>
+                <th className="px-4 py-3">Revendedor</th>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3 text-right">Total</th>
                 <th className="px-4 py-3 text-right">Ações</th>
@@ -222,24 +224,25 @@ export function EntradaPanel() {
                     <td className="px-4 py-3">{o.buyer_name}</td>
                     <td className="px-4 py-3">{o.buyer_phone}</td>
                     <td className="px-4 py-3 capitalize">{o.product}</td>
+                    <td className="px-4 py-3 capitalize">{o.product === "kit" ? (o.model ?? "adulto") : "—"}</td>
                     <td className="px-4 py-3">{o.size ?? "—"}</td>
                     <td className="px-4 py-3">{o.quantity}</td>
-                    <td className="px-4 py-3 font-mono text-xs">{o.mp_payment_id ?? "—"}</td>
+                    <td className="px-4 py-3 uppercase text-xs">{o.payment_method ?? "pix"}</td>
+                    <td className="px-4 py-3 text-xs">
+                      {o.referral_label ? <span className="font-medium">{o.referral_label}</span> : <span className="text-muted-foreground">—</span>}
+                    </td>
                     <td className="px-4 py-3"><StatusBadge status={o.status} /></td>
                     <td className="px-4 py-3 text-right font-medium">{fmtBRL(o.total_cents)}</td>
-                    <td className="px-4 py-3 text-right">
-                      {canRefund ? (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => refundOrder(o)}
-                          disabled={refundingId === o.id}
-                        >
+                    <td className="px-4 py-3 text-right space-x-1 whitespace-nowrap">
+                      <Button size="sm" variant="ghost" onClick={() => assignSeller(o)} disabled={assigningId === o.id}>
+                        <UserPlus className="mr-1 h-3 w-3" />
+                        {assigningId === o.id ? "..." : "Revend."}
+                      </Button>
+                      {canRefund && (
+                        <Button size="sm" variant="outline" onClick={() => refundOrder(o)} disabled={refundingId === o.id}>
                           <Undo2 className="mr-1 h-3 w-3" />
                           {refundingId === o.id ? "..." : o.status === "paid" ? "Reembolsar" : "Cancelar"}
                         </Button>
-                      ) : (
-                        <span className="text-xs text-muted-foreground">—</span>
                       )}
                     </td>
                   </tr>
@@ -247,7 +250,7 @@ export function EntradaPanel() {
               })}
               {orders.length === 0 && (
                 <tr>
-                  <td colSpan={10} className="px-4 py-8 text-center text-muted-foreground">
+                  <td colSpan={12} className="px-4 py-8 text-center text-muted-foreground">
                     Nenhuma transação ainda.
                   </td>
                 </tr>
