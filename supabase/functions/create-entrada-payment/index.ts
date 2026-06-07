@@ -115,7 +115,7 @@ Deno.serve(async (req) => {
     const { data: order, error: insErr } = await admin
       .from("entrada_orders")
       .insert({
-        buyer_name, buyer_phone, product, model,
+        buyer_name, buyer_phone, buyer_email: effectiveEmail, product, model,
         size: product === "kit" ? size : null,
         quantity, total_cents, status: "pending", expires_at,
         payment_method: method,
