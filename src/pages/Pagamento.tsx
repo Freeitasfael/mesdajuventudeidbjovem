@@ -46,6 +46,9 @@ const Pagamento = () => {
   const pollRef = useRef<number | null>(null);
   const receiptRef = useRef<HTMLDivElement | null>(null);
   const [generatingReceipt, setGeneratingReceipt] = useState(false);
+  const [payMethod, setPayMethod] = useState<"pix" | "card">("pix");
+  const [cardError, setCardError] = useState<string | null>(null);
+  const [cardSubmitting, setCardSubmitting] = useState(false);
 
   const renderReceiptCanvas = async () => {
     if (!receiptRef.current) return null;
