@@ -20,6 +20,14 @@ const BodySchema = z.object({
   method: z.enum(["pix", "card"]).optional().default("pix"),
   ref_code: z.string().trim().min(1).max(64).optional().nullable(),
   return_url: z.string().url().optional().nullable(),
+  // Card token flow
+  card_token: z.string().min(8).max(200).optional().nullable(),
+  installments: z.number().int().min(1).max(24).optional().nullable(),
+  payment_method_id: z.string().min(2).max(40).optional().nullable(),
+  issuer_id: z.string().min(1).max(40).optional().nullable(),
+  payer_email: z.string().email().optional().nullable(),
+  payer_doc_type: z.string().min(2).max(10).optional().nullable(),
+  payer_doc_number: z.string().min(5).max(20).optional().nullable(),
 });
 
 Deno.serve(async (req) => {
