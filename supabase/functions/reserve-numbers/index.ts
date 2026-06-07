@@ -62,7 +62,7 @@ Deno.serve(async (req) => {
 
     // Dedupe numbers
     const numbers = Array.from(new Set(parsed.data.numbers));
-    const { name, phone, ref_code, ref_input } = parsed.data;
+    const { name, phone, email, ref_code, ref_input } = parsed.data;
 
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE, {
       auth: { persistSession: false },
