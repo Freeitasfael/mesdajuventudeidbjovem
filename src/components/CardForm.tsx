@@ -239,6 +239,7 @@ export function CardForm({
 
   return (
     <form id={formId} className="space-y-4">
+      {autofillStyle && <style>{autofillStyle}</style>}
       <div className="space-y-1.5">
         <label htmlFor={`${formId}-cardNumber`} className={`text-xs font-semibold uppercase tracking-wide ${labelCls}`}>
           Número do cartão
