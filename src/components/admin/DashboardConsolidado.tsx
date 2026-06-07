@@ -7,7 +7,12 @@ import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
 
 interface OrderLite { total_cents: number; created_at: string; status: string; }
-interface EntradaLite { total_cents: number; created_at: string; status: string; product: string; }
+interface EntradaLite { total_cents: number; created_at: string; status: string; product: string; quantity: number; }
+
+// Custos unitários de fabricação (R$)
+const DEFAULT_COST_CAMISETA = 38;
+const DEFAULT_COST_PULSEIRA = 1.05;
+const COST_STORAGE_KEY = "dashboard_costs_v1";
 
 const fmtBRL = (c: number) => `R$ ${(c / 100).toFixed(2).replace(".", ",")}`;
 
