@@ -354,44 +354,69 @@ export default function Entrada() {
             </div>
 
             {/* Coluna direita — Imagem do modelo */}
-            <div className="order-1 lg:order-2 relative">
+            <div className="order-1 lg:order-2 relative flex justify-center lg:justify-end">
               <div
-                className="relative w-full h-[420px] sm:h-[520px] lg:h-full min-h-[520px] rounded-3xl overflow-hidden border"
-                style={{ borderColor: "hsl(var(--hero-gold) / 0.2)" }}
+                className="relative w-full max-w-[360px] lg:max-w-[420px] aspect-[441/753] rounded-3xl overflow-hidden border"
+                style={{
+                  borderColor: "hsl(var(--hero-gold) / 0.2)",
+                  backgroundColor: "hsl(0 0% 4%)",
+                }}
               >
                 <img
                   src={modeloImg.url}
                   alt="Modelo vestindo a camiseta oficial do evento Mês da Juventude e usando a pulseira de acesso"
                   loading="lazy"
                   decoding="async"
-                  className="absolute inset-0 w-full h-full object-cover object-center"
+                  className="absolute inset-0 w-full h-full object-cover object-top"
                 />
+
                 {/* Gradiente de integração (direita -> esquerda escuro) */}
                 <div
                   aria-hidden
                   className="absolute inset-0 pointer-events-none"
                   style={{
                     background:
-                      "linear-gradient(to left, transparent 35%, hsl(0 0% 0% / 0.55) 85%, hsl(0 0% 0% / 0.85) 100%)",
+                      "linear-gradient(to left, transparent 45%, hsl(0 0% 0% / 0.5) 88%, hsl(0 0% 0% / 0.9) 100%)",
                   }}
                 />
-                {/* Gradiente inferior para legibilidade */}
+                {/* Gradiente inferior sutil */}
                 <div
                   aria-hidden
-                  className="absolute inset-x-0 bottom-0 h-40 pointer-events-none"
+                  className="absolute inset-x-0 bottom-0 h-28 pointer-events-none"
                   style={{
                     background:
-                      "linear-gradient(to top, hsl(0 0% 0% / 0.85), transparent)",
+                      "linear-gradient(to top, hsl(0 0% 0% / 0.75), transparent)",
                   }}
                 />
 
-                {/* Destaque apontando para a pulseira */}
-                <div className="absolute left-4 sm:left-8 bottom-24 sm:bottom-28 flex items-center gap-3">
+                {/* Glow amarelo sobre a pulseira (pulso esquerdo do modelo) */}
+                <div
+                  aria-hidden
+                  className="absolute pointer-events-none"
+                  style={{
+                    left: "18%",
+                    top: "82%",
+                    width: "90px",
+                    height: "90px",
+                    transform: "translate(-50%, -50%)",
+                    borderRadius: "9999px",
+                    background:
+                      "radial-gradient(circle, hsl(51 100% 50% / 0.55) 0%, hsl(51 100% 50% / 0.18) 45%, transparent 70%)",
+                    mixBlendMode: "screen",
+                  }}
+                />
+
+                {/* Indicador + label próximo ao pulso */}
+                <div
+                  className="absolute flex items-center gap-2"
+                  style={{ left: "26%", top: "82%" }}
+                >
                   <div
-                    className="relative h-3 w-3 rounded-full"
+                    className="relative h-2 w-2 rounded-full"
                     style={{
                       backgroundColor: "hsl(var(--hero-gold))",
-                      boxShadow: "0 0 0 6px hsl(var(--hero-gold) / 0.25), 0 0 20px hsl(var(--hero-gold) / 0.7)",
+                      boxShadow:
+                        "0 0 0 4px hsl(var(--hero-gold) / 0.2), 0 0 14px hsl(var(--hero-gold) / 0.8)",
                     }}
                   >
                     <span
@@ -399,15 +424,23 @@ export default function Entrada() {
                       style={{ backgroundColor: "hsl(var(--hero-gold) / 0.7)" }}
                     />
                   </div>
-                  <div
-                    className="rounded-full px-4 py-2 text-xs sm:text-sm font-extrabold uppercase tracking-wider backdrop-blur-md border"
+                  <span
+                    aria-hidden
+                    className="block h-px w-6"
                     style={{
-                      backgroundColor: "hsl(0 0% 0% / 0.65)",
-                      borderColor: "hsl(var(--hero-gold) / 0.5)",
+                      background:
+                        "linear-gradient(to right, hsl(var(--hero-gold) / 0.9), hsl(var(--hero-gold) / 0))",
+                    }}
+                  />
+                  <div
+                    className="rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider backdrop-blur-md border"
+                    style={{
+                      backgroundColor: "hsl(0 0% 0% / 0.6)",
+                      borderColor: "hsl(var(--hero-gold) / 0.4)",
                       color: "hsl(var(--hero-gold))",
                     }}
                   >
-                    Pulseira oficial do evento
+                    Pulseira oficial
                   </div>
                 </div>
               </div>
