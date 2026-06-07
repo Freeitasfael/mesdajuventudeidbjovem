@@ -72,6 +72,24 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" 
   const [stock, setStock] = useState<Record<string, number>>({});
   const [prices, setPrices] = useState<Record<Option, number>>(DEFAULT_PRICES);
   const pollRef = useRef<number | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const previewKey = `${option}-${option === "kit" ? model : "x"}-${option === "kit" ? tamanho || "x" : "x"}`;
+  useEffect(() => {
+    setPreviewLoading(true);
+    const t = window.setTimeout(() => setPreviewLoading(false), 100);
+    return () => window.clearTimeout(t);
+  }, [previewKey]);
+  const previewData = option === "kit"
+    ? {
+        img: modeloImg,
+        title: "Kit Pulseira + Camiseta",
+        desc: `Camiseta ${MODEL_LABEL[model]}${tamanho ? ` · ${model === "infantil" ? `${tamanho} anos` : `tam. ${tamanho}`}` : ""} + pulseira oficial de acesso.`,
+      }
+    : {
+        img: pulseiraCloseImg,
+        title: "Pulseira de Acesso",
+        desc: "Pulseira oficial do evento Mês da Juventude.",
+      };
 
   const total = useMemo(() => prices[option] * qtd, [option, qtd, prices]);
   const pulseiraStock = stock["pulseira"] ?? 0;
