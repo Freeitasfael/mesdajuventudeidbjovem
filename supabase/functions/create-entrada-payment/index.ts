@@ -280,7 +280,7 @@ Deno.serve(async (req) => {
       external_reference: order.id,
       metadata: { entrada_order_id: order.id, product, model, quantity },
       payer: {
-        email: `entrada-${order.id.slice(0, 8)}@example.com`,
+        email: effectiveEmail,
         first_name: buyer_name.split(" ")[0] ?? "Comprador",
         last_name: buyer_name.split(" ").slice(1).join(" ") || "Entrada",
       },
