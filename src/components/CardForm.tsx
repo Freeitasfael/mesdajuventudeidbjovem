@@ -199,6 +199,7 @@ export function CardForm({
   // Native <select> needs explicit appearance reset + caret so dropdown stays compact
   const selectCls = `${inputCls} appearance-none bg-no-repeat bg-[length:16px] bg-[right_0.75rem_center] pr-9 cursor-pointer`;
   const selectStyle: React.CSSProperties = {
+    colorScheme: isDark ? "dark" : "light",
     backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='${
       isDark ? "%23E5C24A" : "%23666"
     }' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>")`,
