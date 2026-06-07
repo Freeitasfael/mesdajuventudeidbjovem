@@ -264,11 +264,10 @@ export function CardForm({
 
         mountedForm = mp.cardForm({
           amount: String(amount.toFixed(2)),
-          iframe: true,
           autoMount: true,
           form: {
             id: formId,
-            cardNumber: { id: `${formId}-cardNumber`, placeholder: "Número do cartão" },
+            cardNumber: { id: `${formId}-cardNumber`, placeholder: "0000 0000 0000 0000" },
             expirationDate: { id: `${formId}-expirationDate`, placeholder: "MM/AA" },
             securityCode: { id: `${formId}-securityCode`, placeholder: "CVV" },
             cardholderName: { id: `${formId}-cardholderName`, placeholder: "Nome impresso no cartão" },
