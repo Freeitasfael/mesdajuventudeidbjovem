@@ -316,6 +316,7 @@ Deno.serve(async (req) => {
         payer: {
           name: buyer?.name?.split(" ")[0] ?? "Comprador",
           surname: buyer?.name?.split(" ").slice(1).join(" ") || "Rifa",
+          email: effectiveEmail,
         },
         payment_methods: {
           excluded_payment_types: [{ id: "ticket" }, { id: "atm" }, { id: "bank_transfer" }],
