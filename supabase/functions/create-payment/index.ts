@@ -170,6 +170,65 @@ Deno.serve(async (req) => {
     const idempotencyKey = `order-${order.id}-attempt-${attempt}`;
     const webhookUrl = `${SUPABASE_URL}/functions/v1/mp-webhook`;
 
+    if (method === "card") {
+      const back = return_url || `${SUPABASE_URL}`;
+      const prefPayload = {
+        items: [{
+          title: `Rifa - Pedido ${order.id.slice(0, 8)}`,
+          quantity: 1, currency_id: "BRL", unit_price: amount,
+        }],
+        payer: {
+          name: buyer?.name?.split(" ")[0] ?? "Comprador",
+          surname: buyer?.name?.split(" ").slice(1).join(" ") || "Rifa",
+        },
+        payment_methods: {
+          excluded_payment_types: [{ id: "ticket" }, { id: "atm" }, { id: "bank_transfer" }],
+          installments: 12,
+        },
+        back_urls: { success: back, failure: back, pending: back },
+        auto_return: "approved",
+        notification_url: webhookUrl,
+        external_reference: order.id,
+        metadata: { order_id: order.id },
+      };
+      const prefRes = await fetch("https://api.mercadopago.com/checkout/preferences", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${MP_ACCESS_TOKEN}`,
+          "Content-Type": "application/json",
+          "X-Idempotency-Key": `order-${order.id}-pref-${attempt}`,
+        },
+        body: JSON.stringify(prefPayload),
+      });
+      const prefData = await prefRes.json();
+      if (!prefRes.ok) {
+        await logEvent(admin, "error", "card_pref_failed", "Falha ao criar preferência de cartão", {
+          order_id, details: { http_status: prefRes.status, mp_error: prefData },
+        });
+        return new Response(JSON.stringify({
+          error: "mp_error", status: prefRes.status,
+          message: prefData?.message ?? "Erro no Mercado Pago", details: prefData,
+        }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+      const init_point = prefData.init_point ?? prefData.sandbox_init_point ?? null;
+      await admin.from("orders").update({ payment_method: "card" }).eq("id", order.id);
+      await admin.from("payments").insert({
+        order_id: order.id,
+        provider: "mercadopago",
+        provider_payment_id: `pref:${prefData.id}`,
+        status: "pending",
+        amount_cents: order.total_cents,
+        raw: prefData,
+      });
+      await logEvent(admin, "info", "card_pref_created", "Preferência de cartão criada", {
+        order_id, details: { pref_id: prefData.id },
+      });
+      return new Response(JSON.stringify({
+        method: "card", init_point, amount_cents: order.total_cents,
+      }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+
     const mpPayload = {
       transaction_amount: amount,
       description: `Rifa - Pedido ${order.id.slice(0, 8)}`,
