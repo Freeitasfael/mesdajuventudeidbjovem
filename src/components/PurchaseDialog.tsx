@@ -9,8 +9,8 @@ import { Copy, Check, Loader2, CreditCard, QrCode, CheckCircle2, XCircle } from 
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { CardForm, type CardTokenPayload } from "@/components/CardForm";
-import pulseiraCloseImg from "@/assets/pulseira-close.png";
-import modeloImg from "@/assets/modelo-camiseta-pulseira.png";
+import pulseiraCloseImg from "@/assets/pulseira-close.png.asset.json";
+import modeloImg from "@/assets/modelo-camiseta-pulseira.png.asset.json";
 
 type Option = "pulseira" | "kit";
 type Model = "adulto" | "baby" | "infantil";
@@ -303,7 +303,7 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" 
                     className={`absolute inset-0 transition-all duration-300 ease-out ${previewLoading ? "opacity-0 scale-95" : "opacity-100 scale-100 animate-fade-in"}`}
                   >
                     <img
-                      src={previewData.img}
+                      src={previewData.img.url}
                       alt={previewData.title}
                       loading="lazy"
                       decoding="async"
