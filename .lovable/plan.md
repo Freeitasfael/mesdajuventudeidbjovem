@@ -1,114 +1,85 @@
-# Sistema de Rifa Digital com PIX — Plano de Entrega
+# Plano de implementação
 
-Stack confirmada: **React + Vite + Tailwind + shadcn/ui** no frontend, **Lovable Cloud (Supabase: Postgres + RLS + Edge Functions Deno)** no backend. Mercado Pago via Edge Function quando você tiver o token.
+## 1. Variações de camiseta (Babylook + Infantil)
 
-A entrega será **faseada** (cada fase é uma mensagem/implementação). Esta proposta cobre a **Fase 1** em detalhe e lista as fases seguintes em alto nível.
+**Banco (migration):**
+- Renomeio/expando os SKUs em `entrada_stock` para um modelo de variação:
+  - `camiseta_adulto_{P,M,G,GG}` (mantém os existentes)
+  - `camiseta_baby_{P,M,G,GG}` (novo — Babylook)
+  - `camiseta_infantil_{02,04,06,08,10}` (novo)
+- Adiciono em `entrada_orders`:
+  - `model text` (`adulto` | `baby` | `infantil`)
+  - `size` continua, mas aceita `02..10` para infantil
+- Atualizo `admin_refund_entrada_order` para repor estoque considerando `model`.
 
----
+**Frontend `/entrada` (PurchaseDialog):**
+- Adiciono seletor de **Modelo** (Adulto / Babylook / Infantil) quando o produto for `kit`.
+- Tamanho passa a depender do modelo:
+  - Adulto/Baby: P, M, G, GG
+  - Infantil: 02, 04, 06, 08, 10
+- Envio `model` + `size` para a edge function.
 
-## Fase 1 — Fundação: Cloud + Schema + Tela /rifa (esta entrega)
+**Edge function `create-entrada-payment`:**
+- Aceita `model` no body, monta o SKU correto (`camiseta_${model}_${size}`) para checagem e baixa de estoque.
 
-### O que será feito
+**Admin (`EntradaPanel`):**
+- Coluna mostra modelo + tamanho.
+- Tela de estoque lista todos os SKUs novos.
 
-1. **Ativar Lovable Cloud** no projeto (Postgres + Auth + Edge Functions).
-2. **Criar todo o schema** (migration única) com as tabelas, constraints, índices, RLS e seed dos 400 números.
-3. **Criar a página `/rifa`** com o grid 1–400 lendo do banco em tempo real (read-only nesta fase — clique nos números virá na Fase 2 junto com o checkout).
-4. **Layout base do app**: rotas, header simples, tema claro minimalista, mobile-first.
+## 2. Cartão de crédito com parcelamento (MP)
 
-### Schema (migration)
+Mercado Pago Checkout API exige tokenização do cartão. Para evitar PCI no nosso frontend, uso **Checkout Pro (Preference + init_point)** com `payment_methods.installments` controlado:
+- Cliente escolhe Pix (atual) ou Cartão (novo) no PurchaseDialog e no Checkout da rifa.
+- Se Cartão: a edge function cria uma `preference` no MP (com `back_urls`, `auto_return`, `external_reference = order.id`, `notification_url = webhook`, `installments: 12`, juros do MP repassados ao cliente).
+- Retorno: `init_point` → redireciono o usuário.
+- Webhook (mp-webhook / entrada-webhook) já trata `payment.updated` → adapto para também aceitar pagamentos do tipo `credit_card` (mesma lógica de status `approved` → `confirm_payment` / atualizar entrada_orders).
 
-Tabelas, todas com `id uuid pk default gen_random_uuid()` e `created_at timestamptz default now()`:
+Novos endpoints/parâmetros:
+- `create-payment` e `create-entrada-payment` recebem `method: "pix" | "card"`.
+- Quando `card`: cria preference e devolve `{ init_point, order_id }`.
 
-- **sellers** — `name text not null`, `phone text`, `ref_code text unique not null`, `user_id uuid references auth.users(id)` (opcional, vendedor pode ter login depois).
-- **buyers** — `name text not null check (array_length(string_to_array(trim(name),' '),1) >= 2)`, `phone text not null check (phone ~ '^[0-9]{10,11}$')`.
-- **numbers** — `number int unique not null check (number between 1 and 400)`, `status text not null check (status in ('available','reserved','paid')) default 'available'`, `reserved_at timestamptz`, `order_id uuid references orders(id)`.
-- **orders** — `buyer_id uuid not null references buyers(id)`, `seller_id uuid references sellers(id)`, `total_cents int not null`, `status text check (status in ('pending','paid','expired','cancelled')) default 'pending'`, `expires_at timestamptz not null`.
-- **order_numbers** — `order_id uuid references orders(id) on delete cascade`, `number int references numbers(number)`, `unique(order_id, number)`.
-- **payments** — `order_id uuid references orders(id)`, `provider text default 'mercadopago'`, `provider_payment_id text unique`, `status text check (status in ('pending','approved','rejected','expired','refunded')) default 'pending'`, `amount_cents int not null`, `qr_code text`, `qr_code_base64 text`, `raw jsonb`, `updated_at timestamptz default now()`.
-- **app_settings** — tabela simples key/value para coisas como `price_per_number_cents` (você definirá depois pelo admin).
-- **user_roles** — `user_id uuid references auth.users(id)`, `role app_role` (enum `'admin' | 'seller'`), com função `has_role()` security definer (padrão Lovable para evitar recursão em RLS).
+UI:
+- Página `/pagamento/:id` mostra QR Pix (atual). Quando method = card, redireciona direto para `init_point`.
+- Status volta para `/pagamento/:id` via `back_urls.success`.
 
-**Índices**: `numbers(number)`, `numbers(status)`, `payments(status)`, `payments(provider_payment_id)`, `orders(status)`, `orders(expires_at)`, `sellers(ref_code)`.
+## 3. Fix do código de revendedor (crítico)
 
-**RLS** (resumo):
-- `numbers`: SELECT público (qualquer um vê o grid). UPDATE somente via Edge Function (service role).
-- `orders` / `order_numbers` / `payments` / `buyers`: SELECT/INSERT só via Edge Function.
-- `sellers`: SELECT público (precisamos validar `ref_code` na URL). INSERT via Edge Function.
-- `app_settings`: SELECT público. UPDATE só admin.
-- `user_roles`: SELECT só admin (via `has_role`).
+Problema: códigos criados manualmente não são reconhecidos.
 
-**Seed**: insere os 400 números com `status='available'`.
+- `validate_referral_code` hoje faz `ref_code = upper(trim(_code))`. Códigos manuais inseridos em caixa baixa ou com espaços não casam.
+- Correção:
+  - Migration normaliza `sellers.ref_code` para `upper(trim(ref_code))`.
+  - Trigger `BEFORE INSERT/UPDATE` em `sellers` que sempre uppercase + trim.
+  - `validate_referral_code` passa a usar `ilike` + trim para ser tolerante.
+- `reserve-numbers` já faz fallback por nome — mantenho.
+- Frontend já força uppercase no input — mantenho.
 
-### Tela `/rifa` (Fase 1 — visualização)
+## 4. Código de revendedor em `/entrada`
 
-- Header: título da rifa + legenda de cores.
-- Grid responsivo (10 colunas no desktop, 5 no mobile) com 400 botões numerados.
-- Cores via tokens semânticos do design system (não hardcoded):
-  - **available** → verde
-  - **reserved** → amarelo
-  - **paid** → vermelho/desabilitado
-- Cada célula mostra o número. Clique nesta fase **apenas mostra um toast** "checkout em breve" — a lógica de seleção/reserva entra na Fase 2.
-- Captura de `?ref=CODIGO` na URL e armazena em `localStorage` para uso na Fase 2.
-- Realtime via Supabase channel em `numbers` para atualizar cores ao vivo.
+- Adiciono em `entrada_orders`: `seller_id uuid`, `referral_label text`.
+- PurchaseDialog ganha o mesmo bloco "Você recebeu indicação?" do `/checkout` da rifa.
+- `create-entrada-payment` resolve seller via `ref_code` e grava no pedido.
+- `EntradaPanel` mostra coluna "Revendedor" e permite **atribuir/alterar** manualmente:
+  - Nova RPC `admin_set_entrada_order_seller(_order_id, _ref_code)` → resolve seller, grava `seller_id`/`referral_label`, valida admin.
+- Dashboard consolidado: incluo vendas da /entrada nas métricas por revendedor.
 
-### Estados e UX
+## 5. Persistência da jornada
 
-- Loading skeleton no grid.
-- Erro com retry.
-- Mobile-first (375px), Tailwind, animações leves (hover scale-105, transition-colors).
+- `ref_code` já fica em `localStorage` (`raffle_ref_code`). Reaproveito a mesma chave no PurchaseDialog.
+- Estado do PurchaseDialog (modelo/tamanho/qtd) é mantido em memória do componente (não persiste em refresh — comportamento ok porque o dialog reabre vazio).
 
-### Detalhes técnicos
+## Arquivos afetados
 
-- Migration única SQL aplicada via ferramenta de migração do Cloud.
-- Cliente Supabase já vem configurado pelo Cloud (`src/integrations/supabase/client.ts`).
-- Tipos TypeScript gerados automaticamente.
-- Tokens de design adicionados em `index.css` e `tailwind.config.ts` (verde/amarelo/vermelho semânticos para status).
+- `supabase/migrations/` (1 nova migration: SKUs, colunas entrada_orders, normalização sellers, trigger, RPC admin_set_entrada_order_seller, atualização admin_refund_entrada_order, fix validate_referral_code).
+- `supabase/functions/create-entrada-payment/index.ts` (model + cartão + ref_code).
+- `supabase/functions/create-payment/index.ts` (cartão).
+- `supabase/functions/entrada-webhook/index.ts` e `mp-webhook/index.ts` (cartão).
+- `src/components/PurchaseDialog.tsx` (modelo, infantil, cartão, código revendedor).
+- `src/components/admin/EntradaPanel.tsx` (coluna revendedor, ação atribuir).
+- `src/pages/Checkout.tsx` e `src/pages/Pagamento.tsx` (opção cartão + redirect).
+- `src/integrations/supabase/types.ts` (regenerado pela migration).
 
----
+## Observações
 
-## Próximas fases (visão geral, serão detalhadas quando chegarmos)
-
-**Fase 2 — Reserva + Checkout**
-- Seleção múltipla de números no grid.
-- Tela `/checkout`: nome (≥2 palavras), telefone (10–11 dígitos), resumo, valor total.
-- Edge Function `reserve-numbers`: transação com `SELECT ... FOR UPDATE`, marca como `reserved`, cria `order` com `expires_at = now() + 10min`.
-- Captura do `ref_code` do localStorage e vincula ao `order`.
-
-**Fase 3 — Pagamento PIX (Mercado Pago)**
-- Você fornece o **MP Access Token** → guardo como secret no Cloud.
-- Edge Function `create-payment` cria pagamento PIX via API do MP, salva QR Code.
-- Tela `/pagamento/:orderId`: mostra QR Code + copia-e-cola, faz polling do status.
-- Edge Function `mp-webhook` (pública, sem JWT): valida origem, **consulta a API do MP** (nunca confia no payload), atualiza `payments` e `numbers` para `paid`.
-
-**Fase 4 — Cron jobs (expiração + reconciliação)**
-- pg_cron a cada 1 min: libera números reservados há mais de 10 min.
-- pg_cron a cada 2 min: pega `payments.status='pending'`, consulta MP, atualiza.
-
-**Fase 5 — Vendedores + Ranking**
-- Tela `/vendedor`: cadastro público (nome, telefone) → gera `ref_code` e link `https://.../rifa?ref=CODIGO`.
-- Tela `/ranking`: lista pública de vendedores ordenada por valor arrecadado (com toggle para "por nº de números pagos" — você pediu os dois).
-
-**Fase 6 — Admin**
-- Login email/senha (Lovable Cloud Auth) + role `admin` na tabela `user_roles`.
-- `/admin/login` e `/admin` (dashboard): total arrecadado, números pagos/reservados/disponíveis, ranking completo, lista de pedidos, ajuste do `price_per_number_cents`.
-
----
-
-## Pendências suas (para destravar fases futuras)
-
-1. **Mercado Pago Access Token** (sandbox para testar, depois produção) → necessário para Fase 3.
-2. **Valor por número** → você definirá pelo admin na Fase 6 (até lá uso um placeholder de R$ 10,00 que ajustamos a qualquer momento).
-3. **Email do admin** que terá acesso ao painel → necessário no início da Fase 6.
-
----
-
-## Detalhes técnicos consolidados
-
-- **Concorrência na reserva**: `BEGIN; SELECT number FROM numbers WHERE number = ANY($1) AND status='available' FOR UPDATE; UPDATE ... ; COMMIT;` dentro de uma Edge Function com service role — evita race condition.
-- **Webhook seguro**: assinatura `x-signature` do MP validada + chamada de volta à API do MP com o `payment_id` antes de marcar como pago.
-- **RLS estrita**: nenhuma escrita direta do cliente em `orders`/`payments`/`numbers` — sempre via Edge Function.
-- **Realtime**: canal Supabase em `numbers` para o grid atualizar sem reload.
-- **Logs padronizados**: `console.log('[reserve-numbers]', ...)` em todas as Edge Functions.
-- **Validação**: Zod nas Edge Functions, `react-hook-form + zod` no frontend.
-
-Posso prosseguir com a **Fase 1** (Cloud + schema + tela /rifa) assim que você aprovar?
+- O Checkout Pro do MP exige o cliente sair do seu site para `mercadopago.com` e voltar. É o caminho seguro e sem PCI. Confirma se está ok antes de implementar.
+- Vou manter PIX como padrão; cartão fica como segundo botão.
