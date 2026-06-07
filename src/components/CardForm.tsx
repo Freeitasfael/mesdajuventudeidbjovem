@@ -409,20 +409,20 @@ export function CardForm({
         <label htmlFor={`${formId}-cardNumber`} className={`text-xs font-semibold uppercase tracking-wide ${labelCls}`}>
           Número do cartão
         </label>
-        <div id={`${formId}-cardNumber`} className={inputCls} />
+        <input id={`${formId}-cardNumber`} type="text" className={inputCls} inputMode="numeric" autoComplete="cc-number" maxLength={23} />
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1.5">
           <label htmlFor={`${formId}-expirationDate`} className={`text-xs font-semibold uppercase tracking-wide ${labelCls}`}>
             Validade
           </label>
-          <div id={`${formId}-expirationDate`} className={inputCls} />
+          <input id={`${formId}-expirationDate`} type="text" className={inputCls} inputMode="numeric" autoComplete="cc-exp" placeholder="MM/AA" maxLength={7} />
         </div>
         <div className="space-y-1.5">
           <label htmlFor={`${formId}-securityCode`} className={`text-xs font-semibold uppercase tracking-wide ${labelCls}`}>
             CVV
           </label>
-          <div id={`${formId}-securityCode`} className={inputCls} />
+          <input id={`${formId}-securityCode`} type="text" className={inputCls} inputMode="numeric" autoComplete="cc-csc" maxLength={4} />
         </div>
       </div>
       <div className="space-y-1.5">
