@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Copy, Check, Loader2, CreditCard, QrCode, CheckCircle2, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { CardForm, type CardTokenPayload } from "@/components/CardForm";
 
 type Option = "pulseira" | "kit";
 type Model = "adulto" | "baby" | "infantil";
