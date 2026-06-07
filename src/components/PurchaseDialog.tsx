@@ -418,6 +418,41 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" 
           </>
         )}
 
+        {step === "card" && (
+          <>
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-extrabold uppercase tracking-wide text-white">
+                Pagar com cartão
+              </DialogTitle>
+              <DialogDescription className="text-white/70">
+                Preencha os dados do seu cartão. Tokenização segura via Mercado Pago.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="mt-3 space-y-4">
+              <div className="rounded-lg p-4 flex items-center justify-between border"
+                style={{ backgroundColor: "hsl(var(--hero-gold) / 0.08)", borderColor: "hsl(var(--hero-gold) / 0.3)" }}>
+                <span className="font-semibold uppercase tracking-wider text-sm text-white/85">Total</span>
+                <span className="text-2xl font-extrabold" style={{ color: "hsl(var(--hero-gold))" }}>
+                  R$ {total.toFixed(2).replace(".", ",")}
+                </span>
+              </div>
+              <CardForm
+                account="entrada"
+                amount={total}
+                variant="dark"
+                submitting={cardSubmitting}
+                errorMessage={cardError}
+                onTokenized={handleCardTokenized}
+              />
+              <Button type="button" variant="ghost" onClick={() => setStep("form")}
+                className="w-full text-white/80 hover:text-white hover:bg-white/5">
+                Voltar
+              </Button>
+            </div>
+          </>
+        )}
+
+
         {step === "payment" && payment && payment.method === "pix" && (
           <>
             <DialogHeader>
