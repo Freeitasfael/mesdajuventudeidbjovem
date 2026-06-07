@@ -12,6 +12,14 @@ const BodySchema = z.object({
   order_id: z.string().uuid(),
   method: z.enum(["pix", "card"]).optional().default("pix"),
   return_url: z.string().url().optional().nullable(),
+  // Card (token-based, inline form)
+  card_token: z.string().min(8).max(200).optional().nullable(),
+  installments: z.number().int().min(1).max(24).optional().nullable(),
+  payment_method_id: z.string().min(2).max(40).optional().nullable(),
+  issuer_id: z.string().min(1).max(40).optional().nullable(),
+  payer_email: z.string().email().optional().nullable(),
+  payer_doc_type: z.string().min(2).max(10).optional().nullable(),
+  payer_doc_number: z.string().min(5).max(20).optional().nullable(),
 });
 
 type EventLevel = "info" | "warn" | "error";
