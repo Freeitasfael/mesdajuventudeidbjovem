@@ -225,7 +225,7 @@ Deno.serve(async (req) => {
           statement_descriptor: "RIFA IDB",
           binary_mode: false,
           payer: {
-            email: payer_email || `buyer-${order.buyer_id.slice(0, 8)}@example.com`,
+            email: effectiveEmail,
             first_name: firstName,
             last_name: lastName,
             ...(payer_doc_type && payer_doc_number
