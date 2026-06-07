@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { Loader2, CreditCard } from "lucide-react";
+import { useEffect, useRef, useState, useCallback } from "react";
+import { Loader2, CreditCard, ChevronDown, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 
