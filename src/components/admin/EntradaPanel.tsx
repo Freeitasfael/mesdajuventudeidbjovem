@@ -185,9 +185,54 @@ export function EntradaPanel() {
     toast.success("Preços atualizados");
   };
 
-  const totalReceived = orders
+  const filteredOrders = useMemo(() => {
+    const fromTs = dateFrom ? new Date(dateFrom + "T00:00:00").getTime() : null;
+    const toTs = dateTo ? new Date(dateTo + "T23:59:59").getTime() : null;
+    const q = search.trim().toLowerCase();
+    return orders.filter((o) => {
+      if (statusFilter !== "all" && o.status !== statusFilter) return false;
+      if (productFilter !== "all" && o.product !== productFilter) return false;
+      const ts = new Date(o.created_at).getTime();
+      if (fromTs !== null && ts < fromTs) return false;
+      if (toTs !== null && ts > toTs) return false;
+      if (q) {
+        const hay = `${o.buyer_name} ${o.buyer_phone} ${o.referral_label ?? ""} ${o.id}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [orders, statusFilter, productFilter, dateFrom, dateTo, search]);
+
+  const totalReceived = filteredOrders
     .filter((o) => o.status === "paid")
     .reduce((acc, o) => acc + o.total_cents, 0);
+
+  const exportCsv = () => {
+    if (filteredOrders.length === 0) {
+      toast.info("Sem pedidos para exportar nesse filtro");
+      return;
+    }
+    const csv = buildCsv(
+      ["ID Pedido", "Status", "Comprador", "Telefone", "Produto", "Modelo", "Tam/Idade", "Qtd", "Pagamento", "Revendedor", "Total (R$)", "Criado em"],
+      filteredOrders.map((o) => [
+        o.id,
+        o.status,
+        o.buyer_name,
+        o.buyer_phone,
+        o.product,
+        o.product === "kit" ? (o.model ?? "adulto") : "—",
+        o.size ?? "—",
+        o.quantity,
+        o.payment_method ?? "pix",
+        o.referral_label ?? "—",
+        (o.total_cents / 100).toFixed(2).replace(".", ","),
+        fmtDate(o.created_at),
+      ]),
+    );
+    const stamp = new Date().toISOString().slice(0, 10);
+    downloadCsv(`camisetas-pulseiras-${stamp}.csv`, csv);
+    toast.success(`${filteredOrders.length} pedidos exportados`);
+  };
 
   return (
     <Tabs defaultValue="transacoes" className="space-y-4">
@@ -198,14 +243,62 @@ export function EntradaPanel() {
       </TabsList>
 
       <TabsContent value="transacoes" className="space-y-3">
-        <div className="flex items-center justify-between">
+        <Card className="p-3">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            <div className="space-y-1">
+              <Label className="text-xs">Status</Label>
+              <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="paid">Pagos</SelectItem>
+                  <SelectItem value="pending">Pendentes</SelectItem>
+                  <SelectItem value="expired">Expirados</SelectItem>
+                  <SelectItem value="cancelled">Cancelados</SelectItem>
+                  <SelectItem value="refunded">Reembolsados</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Produto</Label>
+              <Select value={productFilter} onValueChange={(v) => setProductFilter(v as typeof productFilter)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="pulseira">Pulseira</SelectItem>
+                  <SelectItem value="kit">Kit (pulseira + camiseta)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">De</Label>
+              <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Até</Label>
+              <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Buscar</Label>
+              <Input placeholder="Nome, telefone, código..." value={search} onChange={(e) => setSearch(e.target.value)} />
+            </div>
+          </div>
+        </Card>
+
+        <div className="flex items-center justify-between flex-wrap gap-2">
           <p className="text-sm text-muted-foreground">
-            {orders.length} pedidos · {fmtBRL(totalReceived)} recebido
+            {filteredOrders.length} de {orders.length} pedidos · {fmtBRL(totalReceived)} recebido
           </p>
-          <Button variant="ghost" size="sm" onClick={load} disabled={loading}>
-            <RefreshCw className={`mr-2 h-3 w-3 ${loading ? "animate-spin" : ""}`} /> Recarregar
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={exportCsv} disabled={filteredOrders.length === 0}>
+              <Download className="mr-2 h-3 w-3" /> Exportar CSV
+            </Button>
+            <Button variant="ghost" size="sm" onClick={load} disabled={loading}>
+              <RefreshCw className={`mr-2 h-3 w-3 ${loading ? "animate-spin" : ""}`} /> Recarregar
+            </Button>
+          </div>
         </div>
+
         <Card className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-muted/50 text-left">
