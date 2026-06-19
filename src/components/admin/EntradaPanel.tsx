@@ -318,7 +318,7 @@ export function EntradaPanel() {
               </tr>
             </thead>
             <tbody>
-              {orders.map((o) => {
+              {filteredOrders.map((o) => {
                 const canRefund = o.status === "paid" || o.status === "pending";
                 return (
                   <tr key={o.id} className="border-t border-border">
