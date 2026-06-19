@@ -62,7 +62,14 @@ export function EntradaPanel() {
   const [refundingId, setRefundingId] = useState<string | null>(null);
   const [assigningId, setAssigningId] = useState<string | null>(null);
 
-  const assignSeller = async (o: EntradaOrder) => {
+  // Filtros
+  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "paid" | "expired" | "cancelled" | "refunded">("all");
+  const [productFilter, setProductFilter] = useState<"all" | "pulseira" | "kit">("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [search, setSearch] = useState("");
+
+
     const current = o.referral_label ?? "";
     const code = window.prompt(
       `Atribuir/alterar revendedor do pedido ${o.id.slice(0, 8)}.\n\nDigite o código (ex: IDB001) ou deixe em branco para remover.`,
