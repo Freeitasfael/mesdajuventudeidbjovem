@@ -6,6 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
+import { getSiteUrl } from "@/lib/site-url";
+
+
 
 
 const translateError = (msg: string): string => {
@@ -123,11 +126,12 @@ export default function Auth() {
         if (!/^[0-9]{10,11}$/.test(cleanPhone)) {
           throw new Error("WhatsApp deve ter 10 ou 11 dígitos (DDD + número)");
         }
+        const siteUrl = getSiteUrl();
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/revendedor`,
+            emailRedirectTo: `${siteUrl}/revendedor`,
             data: { full_name: fullName.trim(), phone: cleanPhone },
           },
         });
@@ -142,8 +146,9 @@ export default function Auth() {
         await registerAsSeller();
         toast.success("Conta criada! Seu código de revendedor está pronto.");
       } else if (mode === "forgot") {
+        const siteUrl = getSiteUrl();
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${window.location.origin}/reset-password`,
+          redirectTo: `${siteUrl}/reset-password`,
         });
         if (error) throw error;
         toast.success("Enviamos um link de recuperação para seu e-mail.");
