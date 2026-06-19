@@ -69,7 +69,7 @@ export function EntradaPanel() {
   const [dateTo, setDateTo] = useState("");
   const [search, setSearch] = useState("");
 
-
+  const assignSeller = async (o: EntradaOrder) => {
     const current = o.referral_label ?? "";
     const code = window.prompt(
       `Atribuir/alterar revendedor do pedido ${o.id.slice(0, 8)}.\n\nDigite o código (ex: IDB001) ou deixe em branco para remover.`,
