@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 import { toast } from "sonner";
 import { Download, RefreshCw, Save, Undo2, UserPlus } from "lucide-react";
 import { buildCsv, downloadCsv } from "@/lib/csv";
@@ -247,28 +247,30 @@ export function EntradaPanel() {
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
             <div className="space-y-1">
               <Label className="text-xs">Status</Label>
-              <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="paid">Pagos</SelectItem>
-                  <SelectItem value="pending">Pendentes</SelectItem>
-                  <SelectItem value="expired">Expirados</SelectItem>
-                  <SelectItem value="cancelled">Cancelados</SelectItem>
-                  <SelectItem value="refunded">Reembolsados</SelectItem>
-                </SelectContent>
-              </Select>
+              <select
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
+              >
+                <option value="all">Todos</option>
+                <option value="paid">Pagos</option>
+                <option value="pending">Pendentes</option>
+                <option value="expired">Expirados</option>
+                <option value="cancelled">Cancelados</option>
+                <option value="refunded">Reembolsados</option>
+              </select>
             </div>
             <div className="space-y-1">
               <Label className="text-xs">Produto</Label>
-              <Select value={productFilter} onValueChange={(v) => setProductFilter(v as typeof productFilter)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="pulseira">Pulseira</SelectItem>
-                  <SelectItem value="kit">Kit (pulseira + camiseta)</SelectItem>
-                </SelectContent>
-              </Select>
+              <select
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                value={productFilter}
+                onChange={(e) => setProductFilter(e.target.value as typeof productFilter)}
+              >
+                <option value="all">Todos</option>
+                <option value="pulseira">Pulseira</option>
+                <option value="kit">Kit (pulseira + camiseta)</option>
+              </select>
             </div>
             <div className="space-y-1">
               <Label className="text-xs">De</Label>
