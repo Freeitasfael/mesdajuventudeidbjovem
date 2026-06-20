@@ -217,10 +217,10 @@ export default function Entrada() {
                   className="text-xs font-extrabold tracking-[0.3em] uppercase"
                   style={{ color: "hsl(var(--hero-gold))" }}
                 >
-                  Garanta o seu
+                  Adquira a sua
                 </span>
                 <h2 className="font-extrabold text-4xl md:text-5xl mt-3 tracking-tight uppercase">
-                  Camiseta Oficial
+                  Camisa Oficial
                 </h2>
               </div>
 
