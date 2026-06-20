@@ -46,7 +46,7 @@ interface PaymentData {
   total_cents: number;
 }
 
-export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" }: Props) {
+export function PurchaseDialog({ open, onOpenChange, initialOption = "kit" }: Props) {
   const [step, setStep] = useState<"form" | "card" | "payment" | "done">("form");
   const [cardError, setCardError] = useState<string | null>(null);
   const [cardSubmitting, setCardSubmitting] = useState(false);
@@ -353,24 +353,6 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" 
                   className="bg-white/5 border-white/15 text-white placeholder:text-white/40 focus-visible:ring-[hsl(var(--hero-gold))]" />
                 <p className="text-xs text-white/55">Necessário para confirmar o pagamento e enviar o comprovante.</p>
               </div>
-              <div className="space-y-2">
-                <Label className="text-white/85">Opção escolhida</Label>
-                <RadioGroup value={option} onValueChange={(v) => setOption(v as Option)}>
-                  <label className={`flex items-center gap-3 rounded-lg border-2 p-3 cursor-pointer transition-all duration-200 ease-out bg-white/5 border-white/15 hover:border-[hsl(var(--hero-gold))] hover:scale-[1.01] has-[:checked]:border-[hsl(var(--hero-gold))] has-[:checked]:bg-[hsl(var(--hero-gold)/0.12)] has-[:checked]:shadow-[0_0_0_3px_hsl(var(--hero-gold)/0.18),0_0_24px_hsl(var(--hero-gold)/0.25)] ${pulseiraStock <= 0 ? "opacity-50 pointer-events-none" : ""}`}>
-                    <RadioGroupItem value="pulseira" disabled={pulseiraStock <= 0} className="border-white/40 text-[hsl(var(--hero-gold))]" />
-                    <span className="font-medium text-white">{LABELS.pulseira}</span>
-                    {pulseiraStock <= 0 && <span className="ml-auto text-xs font-semibold text-destructive">Indisponível</span>}
-                  </label>
-                  {initialOption !== "pulseira" && (
-                    <label className={`flex items-center gap-3 rounded-lg border-2 p-3 cursor-pointer transition-all duration-200 ease-out bg-white/5 border-white/15 hover:border-[hsl(var(--hero-gold))] hover:scale-[1.01] has-[:checked]:border-[hsl(var(--hero-gold))] has-[:checked]:bg-[hsl(var(--hero-gold)/0.12)] has-[:checked]:shadow-[0_0_0_3px_hsl(var(--hero-gold)/0.18),0_0_24px_hsl(var(--hero-gold)/0.25)] ${!kitAvailable ? "opacity-50 pointer-events-none" : ""}`}>
-                      <RadioGroupItem value="kit" disabled={!kitAvailable} className="border-white/40 text-[hsl(var(--hero-gold))]" />
-                      <span className="font-medium text-white">{LABELS.kit}</span>
-                      {!kitAvailable && <span className="ml-auto text-xs font-semibold text-destructive">Indisponível</span>}
-                    </label>
-                  )}
-                </RadioGroup>
-              </div>
-
               {option === "kit" && (
                 <>
                   <div className="space-y-2">
