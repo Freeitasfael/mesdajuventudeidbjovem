@@ -116,16 +116,16 @@ export default function Entrada() {
           </div>
 
           <h1 className="animate-fade-in-up text-5xl md:text-7xl lg:text-8xl font-extrabold leading-[0.95] tracking-tight mb-6">
-            GARANTA SUA
+            ADQUIRA SUA
             <br />
             <span className="text-glow-gold" style={{ color: "hsl(var(--hero-gold))" }}>
-              ENTRADA
+              CAMISA OFICIAL
             </span>
           </h1>
 
           <p className="animate-fade-in max-w-2xl mx-auto text-base sm:text-lg md:text-xl text-white/85 mb-10">
-            Participe do <span className="font-semibold text-white">Mês da Juventude</span> — um
-            momento especial de celebração, comunhão e fé.{" "}
+            A camisa oficial do <span className="font-semibold text-white">Mês da Juventude</span> é a sua
+            forma de fazer parte desse momento especial de celebração, comunhão e fé.{" "}
             <span
               className="font-extrabold tracking-wide"
               style={{ color: "hsl(var(--hero-gold))" }}
