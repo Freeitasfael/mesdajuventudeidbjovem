@@ -46,7 +46,7 @@ interface PaymentData {
   total_cents: number;
 }
 
-export function PurchaseDialog({ open, onOpenChange, initialOption = "pulseira" }: Props) {
+export function PurchaseDialog({ open, onOpenChange, initialOption = "kit" }: Props) {
   const [step, setStep] = useState<"form" | "card" | "payment" | "done">("form");
   const [cardError, setCardError] = useState<string | null>(null);
   const [cardSubmitting, setCardSubmitting] = useState(false);
