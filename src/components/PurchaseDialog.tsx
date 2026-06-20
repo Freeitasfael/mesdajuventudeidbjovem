@@ -82,13 +82,13 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "kit" }: Pr
   const previewData = option === "kit"
     ? {
         img: modeloImg,
-        title: "Kit Pulseira + Camiseta",
-        desc: `Camiseta ${MODEL_LABEL[model]}${tamanho ? ` · ${model === "infantil" ? `${tamanho} anos` : `tam. ${tamanho}`}` : ""} + pulseira oficial de acesso.`,
+        title: "Camiseta Oficial",
+        desc: `Camiseta ${MODEL_LABEL[model]}${tamanho ? ` · ${model === "infantil" ? `${tamanho} anos` : `tam. ${tamanho}`}` : ""} oficial do Mês da Juventude.`,
       }
     : {
         img: pulseiraCloseImg,
-        title: "Pulseira de Acesso",
-        desc: "Pulseira oficial do evento Mês da Juventude.",
+        title: "Camiseta Oficial",
+        desc: "Camiseta oficial do evento Mês da Juventude.",
       };
 
   const total = useMemo(() => prices[option] * qtd, [option, qtd, prices]);
@@ -100,8 +100,8 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "kit" }: Pr
   );
   const fmtPrice = (v: number) => `R$ ${v.toFixed(2).replace(".", ",")}`;
   const LABELS: Record<Option, string> = {
-    pulseira: `Pulseira de acesso — ${fmtPrice(prices.pulseira)}`,
-    kit: `Kit pulseira + camiseta — ${fmtPrice(prices.kit)}`,
+    pulseira: `Camiseta oficial — ${fmtPrice(prices.pulseira)}`,
+    kit: `Camiseta oficial — ${fmtPrice(prices.kit)}`,
   };
 
   // Carrega estoque + preços + ref_code de localStorage ao abrir
@@ -580,7 +580,7 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "kit" }: Pr
             </div>
             <DialogTitle className="text-2xl font-extrabold uppercase tracking-wide text-white">Pagamento confirmado!</DialogTitle>
             <p className="text-white/70">
-              Recebemos seu pagamento. Em breve você receberá mais informações sobre a retirada da sua pulseira{option === "kit" ? " e camiseta" : ""}.
+              Recebemos seu pagamento. Em breve você receberá mais informações sobre a retirada da sua camiseta.
             </p>
             <Button onClick={() => handleClose(false)} size="lg"
               className="w-full rounded-2xl font-extrabold uppercase tracking-wider shadow-gold-glow"

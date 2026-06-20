@@ -220,12 +220,12 @@ export default function Entrada() {
                   Garanta o seu
                 </span>
                 <h2 className="font-extrabold text-4xl md:text-5xl mt-3 tracking-tight uppercase">
-                  Ingresso + Camiseta
+                  Camiseta Oficial
                 </h2>
               </div>
 
               <div className="max-w-md mx-auto lg:mx-0">
-                {/* Card único — Ingresso + Camiseta */}
+                {/* Card único — Camiseta Oficial */}
                 <div
                   className="relative rounded-3xl p-8 border-2 backdrop-blur-md flex flex-col"
                   style={{
@@ -236,10 +236,10 @@ export default function Entrada() {
                   }}
                 >
                   <h3 className="font-extrabold text-2xl mb-2 uppercase tracking-wide">
-                    Ingresso + Camiseta
+                    Camiseta Oficial
                   </h3>
                   <p className="text-white/70 mb-6">
-                    Receba seu ingresso de acesso e a camiseta oficial do Mês da Juventude.
+                    Garanta sua camiseta oficial do Mês da Juventude.
                   </p>
                   <ul className="space-y-2 mb-8 text-sm text-white/85">
                     <li className="flex items-center gap-2">
