@@ -181,7 +181,7 @@ export default function Entrada() {
           </h2>
           <p className="text-lg text-white/75 leading-relaxed">
             O Mês da Juventude é um evento especial preparado para reunir jovens em momentos de
-            alegria, comunhão, fé, amizade e celebração. Garanta sua entrada e venha
+            alegria, comunhão, fé, amizade e celebração. Garanta sua camisa oficial e venha
             fazer parte dessa experiência inesquecível.
           </p>
         </div>
