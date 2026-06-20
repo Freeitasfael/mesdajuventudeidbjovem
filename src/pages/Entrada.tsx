@@ -116,16 +116,16 @@ export default function Entrada() {
           </div>
 
           <h1 className="animate-fade-in-up text-5xl md:text-7xl lg:text-8xl font-extrabold leading-[0.95] tracking-tight mb-6">
-            GARANTA SUA
+            ADQUIRA SUA
             <br />
             <span className="text-glow-gold" style={{ color: "hsl(var(--hero-gold))" }}>
-              ENTRADA
+              CAMISA OFICIAL
             </span>
           </h1>
 
           <p className="animate-fade-in max-w-2xl mx-auto text-base sm:text-lg md:text-xl text-white/85 mb-10">
-            Participe do <span className="font-semibold text-white">Mês da Juventude</span> — um
-            momento especial de celebração, comunhão e fé.{" "}
+            A camisa oficial do <span className="font-semibold text-white">Mês da Juventude</span> é a sua
+            forma de fazer parte desse momento especial de celebração, comunhão e fé.{" "}
             <span
               className="font-extrabold tracking-wide"
               style={{ color: "hsl(var(--hero-gold))" }}
@@ -153,8 +153,8 @@ export default function Entrada() {
               Pagamento seguro via Pix
             </li>
             <li className="inline-flex items-center gap-2">
-              <Ticket className="h-4 w-4" style={{ color: "hsl(var(--hero-gold))" }} />
-              Camiseta oficial garantida
+              <Heart className="h-4 w-4" style={{ color: "hsl(var(--hero-gold))" }} />
+              Camisa oficial garantida
             </li>
             <li className="inline-flex items-center gap-2">
               <Heart className="h-4 w-4" style={{ color: "hsl(var(--hero-gold))" }} />
@@ -181,7 +181,7 @@ export default function Entrada() {
           </h2>
           <p className="text-lg text-white/75 leading-relaxed">
             O Mês da Juventude é um evento especial preparado para reunir jovens em momentos de
-            alegria, comunhão, fé, amizade e celebração. Garanta sua entrada e venha
+            alegria, comunhão, fé, amizade e celebração. Garanta sua camisa oficial e venha
             fazer parte dessa experiência inesquecível.
           </p>
         </div>
@@ -217,10 +217,10 @@ export default function Entrada() {
                   className="text-xs font-extrabold tracking-[0.3em] uppercase"
                   style={{ color: "hsl(var(--hero-gold))" }}
                 >
-                  Garanta o seu
+                  Adquira a sua
                 </span>
                 <h2 className="font-extrabold text-4xl md:text-5xl mt-3 tracking-tight uppercase">
-                  Camiseta Oficial
+                  Camisa Oficial
                 </h2>
               </div>
 
@@ -236,18 +236,14 @@ export default function Entrada() {
                   }}
                 >
                   <h3 className="font-extrabold text-2xl mb-2 uppercase tracking-wide">
-                    Camiseta Oficial
+                    Camisa Oficial
                   </h3>
                   <p className="text-white/70 mb-6">
-                    Garanta sua camiseta oficial do Mês da Juventude.
+                    Garanta sua camisa oficial do Mês da Juventude.
                   </p>
                   <ul className="space-y-2 mb-8 text-sm text-white/85">
                     <li className="flex items-center gap-2">
-                      <Check className="h-4 w-4" style={{ color: "hsl(var(--hero-gold))" }} /> Acesso
-                      ao evento
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Check className="h-4 w-4" style={{ color: "hsl(var(--hero-gold))" }} /> Camiseta
+                      <Check className="h-4 w-4" style={{ color: "hsl(var(--hero-gold))" }} /> Camisa
                       oficial do evento
                     </li>
                   </ul>
@@ -340,7 +336,7 @@ export default function Entrada() {
           <div className="grid md:grid-cols-3 gap-8 mb-8">
             <div>
               <img src={logoIdb} alt="IDB Jovem" className="h-16 w-auto mb-3" />
-              <p className="text-sm text-white/60">Garanta sua entrada e participe!</p>
+              <p className="text-sm text-white/60">Garanta sua camisa oficial!</p>
             </div>
             <div>
               <h4

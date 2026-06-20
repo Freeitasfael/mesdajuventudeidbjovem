@@ -82,13 +82,13 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "kit" }: Pr
   const previewData = option === "kit"
     ? {
         img: modeloImg,
-        title: "Camiseta Oficial",
-        desc: `Camiseta ${MODEL_LABEL[model]}${tamanho ? ` · ${model === "infantil" ? `${tamanho} anos` : `tam. ${tamanho}`}` : ""} oficial do Mês da Juventude.`,
+        title: "Camisa Oficial",
+        desc: `Camisa ${MODEL_LABEL[model]}${tamanho ? ` · ${model === "infantil" ? `${tamanho} anos` : `tam. ${tamanho}`}` : ""} oficial do Mês da Juventude.`,
       }
     : {
         img: pulseiraCloseImg,
-        title: "Camiseta Oficial",
-        desc: "Camiseta oficial do evento Mês da Juventude.",
+        title: "Camisa Oficial",
+        desc: "Camisa oficial do evento Mês da Juventude.",
       };
 
   const total = useMemo(() => prices[option] * qtd, [option, qtd, prices]);
@@ -279,7 +279,7 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "kit" }: Pr
           <>
             <DialogHeader>
               <DialogTitle className="text-2xl font-extrabold uppercase tracking-wide text-white">
-                Faça seu pedido
+                Adquira sua camisa oficial
               </DialogTitle>
               <DialogDescription className="text-white/70">
                 Preencha os dados para gerar o pagamento.
