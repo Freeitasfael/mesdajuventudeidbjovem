@@ -236,18 +236,14 @@ export default function Entrada() {
                   }}
                 >
                   <h3 className="font-extrabold text-2xl mb-2 uppercase tracking-wide">
-                    Camiseta Oficial
+                    Camisa Oficial
                   </h3>
                   <p className="text-white/70 mb-6">
-                    Garanta sua camiseta oficial do Mês da Juventude.
+                    Garanta sua camisa oficial do Mês da Juventude.
                   </p>
                   <ul className="space-y-2 mb-8 text-sm text-white/85">
                     <li className="flex items-center gap-2">
-                      <Check className="h-4 w-4" style={{ color: "hsl(var(--hero-gold))" }} /> Acesso
-                      ao evento
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <Check className="h-4 w-4" style={{ color: "hsl(var(--hero-gold))" }} /> Camiseta
+                      <Check className="h-4 w-4" style={{ color: "hsl(var(--hero-gold))" }} /> Camisa
                       oficial do evento
                     </li>
                   </ul>
