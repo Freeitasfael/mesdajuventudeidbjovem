@@ -153,8 +153,8 @@ export default function Entrada() {
               Pagamento seguro via Pix
             </li>
             <li className="inline-flex items-center gap-2">
-              <Ticket className="h-4 w-4" style={{ color: "hsl(var(--hero-gold))" }} />
-              Camiseta oficial garantida
+              <Heart className="h-4 w-4" style={{ color: "hsl(var(--hero-gold))" }} />
+              Camisa oficial garantida
             </li>
             <li className="inline-flex items-center gap-2">
               <Heart className="h-4 w-4" style={{ color: "hsl(var(--hero-gold))" }} />
