@@ -336,7 +336,7 @@ export default function Entrada() {
           <div className="grid md:grid-cols-3 gap-8 mb-8">
             <div>
               <img src={logoIdb} alt="IDB Jovem" className="h-16 w-auto mb-3" />
-              <p className="text-sm text-white/60">Garanta sua entrada e participe!</p>
+              <p className="text-sm text-white/60">Garanta sua camisa oficial!</p>
             </div>
             <div>
               <h4
