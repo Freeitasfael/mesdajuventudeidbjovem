@@ -130,7 +130,7 @@ export const SiteHeader = ({ variant = "light", breadcrumbs }: Props) => {
 
   return (
     <header className={`sticky top-0 z-40 w-full ${containerCls}`}>
-      <div className="container flex items-center justify-between gap-3 py-3">
+      <div className="container flex items-center justify-between gap-2 py-3 sm:gap-3">
         <Link
           to="/"
           className={`flex items-center gap-2.5 font-extrabold tracking-tight ${
@@ -157,15 +157,15 @@ export const SiteHeader = ({ variant = "light", breadcrumbs }: Props) => {
           <Button
             asChild
             size="sm"
-            className="rounded-full font-bold"
+            className="rounded-full font-bold px-3 sm:px-4"
             style={{
               backgroundColor: "hsl(var(--hero-gold))",
               color: "hsl(var(--hero-bg))",
             }}
           >
-            <Link to={accountTarget}>
-              <AccountIcon className="mr-1.5 h-4 w-4" />
-              {accountLabel}
+            <Link to={accountTarget} aria-label={accountLabel}>
+              <AccountIcon className="h-4 w-4 sm:mr-1.5" />
+              <span className="hidden sm:inline">{accountLabel}</span>
             </Link>
           </Button>
 
@@ -182,7 +182,7 @@ export const SiteHeader = ({ variant = "light", breadcrumbs }: Props) => {
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[280px] bg-card text-foreground">
+            <SheetContent side="right" className="w-[85vw] max-w-[320px] bg-card text-foreground p-5 sm:p-6">
               <div className="mt-8 flex flex-col gap-1">{renderLinks(undefined, true)}</div>
             </SheetContent>
           </Sheet>
