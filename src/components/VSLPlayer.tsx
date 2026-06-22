@@ -44,22 +44,34 @@ export const VSLPlayer = ({
       return;
     }
     let active = true;
-    supabase
-      .from("app_settings")
-      .select("value")
-      .eq("key", "home_vsl_video_url")
-      .maybeSingle()
-      .then(({ data }) => {
-        if (!active) return;
-        const v = data?.value;
-        const url =
-          typeof v === "string"
-            ? v
-            : v && typeof v === "object" && "url" in (v as Record<string, unknown>)
-              ? String((v as { url?: string }).url ?? "")
-              : "";
-        if (url) setResolvedSrc(url);
-      });
+    (async () => {
+      const { data } = await supabase
+        .from("app_settings")
+        .select("value")
+        .eq("key", "home_vsl_video_url")
+        .maybeSingle();
+      if (!active) return;
+      const v = data?.value as
+        | string
+        | { bucket?: string; path?: string; url?: string }
+        | null
+        | undefined;
+      if (!v) return;
+      if (typeof v === "string") {
+        setResolvedSrc(v);
+        return;
+      }
+      if (v.url) {
+        setResolvedSrc(v.url);
+        return;
+      }
+      if (v.bucket && v.path) {
+        const { data: signed } = await supabase.storage
+          .from(v.bucket)
+          .createSignedUrl(v.path, 60 * 60);
+        if (active && signed?.signedUrl) setResolvedSrc(signed.signedUrl);
+      }
+    })();
     return () => {
       active = false;
     };
