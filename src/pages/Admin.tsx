@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { HeroRifa } from "@/components/HeroRifa";
 import { buildCsv, downloadCsv } from "@/lib/csv";
 import { EntradaPanel } from "@/components/admin/EntradaPanel";
+import { VSLPanel } from "@/components/admin/VSLPanel";
 import { AdminsPanel } from "@/components/admin/AdminsPanel";
 import { DashboardConsolidado } from "@/components/admin/DashboardConsolidado";
 
@@ -686,6 +687,7 @@ const Admin = () => {
               <TabsTrigger value="settings">Configurações</TabsTrigger>
               <TabsTrigger value="hero">Hero</TabsTrigger>
               <TabsTrigger value="entrada">Entrada</TabsTrigger>
+              <TabsTrigger value="vsl">VSL</TabsTrigger>
               <TabsTrigger value="admins">Admins</TabsTrigger>
             </TabsList>
           </div>
@@ -693,6 +695,11 @@ const Admin = () => {
           {/* ENTRADA — transações, estoque e preços do /entrada */}
           <TabsContent value="entrada" className="mt-6">
             <EntradaPanel />
+          </TabsContent>
+
+          {/* VSL — vídeo da Home */}
+          <TabsContent value="vsl" className="mt-6">
+            <VSLPanel />
           </TabsContent>
 
           {/* ADMINS */}
