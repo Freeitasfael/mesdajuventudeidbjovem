@@ -328,7 +328,7 @@ export default function Entrada() {
       <footer
         className="py-12 border-t"
         style={{
-          backgroundColor: "hsl(0 0% 3%)",
+          backgroundColor: "hsl(var(--hero-bg-deep))",
           borderColor: "hsl(var(--hero-gold) / 0.15)",
         }}
       >
