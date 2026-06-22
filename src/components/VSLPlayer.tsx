@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Play, Volume2, VolumeX } from "lucide-react";
+import { Play, Volume2, VolumeX, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 type Props = {
@@ -21,7 +21,7 @@ type Props = {
  * VSLPlayer — player estilo VSL/PandaVideo, zero distração.
  * - Sem timeline, sem fullscreen, sem duração, sem menu.
  * - Autoplay muted; ao clicar ativa som e mantém reprodução.
- * - Pause mostra play central premium em dourado.
+ * - Carregamento prioritário do vídeo (preload="auto").
  */
 export const VSLPlayer = ({
   src,
@@ -33,43 +33,72 @@ export const VSLPlayer = ({
 }: Props) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [resolvedSrc, setResolvedSrc] = useState<string | null>(src ?? null);
-  const [playing, setPlaying] = useState(autoplay);
+  const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(true);
-  const [ready, setReady] = useState(false);
+  const [loadingSrc, setLoadingSrc] = useState(!src);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Buscar URL do vídeo configurado no admin se nenhum src foi passado
+  // Resolve URL — prioridade máxima: assim que a tela montar
   useEffect(() => {
     if (src) {
       setResolvedSrc(src);
+      setLoadingSrc(false);
       return;
     }
     let active = true;
+    setLoadingSrc(true);
     (async () => {
-      const { data } = await supabase
-        .from("app_settings")
-        .select("value")
-        .eq("key", "home_vsl_video_url")
-        .maybeSingle();
-      if (!active) return;
-      const v = data?.value as
-        | string
-        | { bucket?: string; path?: string; url?: string }
-        | null
-        | undefined;
-      if (!v) return;
-      if (typeof v === "string") {
-        setResolvedSrc(v);
-        return;
-      }
-      if (v.url) {
-        setResolvedSrc(v.url);
-        return;
-      }
-      if (v.bucket && v.path) {
-        const { data: signed } = await supabase.storage
-          .from(v.bucket)
-          .createSignedUrl(v.path, 60 * 60);
-        if (active && signed?.signedUrl) setResolvedSrc(signed.signedUrl);
+      try {
+        const { data, error } = await supabase
+          .from("app_settings")
+          .select("value")
+          .eq("key", "home_vsl_video_url")
+          .maybeSingle();
+        if (error) throw error;
+        const v = data?.value as
+          | string
+          | { bucket?: string; path?: string; url?: string }
+          | null
+          | undefined;
+        if (!active) return;
+        if (!v) {
+          setLoadingSrc(false);
+          return;
+        }
+        if (typeof v === "string") {
+          setResolvedSrc(v);
+          setLoadingSrc(false);
+          return;
+        }
+        if (v.url) {
+          setResolvedSrc(v.url);
+          setLoadingSrc(false);
+          return;
+        }
+        if (v.bucket && v.path) {
+          // Tenta URL pública primeiro (sem round-trip extra)
+          const pub = supabase.storage.from(v.bucket).getPublicUrl(v.path);
+          // Em buckets privados o getPublicUrl ainda retorna uma URL,
+          // mas ela falha ao carregar. Por isso preferimos signedUrl.
+          const { data: signed, error: sErr } = await supabase.storage
+            .from(v.bucket)
+            .createSignedUrl(v.path, 60 * 60 * 6); // 6h
+          if (!active) return;
+          if (signed?.signedUrl) {
+            setResolvedSrc(signed.signedUrl);
+          } else if (pub?.data?.publicUrl) {
+            setResolvedSrc(pub.data.publicUrl);
+          } else if (sErr) {
+            throw sErr;
+          }
+          setLoadingSrc(false);
+        }
+      } catch (err) {
+        console.error("[VSLPlayer] resolve src", err);
+        if (active) {
+          setErrorMsg("Não foi possível carregar o vídeo.");
+          setLoadingSrc(false);
+        }
       }
     })();
     return () => {
@@ -77,24 +106,40 @@ export const VSLPlayer = ({
     };
   }, [src]);
 
-  // Tentar autoplay assim que o vídeo carregar
+  // Força reload + autoplay quando o src é resolvido
   useEffect(() => {
     const v = videoRef.current;
-    if (!v || !autoplay) return;
+    if (!v || !resolvedSrc) return;
+    v.muted = true;
+    setMuted(true);
+    try {
+      v.load();
+    } catch {
+      // ignore
+    }
+    if (!autoplay) return;
+
     const tryPlay = () => {
-      v.play()
-        .then(() => setPlaying(true))
-        .catch(() => setPlaying(false));
+      const p = v.play();
+      if (p && typeof p.then === "function") {
+        p.then(() => setPlaying(true)).catch(() => setPlaying(false));
+      }
     };
+
     if (v.readyState >= 2) tryPlay();
-    else v.addEventListener("loadeddata", tryPlay, { once: true });
+    const onCanPlay = () => tryPlay();
+    v.addEventListener("loadeddata", onCanPlay, { once: true });
+    v.addEventListener("canplay", onCanPlay, { once: true });
+    return () => {
+      v.removeEventListener("loadeddata", onCanPlay);
+      v.removeEventListener("canplay", onCanPlay);
+    };
   }, [resolvedSrc, autoplay]);
 
   const togglePlay = () => {
     const v = videoRef.current;
     if (!v) return;
     if (v.paused) {
-      // Primeiro clique também ativa o som
       if (muted) {
         v.muted = false;
         setMuted(false);
@@ -137,21 +182,28 @@ export const VSLPlayer = ({
           muted={muted}
           loop={loop}
           playsInline
-          preload="metadata"
+          preload="auto"
           controls={false}
           disablePictureInPicture
           controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
           onPlay={() => setPlaying(true)}
           onPause={() => setPlaying(false)}
-          onLoadedData={() => setReady(true)}
+          onError={() => setErrorMsg("Falha ao reproduzir o vídeo.")}
           className="h-full w-full object-cover"
         />
       ) : (
         <div
-          className="flex h-full w-full items-center justify-center text-sm"
+          className="flex h-full w-full flex-col items-center justify-center gap-2 text-sm"
           style={{ color: "hsl(var(--hero-gold))" }}
         >
-          Carregando vídeo…
+          {loadingSrc ? (
+            <>
+              <Loader2 className="h-6 w-6 animate-spin" />
+              <span>Carregando vídeo…</span>
+            </>
+          ) : (
+            <span>{errorMsg ?? "Vídeo indisponível."}</span>
+          )}
         </div>
       )}
 
