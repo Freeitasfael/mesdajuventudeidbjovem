@@ -5,6 +5,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Rifa from "./pages/Rifa.tsx";
+import Home from "./pages/Home.tsx";
 import { RequireAdmin } from "./components/RequireAdmin";
 
 // Lazy-load tudo que não é a landing principal, para o /rifa abrir rápido no mobile
@@ -24,6 +25,7 @@ const Eventos = lazy(() => import("./pages/admin/Eventos.tsx"));
 const Reconciliacao = lazy(() => import("./pages/admin/Reconciliacao.tsx"));
 const Alertas = lazy(() => import("./pages/admin/Alertas.tsx"));
 const Entrada = lazy(() => import("./pages/Entrada.tsx"));
+const Inscricao = lazy(() => import("./pages/Inscricao.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 
 const queryClient = new QueryClient();
@@ -40,8 +42,10 @@ const App = () => (
       <BrowserRouter>
         <Suspense fallback={<PageFallback />}>
           <Routes>
-            <Route path="/" element={<Rifa />} />
+            <Route path="/" element={<Home />} />
+            <Route path="/home" element={<Home />} />
             <Route path="/rifa" element={<Rifa />} />
+            <Route path="/inscricao" element={<Inscricao />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/pagamento/:orderId" element={<Pagamento />} />
             <Route path="/acompanhar" element={<Acompanhar />} />
@@ -57,6 +61,8 @@ const App = () => (
             <Route path="/admin/eventos" element={<RequireAdmin><Eventos /></RequireAdmin>} />
             <Route path="/admin/reconciliacao" element={<RequireAdmin><Reconciliacao /></RequireAdmin>} />
             <Route path="/admin/alertas" element={<RequireAdmin><Alertas /></RequireAdmin>} />
+            <Route path="/camiseta" element={<Entrada />} />
+            {/* /entrada legado: mantido como alias para não quebrar links antigos */}
             <Route path="/entrada" element={<Entrada />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

@@ -17,6 +17,8 @@ import {
   LogIn,
   LayoutDashboard,
   Menu,
+  UserPlus,
+  Shirt,
 } from "lucide-react";
 
 interface NavItem {
@@ -26,11 +28,12 @@ interface NavItem {
 }
 
 const NAV: NavItem[] = [
-  { to: "/rifa", label: "Início", icon: Home },
-  { to: "/rifa#rifa-grid", label: "Comprar números", icon: Ticket },
-  { to: "/entrada", label: "Comprar camiseta", icon: Sparkles },
+  { to: "/", label: "Início", icon: Home },
+  { to: "/inscricao", label: "Inscrição", icon: UserPlus },
+  { to: "/rifa", label: "Rifa", icon: Ticket },
+  { to: "/camiseta", label: "Camiseta", icon: Shirt },
   { to: "/acompanhar", label: "Consultar número", icon: Search },
-  { to: "/afiliacao", label: "Quero me afiliar", icon: Handshake },
+  { to: "/afiliacao", label: "Afiliados", icon: Handshake },
 ];
 
 interface Props {
@@ -99,7 +102,8 @@ export const SiteHeader = ({ variant = "light", breadcrumbs }: Props) => {
       const active =
         !isHash &&
         (location.pathname === item.to ||
-          (item.to !== "/rifa" && location.pathname.startsWith(item.to)));
+          (item.to !== "/" && item.to !== "/rifa" && location.pathname.startsWith(item.to))) ||
+        (item.to === "/rifa" && location.pathname === "/rifa");
       const Icon = item.icon;
       const cls = `inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition ${
         active ? `${lActive} ${activeBg}` : lBase
@@ -128,7 +132,7 @@ export const SiteHeader = ({ variant = "light", breadcrumbs }: Props) => {
     <header className={`sticky top-0 z-40 w-full ${containerCls}`}>
       <div className="container flex items-center justify-between gap-3 py-3">
         <Link
-          to="/rifa"
+          to="/"
           className={`flex items-center gap-2.5 font-extrabold tracking-tight ${
             isDark ? "text-white" : "text-foreground"
           }`}
