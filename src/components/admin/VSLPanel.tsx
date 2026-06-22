@@ -6,16 +6,42 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 
 const SETTINGS_KEY = "home_vsl_video_url";
-const BUCKET = "hero-media";
-const MAX_BYTES = 200 * 1024 * 1024; // 200 MB
+const BUCKET = "vsl-videos";
+const MAX_BYTES = 1024 * 1024 * 1024; // 1 GB
 const ALLOWED = ["video/mp4", "video/webm", "video/quicktime"];
 
+type StoredValue =
+  | { bucket: string; path: string }
+  | string
+  | null;
+
 export function VSLPanel() {
-  const [currentUrl, setCurrentUrl] = useState<string | null>(null);
+  const [storedPath, setStoredPath] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState<number | null>(null);
   const [removing, setRemoving] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const buildPreview = async (val: StoredValue) => {
+    if (!val) {
+      setStoredPath(null);
+      setPreviewUrl(null);
+      return;
+    }
+    if (typeof val === "string") {
+      // URL legada (bucket público)
+      setStoredPath(null);
+      setPreviewUrl(val);
+      return;
+    }
+    setStoredPath(val.path);
+    const { data } = await supabase.storage
+      .from(val.bucket)
+      .createSignedUrl(val.path, 60 * 60); // 1h
+    setPreviewUrl(data?.signedUrl ?? null);
+  };
 
   const load = async () => {
     setLoading(true);
@@ -24,17 +50,8 @@ export function VSLPanel() {
       .select("value")
       .eq("key", SETTINGS_KEY)
       .maybeSingle();
-    if (error) {
-      console.error("[VSLPanel] load", error);
-    }
-    const v = data?.value;
-    const url =
-      typeof v === "string"
-        ? v
-        : v && typeof v === "object" && "url" in (v as Record<string, unknown>)
-          ? String((v as { url?: string }).url ?? "")
-          : "";
-    setCurrentUrl(url || null);
+    if (error) console.error("[VSLPanel] load", error);
+    await buildPreview((data?.value ?? null) as StoredValue);
     setLoading(false);
   };
 
@@ -42,12 +59,11 @@ export function VSLPanel() {
     load();
   }, []);
 
-  const persistUrl = async (url: string | null) => {
-    // upsert em app_settings
+  const persist = async (val: StoredValue) => {
     const { error } = await supabase
       .from("app_settings")
       .upsert(
-        { key: SETTINGS_KEY, value: url ?? null },
+        [{ key: SETTINGS_KEY, value: val as unknown as never }],
         { onConflict: "key" },
       );
     if (error) throw error;
@@ -65,14 +81,15 @@ export function VSLPanel() {
       return;
     }
     if (file.size > MAX_BYTES) {
-      toast.error("Arquivo muito grande (máx 200 MB).");
+      toast.error("Arquivo muito grande (máx 1 GB).");
       return;
     }
 
     setUploading(true);
+    setProgress(0);
     try {
       const ext = file.name.split(".").pop()?.toLowerCase() || "mp4";
-      const path = `vsl/home-${Date.now()}.${ext}`;
+      const path = `home/vsl-${Date.now()}.${ext}`;
       const { error: upErr } = await supabase.storage
         .from(BUCKET)
         .upload(path, file, {
@@ -82,11 +99,8 @@ export function VSLPanel() {
         });
       if (upErr) throw upErr;
 
-      const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(path);
-      const publicUrl = pub.publicUrl;
-
-      await persistUrl(publicUrl);
-      setCurrentUrl(publicUrl);
+      await persist({ bucket: BUCKET, path });
+      await buildPreview({ bucket: BUCKET, path });
       toast.success("Vídeo da VSL atualizado com sucesso!");
     } catch (err) {
       console.error("[VSLPanel] upload", err);
@@ -95,23 +109,21 @@ export function VSLPanel() {
       );
     } finally {
       setUploading(false);
+      setProgress(null);
     }
   };
 
   const onRemove = async () => {
-    if (!currentUrl) return;
+    if (!previewUrl) return;
     if (!confirm("Remover o vídeo atual da VSL?")) return;
     setRemoving(true);
     try {
-      await persistUrl(null);
-      // tenta apagar do storage se vier do bucket público
-      const marker = `/${BUCKET}/`;
-      const idx = currentUrl.indexOf(marker);
-      if (idx >= 0) {
-        const path = currentUrl.slice(idx + marker.length).split("?")[0];
-        await supabase.storage.from(BUCKET).remove([path]).catch(() => null);
+      if (storedPath) {
+        await supabase.storage.from(BUCKET).remove([storedPath]).catch(() => null);
       }
-      setCurrentUrl(null);
+      await persist(null);
+      setStoredPath(null);
+      setPreviewUrl(null);
       toast.success("Vídeo da VSL removido.");
     } catch (err) {
       console.error("[VSLPanel] remove", err);
@@ -136,7 +148,7 @@ export function VSLPanel() {
               <Loader2 className="h-4 w-4 animate-spin" />
               Carregando…
             </span>
-          ) : currentUrl ? (
+          ) : previewUrl ? (
             <span className="inline-flex items-center gap-2 font-semibold text-emerald-700">
               <CheckCircle2 className="h-4 w-4" />
               Vídeo atual ativo
@@ -148,19 +160,16 @@ export function VSLPanel() {
           )}
         </div>
 
-        {currentUrl && (
+        {previewUrl && (
           <div className="overflow-hidden rounded-xl border bg-black/90">
             <video
-              key={currentUrl}
-              src={currentUrl}
+              key={previewUrl}
+              src={previewUrl}
               controls
               playsInline
               preload="metadata"
-              className="h-auto w-full max-h-[420px]"
+              className="h-auto max-h-[420px] w-full"
             />
-            <p className="break-all p-3 text-[11px] text-muted-foreground">
-              {currentUrl}
-            </p>
           </div>
         )}
 
@@ -176,16 +185,16 @@ export function VSLPanel() {
             {uploading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Enviando…
+                Enviando{progress != null ? ` ${progress}%` : "…"}
               </>
             ) : (
               <>
                 <Upload className="mr-2 h-4 w-4" />
-                {currentUrl ? "Substituir vídeo" : "Enviar vídeo"}
+                {previewUrl ? "Substituir vídeo" : "Enviar vídeo"}
               </>
             )}
           </Button>
-          {currentUrl && (
+          {previewUrl && (
             <Button
               variant="outline"
               onClick={onRemove}
@@ -203,8 +212,8 @@ export function VSLPanel() {
         </div>
 
         <p className="text-xs text-muted-foreground">
-          Formatos aceitos: MP4, WebM, MOV — máx. 200 MB. Recomendado: MP4 H.264
-          720p ou 1080p para melhor compatibilidade no mobile.
+          Formatos aceitos: MP4, WebM, MOV — máx. 1 GB. Recomendado: MP4 H.264
+          720p/1080p para melhor compatibilidade no mobile.
         </p>
       </CardContent>
     </Card>
