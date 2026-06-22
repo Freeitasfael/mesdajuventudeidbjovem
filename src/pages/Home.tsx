@@ -147,8 +147,8 @@ export default function Home() {
             </span>
           </div>
 
-          <div className="animate-fade-in-up max-w-4xl text-center">
-            <h1 className="text-4xl font-extrabold leading-[1.05] tracking-tight md:text-6xl lg:text-7xl">
+          <div className="animate-fade-in-up w-full max-w-4xl text-center">
+            <h1 className="text-fluid-hero font-extrabold tracking-tight">
               UM MÊS.
               <br />
               UMA GERAÇÃO.{" "}
@@ -159,7 +159,7 @@ export default function Home() {
                 UMA SÓ VOZ.
               </span>
             </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-base text-white/85 sm:text-lg md:text-xl">
+            <p className="mx-auto mt-5 max-w-2xl text-fluid-base text-white/85 sm:mt-6">
               Há 16 anos percorrendo o Brasil com milhares de jovens, um só
               propósito e uma só mensagem:{" "}
               <span
@@ -241,23 +241,23 @@ export default function Home() {
             >
               Escolha como participar
             </p>
-            <h2 className="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl md:text-5xl">
+            <h2 className="mt-3 text-fluid-3xl font-extrabold tracking-tight">
               Três caminhos.{" "}
               <span style={{ color: "hsl(var(--hero-gold))" }}>
                 Um só movimento.
               </span>
             </h2>
-            <p className="mt-4 text-white/75 sm:text-lg">
+            <p className="mt-4 text-fluid-base text-white/75">
               Inscreva-se, apoie pela rifa ou vista a mensagem. Toda forma de
               participar fortalece o Mês da Juventude.
             </p>
           </div>
 
-          <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
+          <div className="mt-10 grid grid-cols-1 gap-5 sm:mt-12 sm:gap-6 md:grid-cols-3">
             {PATHS.map(({ to, title, kicker, description, cta, icon: Icon, highlighted }) => (
               <article
                 key={to}
-                className={`group relative flex flex-col overflow-hidden rounded-3xl border p-7 transition-all hover:-translate-y-1 hover:shadow-gold-glow ${
+                className={`group relative flex flex-col overflow-hidden rounded-3xl border p-5 transition-all hover:-translate-y-1 hover:shadow-gold-glow sm:p-7 ${
                   highlighted ? "md:scale-[1.03]" : ""
                 }`}
                 style={{
