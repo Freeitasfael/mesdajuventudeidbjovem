@@ -2,120 +2,124 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
+/* IDB Jovem — Emerald Prestige design system.
+   All colors MUST be HSL.
+   Palette: deep emerald #064e3b, mid emerald #0d7a5f, champagne gold #c9a84c, cream #f5f0e0.
 */
 
 @layer base {
   :root {
-    /* Youth-oriented vibrant palette */
-    --background: 250 100% 99%;
-    --foreground: 250 30% 12%;
+    /* Surfaces — emerald-tinted creams for non-hero pages */
+    --background: 44 38% 92%;             /* cream f5f0e0 */
+    --foreground: 158 78% 12%;            /* deep emerald ink */
 
     --card: 0 0% 100%;
-    --card-foreground: 250 30% 12%;
+    --card-foreground: 158 78% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 250 30% 12%;
+    --popover-foreground: 158 78% 12%;
 
-    /* Primary: vibrant violet */
-    --primary: 262 83% 58%;
-    --primary-foreground: 0 0% 100%;
+    /* Primary: champagne gold */
+    --primary: 43 53% 54%;                /* #c9a84c */
+    --primary-foreground: 158 78% 12%;    /* deep emerald on gold */
 
-    /* Secondary: soft pink */
-    --secondary: 330 100% 96%;
-    --secondary-foreground: 262 83% 30%;
+    /* Secondary: mid emerald */
+    --secondary: 158 80% 26%;             /* #0d7a5f */
+    --secondary-foreground: 44 38% 92%;   /* cream */
 
-    --muted: 250 30% 96%;
-    --muted-foreground: 250 15% 45%;
+    --muted: 44 30% 86%;
+    --muted-foreground: 158 25% 30%;
 
-    /* Accent: electric cyan */
-    --accent: 190 95% 50%;
-    --accent-foreground: 0 0% 100%;
+    /* Accent: deeper champagne for highlights */
+    --accent: 43 53% 60%;
+    --accent-foreground: 158 78% 12%;
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 0 70% 45%;
+    --destructive-foreground: 44 38% 92%;
 
-    --border: 250 30% 92%;
-    --input: 250 30% 92%;
-    --ring: 262 83% 58%;
+    --border: 43 30% 70%;
+    --input: 43 30% 80%;
+    --ring: 43 53% 54%;
 
-    --radius: 0.75rem;
+    --radius: 1rem;
 
-    /* Raffle number status tokens — youthful palette */
-    --number-available: 160 84% 45%;       /* mint green */
-    --number-available-foreground: 0 0% 100%;
-    --number-available-hover: 160 84% 38%;
-    --number-reserved: 38 100% 55%;        /* sunny amber */
-    --number-reserved-foreground: 30 80% 12%;
-    --number-paid: 340 90% 60%;            /* hot pink */
-    --number-paid-foreground: 0 0% 100%;
+    /* Raffle number status — emerald/gold/cream */
+    --number-available: 44 38% 92%;            /* cream chip on dark, border-only on light */
+    --number-available-foreground: 158 78% 12%;
+    --number-available-hover: 43 53% 80%;
+    --number-reserved: 43 53% 72%;             /* soft champagne */
+    --number-reserved-foreground: 158 78% 12%;
+    --number-paid: 43 53% 54%;                 /* full gold */
+    --number-paid-foreground: 158 78% 12%;
 
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(262 83% 58%), hsl(330 90% 65%));
-    --gradient-hero: linear-gradient(135deg, hsl(262 83% 58%) 0%, hsl(190 95% 50%) 100%);
-    --gradient-soft: linear-gradient(135deg, hsl(250 100% 98%), hsl(330 100% 97%));
+    --gradient-primary: linear-gradient(135deg, hsl(43 53% 54%), hsl(43 70% 70%));
+    --gradient-hero: linear-gradient(180deg, hsl(158 78% 17%) 0%, hsl(158 78% 10%) 100%);
+    --gradient-soft: linear-gradient(135deg, hsl(44 38% 95%), hsl(44 30% 88%));
 
     /* Shadows */
-    --shadow-glow: 0 8px 30px -8px hsl(262 83% 58% / 0.35);
-    --shadow-card: 0 4px 20px -4px hsl(250 30% 50% / 0.12);
+    --shadow-glow: 0 8px 30px -8px hsl(43 53% 54% / 0.35);
+    --shadow-card: 0 4px 24px -8px hsl(158 78% 12% / 0.18);
+    --shadow-premium: 0 24px 60px -24px hsl(158 78% 8% / 0.45), 0 2px 0 0 hsl(43 53% 54% / 0.08) inset;
 
-    /* Hero IDB Jovem — premium dark + gold */
-    --hero-bg: 0 0% 4%;
-    --hero-foreground: 0 0% 98%;
-    --hero-muted: 0 0% 75%;
-    --hero-gold: 48 100% 50%;          /* #FFC700 */
-    --hero-gold-soft: 48 100% 65%;
-    --gradient-hero-dark: linear-gradient(180deg, hsl(0 0% 4% / 0.85) 0%, hsl(0 0% 2% / 0.95) 100%);
-    --shadow-gold-glow: 0 0 40px hsl(48 100% 50% / 0.45), 0 0 80px hsl(48 100% 50% / 0.25);
-    --text-shadow-gold: 0 0 24px hsl(48 100% 50% / 0.6);
+    /* Hero IDB Jovem — Emerald Prestige */
+    --hero-bg: 158 78% 17%;               /* #064e3b */
+    --hero-bg-deep: 158 78% 10%;          /* deeper emerald for layering */
+    --hero-surface: 158 60% 22%;          /* surface block over hero */
+    --hero-foreground: 44 38% 92%;        /* cream */
+    --hero-muted: 44 20% 78%;
+    --hero-gold: 43 53% 54%;              /* champagne gold */
+    --hero-gold-soft: 43 70% 70%;
+    --gradient-hero-dark: linear-gradient(180deg, hsl(158 78% 17% / 0.92) 0%, hsl(158 78% 10% / 0.98) 100%);
+    --shadow-gold-glow: 0 0 40px hsl(43 53% 54% / 0.35), 0 0 80px hsl(43 53% 54% / 0.18);
+    --text-shadow-gold: 0 0 24px hsl(43 53% 54% / 0.55);
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 262 83% 58%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 250 30% 95%;
-    --sidebar-accent-foreground: 250 30% 12%;
-    --sidebar-border: 250 30% 92%;
-    --sidebar-ring: 262 83% 58%;
+    --sidebar-background: 44 38% 96%;
+    --sidebar-foreground: 158 78% 14%;
+    --sidebar-primary: 43 53% 54%;
+    --sidebar-primary-foreground: 158 78% 12%;
+    --sidebar-accent: 44 30% 90%;
+    --sidebar-accent-foreground: 158 78% 14%;
+    --sidebar-border: 43 30% 78%;
+    --sidebar-ring: 43 53% 54%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 158 78% 10%;
+    --foreground: 44 38% 92%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 158 60% 14%;
+    --card-foreground: 44 38% 92%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 158 60% 14%;
+    --popover-foreground: 44 38% 92%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 43 53% 54%;
+    --primary-foreground: 158 78% 12%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 158 60% 22%;
+    --secondary-foreground: 44 38% 92%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 158 50% 18%;
+    --muted-foreground: 44 20% 78%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 43 53% 60%;
+    --accent-foreground: 158 78% 12%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 62% 40%;
+    --destructive-foreground: 44 38% 92%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --border: 43 30% 30%;
+    --input: 158 50% 18%;
+    --ring: 43 53% 54%;
+    --sidebar-background: 158 78% 10%;
+    --sidebar-foreground: 44 38% 92%;
+    --sidebar-primary: 43 53% 54%;
+    --sidebar-primary-foreground: 158 78% 12%;
+    --sidebar-accent: 158 60% 18%;
+    --sidebar-accent-foreground: 44 38% 92%;
+    --sidebar-border: 158 50% 22%;
+    --sidebar-ring: 43 53% 54%;
   }
 }
 
@@ -124,17 +128,41 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
+  html {
+    font-family: "Manrope", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  }
+
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-family: "Manrope", ui-sans-serif, system-ui, -apple-system, sans-serif;
+    font-feature-settings: "ss01", "cv11";
+  }
+
+  h1, h2, h3, h4, .font-display {
+    font-family: "Sora", "Manrope", ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: -0.02em;
   }
 }
 
 @layer utilities {
+  .font-display {
+    font-family: "Sora", "Manrope", ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: -0.02em;
+  }
   .text-glow-gold {
     text-shadow: var(--text-shadow-gold);
   }
   .shadow-gold-glow {
     box-shadow: var(--shadow-gold-glow);
+  }
+  .shadow-premium {
+    box-shadow: var(--shadow-premium);
+  }
+  .bento-card {
+    @apply rounded-[2rem] border;
+    border-color: hsl(var(--hero-gold) / 0.18);
+    background-color: hsl(var(--hero-surface) / 0.55);
+    backdrop-filter: blur(8px);
   }
   .animate-fade-in-up {
     animation: fade-in-up 0.8s ease-out both;
@@ -150,20 +178,27 @@ All colors MUST be HSL.
     border-radius: 1.25rem;
   }
   @keyframes ring-pulse {
-    0% { box-shadow: 0 0 0 0 hsl(48 100% 50% / 0.55); }
-    40% { box-shadow: 0 0 0 18px hsl(48 100% 50% / 0.18); }
-    100% { box-shadow: 0 0 0 0 hsl(48 100% 50% / 0); }
+    0%   { box-shadow: 0 0 0 0 hsl(var(--hero-gold) / 0.55); }
+    40%  { box-shadow: 0 0 0 18px hsl(var(--hero-gold) / 0.18); }
+    100% { box-shadow: 0 0 0 0 hsl(var(--hero-gold) / 0); }
   }
   @keyframes fade-in-up {
     from { opacity: 0; transform: translateY(16px); }
-    to { opacity: 1; transform: translateY(0); }
+    to   { opacity: 1; transform: translateY(0); }
   }
   @keyframes fade-in {
     from { opacity: 0; }
-    to { opacity: 1; }
+    to   { opacity: 1; }
   }
   @keyframes fade-in-down {
     from { opacity: 0; transform: translateY(-12px); }
-    to { opacity: 1; transform: translateY(0); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes gold-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 hsl(var(--hero-gold) / 0.35); }
+    50%      { box-shadow: 0 0 0 12px hsl(var(--hero-gold) / 0); }
+  }
+  .animate-gold-pulse {
+    animation: gold-pulse 2.4s ease-in-out infinite;
   }
 }

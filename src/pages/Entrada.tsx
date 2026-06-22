@@ -191,7 +191,7 @@ export default function Entrada() {
       <section
         id="comprar"
         className="py-20 md:py-28 relative"
-        style={{ backgroundColor: "hsl(0 0% 6%)" }}
+        style={{ backgroundColor: "hsl(var(--hero-bg-deep))" }}
       >
         <div
           className="pointer-events-none absolute inset-0 opacity-50"
@@ -288,7 +288,7 @@ export default function Entrada() {
                 className="relative w-full max-w-[360px] lg:max-w-[420px] aspect-[441/753] rounded-3xl overflow-hidden border"
                 style={{
                   borderColor: "hsl(var(--hero-gold) / 0.2)",
-                  backgroundColor: "hsl(0 0% 4%)",
+                  backgroundColor: "hsl(var(--hero-bg-deep))",
                 }}
               >
                 <img
@@ -328,7 +328,7 @@ export default function Entrada() {
       <footer
         className="py-12 border-t"
         style={{
-          backgroundColor: "hsl(0 0% 3%)",
+          backgroundColor: "hsl(var(--hero-bg-deep))",
           borderColor: "hsl(var(--hero-gold) / 0.15)",
         }}
       >
