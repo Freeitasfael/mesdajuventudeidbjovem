@@ -166,27 +166,19 @@ export default function Home() {
             <VSLPlayer poster={heroBg} />
           </div>
 
-          {/* CTAs hero */}
-          <div className="flex w-full max-w-2xl flex-col items-center gap-3 sm:flex-row sm:justify-center">
+          {/* CTA hero */}
+          <div className="flex w-full max-w-2xl justify-center">
             <Button
               size="lg"
               onClick={() => scrollTo("participar")}
-              className="h-14 w-full rounded-2xl text-base font-extrabold uppercase tracking-wider shadow-xl transition-all hover:scale-[1.02] hover:brightness-110 sm:w-auto sm:px-10"
+              className="h-16 w-full rounded-2xl text-lg font-extrabold uppercase tracking-wider shadow-xl transition-all hover:scale-[1.02] hover:brightness-110 sm:h-20 sm:text-xl sm:px-16"
               style={{
                 backgroundColor: "hsl(var(--hero-gold))",
                 color: "hsl(var(--hero-bg))",
               }}
             >
               Quero Participar
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              asChild
-              className="h-14 w-full rounded-2xl border-white/30 bg-white/5 text-base font-extrabold uppercase tracking-wider text-white hover:bg-white/10 sm:w-auto sm:px-10"
-            >
-              <Link to="/rifa">Ver a rifa</Link>
+              <ArrowRight className="ml-3 h-6 w-6 sm:h-7 sm:w-7" />
             </Button>
           </div>
 
