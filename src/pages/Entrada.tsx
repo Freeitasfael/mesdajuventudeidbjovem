@@ -24,51 +24,11 @@ export default function Entrada() {
     >
       <Toaster position="top-center" richColors theme="dark" />
 
-      {/* Nav */}
-      <header
-        className="fixed top-0 left-0 right-0 z-40 backdrop-blur-md border-b"
-        style={{
-          backgroundColor: "hsl(var(--hero-bg) / 0.75)",
-          borderColor: "hsl(var(--hero-gold) / 0.15)",
-        }}
-      >
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <img src={logoIdb} alt="IDB Jovem" className="h-10 w-auto" />
-            <span className="font-extrabold tracking-wider uppercase text-sm hidden sm:inline">
-              Mês da Juventude
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <a
-              href="/rifa"
-              className="hidden sm:inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-extrabold uppercase tracking-wider border transition hover:bg-white/10"
-              style={{
-                borderColor: "hsl(var(--hero-gold) / 0.4)",
-                color: "hsl(var(--hero-gold))",
-              }}
-            >
-              <Ticket className="h-3.5 w-3.5" />
-              Rifa
-            </a>
-            <Button
-              onClick={() => scrollTo("comprar")}
-              size="sm"
-              className="rounded-full font-extrabold uppercase tracking-wider"
-              style={{
-                backgroundColor: "hsl(var(--hero-gold))",
-                color: "hsl(var(--hero-bg))",
-              }}
-            >
-              Comprar
-            </Button>
-          </div>
-        </div>
-      </header>
+      <SiteHeader variant="dark" />
 
       {/* Hero */}
       <section
-        className="relative overflow-hidden pt-28 pb-20 md:pt-36 md:pb-28"
+        className="relative overflow-hidden pb-20 pt-12 md:pb-28 md:pt-16"
         aria-label="Mês da Juventude"
       >
         {/* Background */}
