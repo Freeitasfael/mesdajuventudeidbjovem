@@ -296,7 +296,7 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "kit" }: Pr
               >
                 <div
                   className="relative h-24 w-24 shrink-0 rounded-xl overflow-hidden border"
-                  style={{ borderColor: "hsl(var(--hero-gold) / 0.3)", backgroundColor: "hsl(0 0% 4%)" }}
+                  style={{ borderColor: "hsl(var(--hero-gold) / 0.3)", backgroundColor: "hsl(var(--hero-bg-deep))" }}
                 >
                   <div
                     key={previewKey}
