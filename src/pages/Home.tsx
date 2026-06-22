@@ -104,6 +104,8 @@ export default function Home() {
             src={heroBg}
             alt=""
             aria-hidden="true"
+            fetchPriority="high"
+            decoding="async"
             className="h-full w-full object-cover opacity-50"
           />
           <div
@@ -124,6 +126,10 @@ export default function Home() {
             <img
               src={logoIdb}
               alt="IDB Jovem"
+              width={176}
+              height={176}
+              decoding="async"
+              fetchPriority="high"
               className="h-auto w-32 sm:w-44"
               style={{
                 filter: "drop-shadow(0 8px 24px hsl(var(--hero-gold) / 0.35))",
@@ -382,6 +388,8 @@ export default function Home() {
             <img
               src={heroBg}
               alt="Mês da Juventude"
+              loading="lazy"
+              decoding="async"
               className="h-full w-full object-cover"
             />
             <div
