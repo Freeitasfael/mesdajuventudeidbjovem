@@ -28,7 +28,7 @@ interface NavItem {
 const NAV: NavItem[] = [
   { to: "/rifa", label: "Início", icon: Home },
   { to: "/rifa#rifa-grid", label: "Comprar números", icon: Ticket },
-  { to: "/entrada", label: "Comprar ingresso", icon: Sparkles },
+  { to: "/entrada", label: "Comprar camiseta", icon: Sparkles },
   { to: "/acompanhar", label: "Consultar número", icon: Search },
   { to: "/afiliacao", label: "Quero me afiliar", icon: Handshake },
 ];
