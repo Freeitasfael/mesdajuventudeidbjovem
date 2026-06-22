@@ -13,7 +13,10 @@ export default {
       },
     },
     extend: {
-      colors: {
+      fontFamily: {
+        sans: ['"Manrope"', "ui-sans-serif", "system-ui", "-apple-system", "sans-serif"],
+        display: ['"Sora"', '"Manrope"', "ui-sans-serif", "system-ui", "sans-serif"],
+      },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
