@@ -200,30 +200,6 @@ export default function Home() {
             </Button>
           </div>
 
-          {/* Trust */}
-          <ul className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm text-white/85 sm:text-base">
-            <li className="inline-flex items-center gap-2">
-              <Shield
-                className="h-4 w-4"
-                style={{ color: "hsl(var(--hero-gold))" }}
-              />
-              100% transparente
-            </li>
-            <li className="inline-flex items-center gap-2">
-              <CheckCircle
-                className="h-4 w-4"
-                style={{ color: "hsl(var(--hero-gold))" }}
-              />
-              100% confiável
-            </li>
-            <li className="inline-flex items-center gap-2">
-              <Heart
-                className="h-4 w-4"
-                style={{ color: "hsl(var(--hero-gold))" }}
-              />
-              100% para o evento
-            </li>
-          </ul>
         </div>
       </section>
 
