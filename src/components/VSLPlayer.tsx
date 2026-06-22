@@ -128,7 +128,6 @@ export const VSLPlayer = ({
           preload="metadata"
           controls={false}
           disablePictureInPicture
-          // @ts-expect-error vendor attribute
           controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
           onPlay={() => setPlaying(true)}
           onPause={() => setPlaying(false)}
