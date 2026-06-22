@@ -63,7 +63,7 @@ export function VSLPanel() {
     const { error } = await supabase
       .from("app_settings")
       .upsert(
-        { key: SETTINGS_KEY, value: val as unknown as object | null },
+        [{ key: SETTINGS_KEY, value: val as unknown as never }],
         { onConflict: "key" },
       );
     if (error) throw error;
