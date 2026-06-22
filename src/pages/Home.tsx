@@ -515,7 +515,7 @@ export default function Home() {
         <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-4">
           <div className="md:col-span-2">
             <div className="flex items-center gap-3">
-              <img src={logoIdb} alt="IDB Jovem" className="h-12 w-auto" />
+              <img src={logoIdb} alt="IDB Jovem" loading="lazy" decoding="async" className="h-12 w-auto" />
               <div>
                 <p className="font-extrabold uppercase tracking-wider text-white">
                   IDB Jovem
