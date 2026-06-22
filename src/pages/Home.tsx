@@ -17,12 +17,9 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SiteHeader } from "@/components/SiteHeader";
+import { VSLPlayer } from "@/components/VSLPlayer";
 import heroBg from "@/assets/hero-rifa-bg.jpg";
 import logoIdb from "@/assets/idb-jovem-logo.png";
-
-// VSL placeholder — substitua VIDEO_ID por um id real do YouTube/Vimeo
-const VSL_EMBED =
-  "https://www.youtube.com/embed/dQw4w9WgXcQ?rel=0&modestbranding=1";
 
 type PathCard = {
   to: string;
@@ -169,22 +166,8 @@ export default function Home() {
           </div>
 
           {/* VSL */}
-          <div
-            className="animate-fade-in-up relative w-full max-w-3xl overflow-hidden rounded-3xl border shadow-gold-glow"
-            style={{
-              borderColor: "hsl(var(--hero-gold) / 0.35)",
-              backgroundColor: "rgba(0,0,0,0.4)",
-            }}
-          >
-            <div className="aspect-video w-full">
-              <iframe
-                src={VSL_EMBED}
-                title="Conheça o Mês da Juventude"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                className="h-full w-full"
-              />
-            </div>
+          <div className="animate-fade-in-up w-full max-w-3xl">
+            <VSLPlayer poster={heroBg} />
           </div>
 
           {/* CTAs hero */}
