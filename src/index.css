@@ -257,4 +257,58 @@
   .animate-gold-pulse {
     animation: gold-pulse 2.4s ease-in-out infinite;
   }
+
+  /* ===== Tipografia fluida — escala suave entre mobile e desktop ===== */
+  .text-fluid-xs   { font-size: clamp(0.75rem, 0.70rem + 0.20vw, 0.85rem); }
+  .text-fluid-sm   { font-size: clamp(0.875rem, 0.82rem + 0.25vw, 1rem); }
+  .text-fluid-base { font-size: clamp(1rem, 0.94rem + 0.30vw, 1.125rem); }
+  .text-fluid-lg   { font-size: clamp(1.125rem, 1.05rem + 0.40vw, 1.375rem); }
+  .text-fluid-xl   { font-size: clamp(1.25rem, 1.10rem + 0.80vw, 1.75rem); }
+  .text-fluid-2xl  { font-size: clamp(1.5rem, 1.25rem + 1.25vw, 2.25rem); line-height: 1.15; }
+  .text-fluid-3xl  { font-size: clamp(1.875rem, 1.4rem + 2.2vw, 3rem); line-height: 1.1; }
+  .text-fluid-4xl  { font-size: clamp(2.25rem, 1.6rem + 3vw, 3.75rem); line-height: 1.05; }
+  .text-fluid-hero { font-size: clamp(2.5rem, 1.6rem + 5vw, 5rem); line-height: 1.02; letter-spacing: -0.02em; }
+
+  /* ===== Container fluido com padding seguro ===== */
+  .container-fluid {
+    width: 100%;
+    margin-inline: auto;
+    padding-left: clamp(1rem, 4vw, 2rem);
+    padding-right: clamp(1rem, 4vw, 2rem);
+    max-width: 80rem;
+  }
+
+  /* ===== Tabela responsiva com momentum iOS ===== */
+  .table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+  .table-responsive > table {
+    min-width: 100%;
+  }
+
+  /* ===== Scrollbar invisível para carrosséis mobile ===== */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+
+  /* ===== Quebra segura de palavras longas ===== */
+  .break-anywhere {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  /* ===== Aspect ratios utilitários ===== */
+  .aspect-video-safe  { aspect-ratio: 16 / 9; }
+  .aspect-square-safe { aspect-ratio: 1 / 1; }
+
+  /* ===== Touch target mínimo seguro ===== */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
 }
