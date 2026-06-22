@@ -126,25 +126,15 @@ export default function Home() {
             <img
               src={logoIdb}
               alt="IDB Jovem"
-              width={176}
-              height={176}
+              width={320}
+              height={320}
               decoding="async"
               fetchPriority="high"
-              className="h-auto w-32 sm:w-44"
+              className="h-auto w-56 sm:w-72 md:w-80"
               style={{
-                filter: "drop-shadow(0 8px 24px hsl(var(--hero-gold) / 0.35))",
+                filter: "drop-shadow(0 12px 36px hsl(var(--hero-gold) / 0.5))",
               }}
             />
-            <span
-              className="mt-6 inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-extrabold uppercase tracking-[0.25em]"
-              style={{
-                borderColor: "hsl(var(--hero-gold) / 0.45)",
-                color: "hsl(var(--hero-gold))",
-              }}
-            >
-              <Sparkles className="h-3.5 w-3.5" />
-              Mês da Juventude · 16 anos
-            </span>
           </div>
 
           <div className="animate-fade-in-up w-full max-w-4xl text-center">
