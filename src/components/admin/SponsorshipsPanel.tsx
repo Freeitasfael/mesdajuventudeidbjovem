@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Plus, Trash2, RefreshCw, CheckCircle2, Clock } from "lucide-react";
+import beneficiosImg from "@/assets/beneficios-patrocinador.png.asset.json";
 
 interface Sponsorship {
   id: string;
