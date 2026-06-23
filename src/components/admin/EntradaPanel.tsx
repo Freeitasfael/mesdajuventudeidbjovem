@@ -36,6 +36,14 @@ interface StockRow {
 const fmtBRL = (c: number) => `R$ ${(c / 100).toFixed(2).replace(".", ",")}`;
 const fmtDate = (s: string) => new Date(s).toLocaleString("pt-BR");
 
+const STATUS_LABEL: Record<string, string> = {
+  paid: "Pago",
+  pending: "Pendente",
+  expired: "Expirado",
+  cancelled: "Cancelado",
+  refunded: "Reembolso",
+};
+
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
     paid: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
@@ -46,7 +54,7 @@ function StatusBadge({ status }: { status: string }) {
   };
   return (
     <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${map[status] ?? "bg-muted"}`}>
-      {status}
+      {STATUS_LABEL[status] ?? status}
     </span>
   );
 }
@@ -90,18 +98,17 @@ export function EntradaPanel() {
   };
 
   const refundOrder = async (o: EntradaOrder) => {
-    const msg = o.status === "paid"
-      ? `Reembolsar este pedido de ${fmtBRL(o.total_cents)}? O estoque será reposto e você deve estornar o valor manualmente no Mercado Pago. Esta ação não pode ser desfeita.`
-      : `Cancelar este pedido pendente? Esta ação não pode ser desfeita.`;
-    if (!confirm(msg)) return;
+    if (!confirm(
+      `Marcar o pedido de ${o.buyer_name} (${fmtBRL(o.total_cents)}) como Reembolso?\n\nEsta ação é apenas para controle interno — nenhum estorno automático será feito. Caso necessário, o valor deve ser devolvido manualmente.`,
+    )) return;
     setRefundingId(o.id);
-    const { error } = await supabase.rpc("admin_refund_entrada_order" as any, { _order_id: o.id });
+    const { error } = await supabase.rpc("admin_mark_entrada_refunded" as never, { _order_id: o.id } as never);
     setRefundingId(null);
     if (error) {
-      toast.error("Erro ao reembolsar: " + error.message);
+      toast.error("Erro ao marcar reembolso: " + error.message);
       return;
     }
-    toast.success(o.status === "paid" ? "Pedido marcado como reembolsado e estoque reposto." : "Pedido cancelado.");
+    toast.success("Pedido marcado como Reembolso.");
     load();
   };
 
@@ -321,7 +328,7 @@ export function EntradaPanel() {
             </thead>
             <tbody>
               {filteredOrders.map((o) => {
-                const canRefund = o.status === "paid" || o.status === "pending";
+                const canRefund = o.status !== "refunded";
                 return (
                   <tr key={o.id} className="border-t border-border">
                     <td className="px-4 py-3 whitespace-nowrap">{fmtDate(o.created_at)}</td>
@@ -345,7 +352,7 @@ export function EntradaPanel() {
                       {canRefund && (
                         <Button size="sm" variant="outline" onClick={() => refundOrder(o)} disabled={refundingId === o.id}>
                           <Undo2 className="mr-1 h-3 w-3" />
-                          {refundingId === o.id ? "..." : o.status === "paid" ? "Reembolsar" : "Cancelar"}
+                          {refundingId === o.id ? "..." : "Reembolso"}
                         </Button>
                       )}
                     </td>
