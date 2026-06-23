@@ -70,6 +70,7 @@ export default {
             DEFAULT: "hsl(var(--number-available))",
             foreground: "hsl(var(--number-available-foreground))",
             hover: "hsl(var(--number-available-hover))",
+            border: "hsl(var(--number-available-border))",
           },
           reserved: {
             DEFAULT: "hsl(var(--number-reserved))",

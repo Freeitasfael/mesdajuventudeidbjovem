@@ -44,13 +44,14 @@
     --radius: 1rem;
 
     /* Raffle number status — emerald/gold/cream */
-    --number-available: 44 38% 92%;            /* cream chip on dark, border-only on light */
-    --number-available-foreground: 158 78% 12%;
-    --number-available-hover: 43 53% 80%;
-    --number-reserved: 38 95% 55%;             /* amarelo/âmbar — "em processo" */
-    --number-reserved-foreground: 158 78% 12%;
-    --number-paid: 0 70% 45%;                  /* vermelho — "vendido/indisponível" */
-    --number-paid-foreground: 0 0% 100%;
+   --number-available: 210 20% 98%;           /* #F9FAFB — ação principal */
+   --number-available-foreground: 158 88% 20%; /* #065F46 */
+   --number-available-border: 160 84% 39%;    /* #10B981 */
+   --number-available-hover: 152 60% 92%;
+   --number-reserved: 45 96% 64%;             /* #FCD34D — atenção leve */
+   --number-reserved-foreground: 22 78% 26%;  /* #78350F */
+   --number-paid: 220 13% 91%;                /* #E5E7EB — neutro/discreto */
+   --number-paid-foreground: 220 9% 46%;      /* #6B7280 */
 
     /* Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(43 53% 54%), hsl(43 70% 70%));
