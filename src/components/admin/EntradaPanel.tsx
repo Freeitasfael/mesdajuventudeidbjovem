@@ -102,10 +102,7 @@ export function EntradaPanel() {
       `Marcar o pedido de ${o.buyer_name} (${fmtBRL(o.total_cents)}) como Reembolso?\n\nEsta ação é apenas para controle interno — nenhum estorno automático será feito. Caso necessário, o valor deve ser devolvido manualmente.`,
     )) return;
     setRefundingId(o.id);
-    const { error } = await supabase
-      .from("entrada_orders")
-      .update({ status: "refunded", updated_at: new Date().toISOString() })
-      .eq("id", o.id);
+    const { error } = await supabase.rpc("admin_mark_entrada_refunded" as never, { _order_id: o.id } as never);
     setRefundingId(null);
     if (error) {
       toast.error("Erro ao marcar reembolso: " + error.message);
