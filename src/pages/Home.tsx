@@ -287,23 +287,44 @@ export default function Home() {
               Sobre o evento
             </p>
             <h2 className="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl md:text-5xl">
-              O maior encontro jovem do Brasil
+              O maior movimento jovem da Igreja de Deus no Brasil
             </h2>
             <p className="mt-5 text-white/80 sm:text-lg">
-              O <strong>Mês da Juventude</strong> é a celebração anual da IDB
-              Jovem: 30 dias de cultos, atividades, ações sociais e momentos
-              marcantes que percorrem cidades de todo o país.
+              O <strong>Mês da Juventude</strong> acontece em todo o país, reunindo
+              jovens da Igreja de Deus no Brasil para viver esse tempo de forma
+              única em cada lugar.
             </p>
             <p className="mt-4 text-white/75">
-              Há 16 anos somando histórias, gerações e propósitos — com uma só
-              mensagem que transforma vidas e renova a fé de milhares de jovens.
+              Cada estado se movimenta do seu jeito, com ações, encontros e
+              momentos que levam uma mensagem simples e real:{" "}
+              <strong>Jesus transforma.</strong>
+            </p>
+            <p className="mt-4 text-white/75">
+              E em <strong>Minas Gerais</strong> isso ganha ainda mais força.
+              Neste ano, a IDB Jovem Minas Gerais está preparando uma grande
+              mobilização em um final de semana especial — um encontro que vai
+              reunir jovens de várias cidades para viver algo marcante juntos.
+            </p>
+            <p className="mt-4 text-white/75">
+              Mais do que um evento, é um tempo de{" "}
+              <strong>conexão, fé e propósito.</strong>
+            </p>
+            <p className="mt-4 text-white/75">
+              Há 16 anos esse movimento vem impactando gerações dentro da nossa
+              igreja, levando uma mensagem que continua transformando vidas.
+            </p>
+            <p
+              className="mt-5 text-lg font-extrabold uppercase tracking-[0.2em]"
+              style={{ color: "hsl(var(--hero-gold))" }}
+            >
+              Jesus transforma.
             </p>
 
             <div className="mt-8 grid grid-cols-3 gap-3">
               {[
                 { icon: Calendar, value: "16 ANOS", label: "de história" },
                 { icon: Users, value: "+50 MIL", label: "jovens impactados" },
-                { icon: Map, value: "BRASIL", label: "todo o país" },
+                { icon: Map, value: "EM TODO", label: "o Brasil" },
               ].map(({ icon: Icon, value, label }) => (
                 <div
                   key={label}
