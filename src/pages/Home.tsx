@@ -138,10 +138,11 @@ export default function Home() {
           </div>
 
           <div className="animate-fade-in-up w-full max-w-4xl text-center">
-            <h1 className="text-fluid-hero font-extrabold tracking-tight">
+            <h1 className="text-fluid-hero font-extrabold leading-[1.05] tracking-tight">
               UM MÊS.
               <br />
-              UMA GERAÇÃO.{" "}
+              UMA GERAÇÃO.
+              <br />
               <span
                 className="text-glow-gold"
                 style={{ color: "hsl(var(--hero-gold))" }}
@@ -149,15 +150,10 @@ export default function Home() {
                 UMA SÓ VOZ.
               </span>
             </h1>
-            <p className="mx-auto mt-5 max-w-2xl text-fluid-base text-white/85 sm:mt-6">
-              Há 16 anos percorrendo o Brasil com milhares de jovens, um só
-              propósito e uma só mensagem:{" "}
-              <span
-                className="font-extrabold"
-                style={{ color: "hsl(var(--hero-gold))" }}
-              >
-                Jesus transforma.
-              </span>
+            <p className="mx-auto mt-5 max-w-2xl text-fluid-lg font-semibold uppercase tracking-[0.18em] text-white/90 sm:mt-6">
+              Congresso Estadual de Jovens
+              <br />
+              <span style={{ color: "hsl(var(--hero-gold))" }}>Estações</span>
             </p>
           </div>
 
