@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertCircle, Check, Clock, Search, RefreshCw } from "lucide-react";
 import { SiteHeader } from "@/components/SiteHeader";
+import { WhatsAppFab } from "@/components/WhatsAppFab";
 
 interface OrderRow {
   id: string;
