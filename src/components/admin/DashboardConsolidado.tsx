@@ -119,7 +119,7 @@ export function DashboardConsolidado() {
           </div>
         </div>
         <p className="text-xs text-muted-foreground mt-3">
-          Considera apenas pedidos pagos. Sem filtro = histórico completo.
+          Considera apenas pedidos pagos, já descontada a taxa de transação PIX de 0,99%. Sem filtro = histórico completo.
         </p>
       </Card>
 
