@@ -584,6 +584,8 @@ export type Database = {
           kind: string
           notes: string | null
           owner_contact: string | null
+          owner_name: string | null
+          owner_phone: string | null
           sponsor_name: string
           status: string
           updated_at: string
@@ -596,6 +598,8 @@ export type Database = {
           kind?: string
           notes?: string | null
           owner_contact?: string | null
+          owner_name?: string | null
+          owner_phone?: string | null
           sponsor_name: string
           status?: string
           updated_at?: string
@@ -608,6 +612,8 @@ export type Database = {
           kind?: string
           notes?: string | null
           owner_contact?: string | null
+          owner_name?: string | null
+          owner_phone?: string | null
           sponsor_name?: string
           status?: string
           updated_at?: string

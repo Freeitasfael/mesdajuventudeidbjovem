@@ -17,6 +17,8 @@ interface Sponsorship {
   status: "confirmed" | "pending";
   notes: string | null;
   owner_contact: string | null;
+  owner_name: string | null;
+  owner_phone: string | null;
   created_at: string;
 }
 
@@ -32,13 +34,14 @@ export function SponsorshipsPanel() {
   const [kind, setKind] = useState<"cash" | "permuta">("cash");
   const [status, setStatus] = useState<"confirmed" | "pending">("pending");
   const [notes, setNotes] = useState("");
-  const [ownerContact, setOwnerContact] = useState("");
+  const [ownerName, setOwnerName] = useState("");
+  const [ownerPhone, setOwnerPhone] = useState("");
 
   const load = async () => {
     setLoading(true);
     const { data, error } = await supabase
       .from("sponsorships")
-      .select("id, sponsor_name, amount_cents, kind, status, notes, owner_contact, created_at")
+      .select("id, sponsor_name, amount_cents, kind, status, notes, owner_contact, owner_name, owner_phone, created_at")
       .order("created_at", { ascending: false })
       .limit(1000);
     if (error) toast.error("Erro ao carregar: " + error.message);
@@ -69,7 +72,8 @@ export function SponsorshipsPanel() {
     setKind("cash");
     setStatus("pending");
     setNotes("");
-    setOwnerContact("");
+    setOwnerName("");
+    setOwnerPhone("");
   };
 
   const handleSave = async () => {
@@ -84,7 +88,8 @@ export function SponsorshipsPanel() {
       kind,
       status,
       notes: notes.trim() || null,
-      owner_contact: ownerContact.trim() || null,
+      owner_name: ownerName.trim() || null,
+      owner_phone: ownerPhone.trim() || null,
     });
     setSaving(false);
     if (error) return toast.error("Erro: " + error.message);
@@ -240,12 +245,20 @@ export function SponsorshipsPanel() {
               <option value="confirmed">Confirmado</option>
             </select>
           </div>
-          <div className="space-y-1 lg:col-span-2">
-            <Label className="text-xs">Nome e telefone do proprietário (opcional)</Label>
+          <div className="space-y-1">
+            <Label className="text-xs">Nome do proprietário (opcional)</Label>
             <Input
-              value={ownerContact}
-              onChange={(e) => setOwnerContact(e.target.value)}
-              placeholder="Ex: João Silva — (34) 99999-9999"
+              value={ownerName}
+              onChange={(e) => setOwnerName(e.target.value)}
+              placeholder="Ex: João Silva"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Telefone do proprietário (opcional)</Label>
+            <Input
+              value={ownerPhone}
+              onChange={(e) => setOwnerPhone(e.target.value)}
+              placeholder="(34) 99999-9999"
             />
           </div>
           <div className="space-y-1 lg:col-span-4">
@@ -270,7 +283,8 @@ export function SponsorshipsPanel() {
           <thead className="bg-muted/50 text-left">
             <tr>
               <th className="px-4 py-3">Patrocinador</th>
-              <th className="px-4 py-3">Contato</th>
+              <th className="px-4 py-3">Proprietário</th>
+              <th className="px-4 py-3">Telefone</th>
               <th className="px-4 py-3">Tipo</th>
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3">Observação</th>
@@ -282,8 +296,11 @@ export function SponsorshipsPanel() {
             {items.map((s) => (
               <tr key={s.id} className="border-t border-border">
                 <td className="px-4 py-3 font-medium">{s.sponsor_name}</td>
-                <td className="px-4 py-3 text-xs text-muted-foreground max-w-[180px] truncate">
-                  {s.owner_contact ?? "—"}
+                <td className="px-4 py-3 text-xs text-muted-foreground">
+                  {s.owner_name ?? (s.owner_contact ?? "—")}
+                </td>
+                <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">
+                  {s.owner_phone ?? "—"}
                 </td>
                 <td className="px-4 py-3 text-xs">
                   <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5">
@@ -315,7 +332,7 @@ export function SponsorshipsPanel() {
             ))}
             {items.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
+                <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">
                   Nenhum patrocínio cadastrado.
                 </td>
               </tr>
