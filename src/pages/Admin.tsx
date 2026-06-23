@@ -1286,7 +1286,7 @@ const Admin = () => {
                     <tr key={s.id} className="border-t border-border">
                       <td className="px-4 py-3">{s.name}</td>
                       <td className="px-4 py-3 font-mono text-xs">{s.ref_code}</td>
-                      <td className="px-4 py-3">{s.phone ?? "—"}</td>
+                      <td className="px-4 py-3">{s.phone ? <WhatsAppLink phone={s.phone} /> : "—"}</td>
                       <td className="px-4 py-3 text-right">
                         <Button
                           variant="ghost"
