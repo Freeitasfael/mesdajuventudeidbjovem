@@ -374,3 +374,53 @@ const LegendDot = ({ className, label }: { className: string; label: string }) =
     <span className="text-white/75">{label}</span>
   </div>
 );
+
+// Botão memoizado — só re-renderiza quando o próprio número muda de estado
+// ou de seleção, evitando re-render dos 1000+ botões a cada toggle.
+type NumberButtonProps = {
+  n: RaffleNumber;
+  isSelected: boolean;
+  onClick: (n: RaffleNumber) => void;
+};
+
+const NumberButton = memo(
+  ({ n, isSelected, onClick }: NumberButtonProps) => (
+    <button
+      onClick={() => onClick(n)}
+      className={cn(
+        "aspect-square rounded-lg text-[11px] sm:text-xs font-bold tabular-nums tracking-tight",
+        "transition-all duration-150 select-none shadow-sm",
+        "flex items-center justify-center relative",
+        n.status === "available" &&
+          !isSelected &&
+          "bg-number-available text-number-available-foreground hover:bg-number-available-hover hover:scale-110 hover:shadow-md active:scale-95 cursor-pointer",
+        n.status === "available" &&
+          isSelected &&
+          "scale-110 shadow-gold-glow cursor-pointer ring-2 ring-offset-2 ring-offset-transparent",
+        n.status === "reserved" &&
+          "bg-number-reserved text-number-reserved-foreground opacity-90",
+        n.status === "paid" &&
+          "bg-number-paid text-number-paid-foreground opacity-90",
+      )}
+      style={
+        n.status === "available" && isSelected
+          ? {
+              backgroundColor: "hsl(var(--hero-gold))",
+              color: "hsl(var(--hero-bg))",
+              boxShadow: "var(--shadow-gold-glow)",
+            }
+          : undefined
+      }
+      aria-label={`Número ${n.number} - ${n.status}`}
+      aria-pressed={isSelected}
+    >
+      {n.number.toString().padStart(3, "0")}
+    </button>
+  ),
+  (prev, next) =>
+    prev.n.number === next.n.number &&
+    prev.n.status === next.n.status &&
+    prev.isSelected === next.isSelected &&
+    prev.onClick === next.onClick,
+);
+NumberButton.displayName = "NumberButton";
