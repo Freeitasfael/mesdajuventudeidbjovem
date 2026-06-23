@@ -267,6 +267,23 @@ export function EntradaPanel() {
       </TabsList>
 
       <TabsContent value="transacoes" className="space-y-3">
+        {/* KPIs individuais da Camiseta */}
+        <div>
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">
+            Resumo da Camiseta
+          </h3>
+          <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+            <KpiCard label="Receita paga" value={fmtBRL(shirtKpis.revPaid)} />
+            <KpiCard label="Receita pendente" value={fmtBRL(shirtKpis.revPending)} />
+            <KpiCard label="Pedidos pagos" value={String(shirtKpis.paidCount)} />
+            <KpiCard label="Itens vendidos" value={String(shirtKpis.itemsSold)} />
+            <KpiCard label="Ticket médio" value={fmtBRL(shirtKpis.ticket)} />
+            <KpiCard label="Conversão" value={`${shirtKpis.conv.toFixed(1)}%`} />
+            <KpiCard label="Pendentes" value={String(shirtKpis.pendingCount)} />
+            <KpiCard label="Líquido (−0,99%)" value={fmtBRL(applyFee(shirtKpis.revPaid))} />
+          </div>
+        </div>
+
         <Card className="p-3">
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
             <div className="space-y-1">
