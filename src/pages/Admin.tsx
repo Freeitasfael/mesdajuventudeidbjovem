@@ -1020,7 +1020,7 @@ const Admin = () => {
                           {o.id.slice(0, 8)}
                         </td>
                         <td className="px-4 py-3">{buyer?.name ?? "—"}</td>
-                        <td className="px-4 py-3">{buyer?.phone ?? "—"}</td>
+                        <td className="px-4 py-3">{buyer?.phone ? <WhatsAppLink phone={buyer.phone} /> : "—"}</td>
                         <td className="px-4 py-3">
                           {seller ? (
                             <span className="inline-flex flex-col">
