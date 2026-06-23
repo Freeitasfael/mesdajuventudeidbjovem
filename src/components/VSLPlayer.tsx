@@ -1,274 +1,169 @@
-import { useEffect, useRef, useState } from "react";
-import { Play, Volume2, VolumeX, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Play, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 type Props = {
   /** URL direta do vídeo. Se omitido, busca em app_settings.home_vsl_video_url. */
   src?: string;
-  /** Imagem de fallback enquanto o vídeo não carrega. */
+  /** Imagem de fallback / thumbnail caso não exista uma cadastrada no admin. */
   poster?: string;
-  /** Inicia automaticamente (default: true). */
-  autoplay?: boolean;
-  /** Loop infinito (default: true). */
-  loop?: boolean;
-  /** Mostrar controle discreto de mudo (default: true). */
-  showMuteToggle?: boolean;
   /** Classes extras no wrapper. */
   className?: string;
 };
 
 /**
- * VSLPlayer — player estilo VSL/PandaVideo, zero distração.
- * - Sem timeline, sem fullscreen, sem duração, sem menu.
- * - Autoplay muted; ao clicar ativa som e mantém reprodução.
- * - Carregamento prioritário do vídeo (preload="auto").
+ * VSLPlayer — player com thumbnail e carregamento sob demanda.
+ * - Mostra apenas uma imagem + botão de play até o clique do usuário.
+ * - Ao clicar, monta o <video> com autoplay muted playsinline e controls.
+ * - preload="metadata" para não baixar o vídeo inteiro antecipadamente.
  */
-export const VSLPlayer = ({
-  src,
-  poster,
-  autoplay = true,
-  loop = true,
-  showMuteToggle = true,
-  className = "",
-}: Props) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
+export const VSLPlayer = ({ src, poster, className = "" }: Props) => {
   const [resolvedSrc, setResolvedSrc] = useState<string | null>(src ?? null);
-  const [playing, setPlaying] = useState(false);
-  const [muted, setMuted] = useState(true);
-  const [loadingSrc, setLoadingSrc] = useState(!src);
+  const [thumbUrl, setThumbUrl] = useState<string | null>(null);
+  const [loadingMeta, setLoadingMeta] = useState(!src);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [started, setStarted] = useState(false);
 
-  // Resolve URL — prioridade máxima: assim que a tela montar
+  // Resolve URL do vídeo + thumbnail
   useEffect(() => {
-    if (src) {
-      setResolvedSrc(src);
-      setLoadingSrc(false);
-      return;
-    }
     let active = true;
-    setLoadingSrc(true);
+
+    const resolveVideoValue = async (
+      v:
+        | string
+        | { bucket?: string; path?: string; url?: string }
+        | null
+        | undefined,
+    ): Promise<string | null> => {
+      if (!v) return null;
+      if (typeof v === "string") return v;
+      if (v.url) return v.url;
+      if (v.bucket && v.path) {
+        const { data: signed } = await supabase.storage
+          .from(v.bucket)
+          .createSignedUrl(v.path, 60 * 60 * 6);
+        if (signed?.signedUrl) return signed.signedUrl;
+        const pub = supabase.storage.from(v.bucket).getPublicUrl(v.path);
+        return pub?.data?.publicUrl ?? null;
+      }
+      return null;
+    };
+
     (async () => {
       try {
+        setLoadingMeta(true);
+        const keys = ["home_vsl_thumbnail_url"];
+        if (!src) keys.push("home_vsl_video_url");
+
         const { data, error } = await supabase
           .from("app_settings")
-          .select("value")
-          .eq("key", "home_vsl_video_url")
-          .maybeSingle();
+          .select("key,value")
+          .in("key", keys);
         if (error) throw error;
-        const v = data?.value as
-          | string
-          | { bucket?: string; path?: string; url?: string }
-          | null
-          | undefined;
         if (!active) return;
-        if (!v) {
-          setLoadingSrc(false);
-          return;
-        }
-        if (typeof v === "string") {
-          setResolvedSrc(v);
-          setLoadingSrc(false);
-          return;
-        }
-        if (v.url) {
-          setResolvedSrc(v.url);
-          setLoadingSrc(false);
-          return;
-        }
-        if (v.bucket && v.path) {
-          // Tenta URL pública primeiro (sem round-trip extra)
-          const pub = supabase.storage.from(v.bucket).getPublicUrl(v.path);
-          // Em buckets privados o getPublicUrl ainda retorna uma URL,
-          // mas ela falha ao carregar. Por isso preferimos signedUrl.
-          const { data: signed, error: sErr } = await supabase.storage
-            .from(v.bucket)
-            .createSignedUrl(v.path, 60 * 60 * 6); // 6h
+
+        const map = new Map(
+          (data ?? []).map((r) => [r.key, r.value as unknown]),
+        );
+
+        if (!src) {
+          const videoUrl = await resolveVideoValue(
+            map.get("home_vsl_video_url") as never,
+          );
           if (!active) return;
-          if (signed?.signedUrl) {
-            setResolvedSrc(signed.signedUrl);
-          } else if (pub?.data?.publicUrl) {
-            setResolvedSrc(pub.data.publicUrl);
-          } else if (sErr) {
-            throw sErr;
-          }
-          setLoadingSrc(false);
+          setResolvedSrc(videoUrl);
         }
+
+        const thumb = await resolveVideoValue(
+          map.get("home_vsl_thumbnail_url") as never,
+        );
+        if (!active) return;
+        setThumbUrl(thumb);
       } catch (err) {
-        console.error("[VSLPlayer] resolve src", err);
-        if (active) {
-          setErrorMsg("Não foi possível carregar o vídeo.");
-          setLoadingSrc(false);
-        }
+        console.error("[VSLPlayer] resolve", err);
+        if (active) setErrorMsg("Não foi possível carregar o vídeo.");
+      } finally {
+        if (active) setLoadingMeta(false);
       }
     })();
+
     return () => {
       active = false;
     };
   }, [src]);
 
-  // Força reload + autoplay quando o src é resolvido
-  useEffect(() => {
-    const v = videoRef.current;
-    if (!v || !resolvedSrc) return;
-    v.muted = true;
-    setMuted(true);
-    try {
-      v.load();
-    } catch {
-      // ignore
-    }
-    if (!autoplay) return;
-
-    const tryPlay = () => {
-      const p = v.play();
-      if (p && typeof p.then === "function") {
-        p.then(() => setPlaying(true)).catch(() => setPlaying(false));
-      }
-    };
-
-    if (v.readyState >= 2) tryPlay();
-    const onCanPlay = () => tryPlay();
-    v.addEventListener("loadeddata", onCanPlay, { once: true });
-    v.addEventListener("canplay", onCanPlay, { once: true });
-    return () => {
-      v.removeEventListener("loadeddata", onCanPlay);
-      v.removeEventListener("canplay", onCanPlay);
-    };
-  }, [resolvedSrc, autoplay]);
-
-  const togglePlay = () => {
-    const v = videoRef.current;
-    if (!v) return;
-    if (v.paused) {
-      if (muted) {
-        v.muted = false;
-        setMuted(false);
-      }
-      v.play()
-        .then(() => setPlaying(true))
-        .catch(() => setPlaying(false));
-    } else {
-      v.pause();
-      setPlaying(false);
-    }
-  };
-
-  const toggleMute = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    const v = videoRef.current;
-    if (!v) return;
-    v.muted = !v.muted;
-    setMuted(v.muted);
-  };
+  const displayThumb = thumbUrl ?? poster ?? null;
 
   return (
     <div
-      className={`group relative w-full overflow-hidden rounded-3xl border shadow-gold-glow ${className}`}
+      className={`relative w-full overflow-hidden rounded-3xl border shadow-gold-glow ${className}`}
       style={{
         borderColor: "hsl(var(--hero-gold) / 0.35)",
         backgroundColor: "rgba(0,0,0,0.6)",
         aspectRatio: "16 / 9",
       }}
-      onClick={togglePlay}
-      role="button"
-      aria-label={playing ? "Pausar vídeo" : "Reproduzir vídeo"}
     >
-      {resolvedSrc ? (
+      {started && resolvedSrc ? (
         <video
-          ref={videoRef}
           src={resolvedSrc}
-          poster={poster}
-          autoPlay={autoplay}
-          muted={muted}
-          loop={loop}
+          poster={displayThumb ?? undefined}
+          autoPlay
+          muted
           playsInline
-          preload="auto"
-          controls={false}
-          disablePictureInPicture
-          controlsList="nodownload nofullscreen noremoteplayback noplaybackrate"
-          onPlay={() => setPlaying(true)}
-          onPause={() => setPlaying(false)}
+          controls
+          preload="metadata"
           onError={() => setErrorMsg("Falha ao reproduzir o vídeo.")}
           className="h-full w-full object-cover"
         />
       ) : (
-        <div
-          className="flex h-full w-full flex-col items-center justify-center gap-2 text-sm"
-          style={{ color: "hsl(var(--hero-gold))" }}
-        >
-          {loadingSrc ? (
-            <>
-              <Loader2 className="h-6 w-6 animate-spin" />
-              <span>Carregando vídeo…</span>
-            </>
+        <>
+          {displayThumb ? (
+            <img
+              src={displayThumb}
+              alt="Prévia do vídeo"
+              loading="lazy"
+              decoding="async"
+              className="h-full w-full object-cover"
+            />
           ) : (
-            <span>{errorMsg ?? "Vídeo indisponível."}</span>
+            <div
+              className="flex h-full w-full items-center justify-center text-sm"
+              style={{ color: "hsl(var(--hero-gold))" }}
+            >
+              {loadingMeta ? (
+                <Loader2 className="h-6 w-6 animate-spin" />
+              ) : (
+                <span>{errorMsg ?? "Vídeo indisponível."}</span>
+              )}
+            </div>
           )}
-        </div>
-      )}
 
-      {/* Overlay escuro suave para contraste */}
-      <div
-        className="pointer-events-none absolute inset-0 transition-opacity"
-        style={{
-          background:
-            "radial-gradient(ellipse at center, transparent 35%, hsl(var(--hero-bg) / 0.55) 100%)",
-          opacity: playing ? 0 : 1,
-        }}
-      />
+          {/* Overlay escuro suave */}
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background:
+                "radial-gradient(ellipse at center, transparent 35%, hsl(var(--hero-bg) / 0.55) 100%)",
+            }}
+          />
 
-      {/* Botão central play (aparece quando pausado) */}
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          togglePlay();
-        }}
-        aria-label="Reproduzir"
-        className={`absolute inset-0 m-auto flex h-20 w-20 items-center justify-center rounded-full transition-all duration-300 sm:h-24 sm:w-24 ${
-          playing
-            ? "pointer-events-none scale-90 opacity-0"
-            : "scale-100 opacity-100 hover:scale-105"
-        }`}
-        style={{
-          backgroundColor: "hsl(var(--hero-gold))",
-          color: "hsl(var(--hero-bg))",
-          boxShadow:
-            "0 0 40px hsl(var(--hero-gold) / 0.55), 0 0 80px hsl(var(--hero-gold) / 0.25)",
-        }}
-      >
-        <Play className="ml-1 h-9 w-9 fill-current sm:h-10 sm:w-10" />
-      </button>
-
-      {/* Hint sutil de "toque para ativar som" */}
-      {playing && muted && (
-        <div
-          className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full px-4 py-1.5 text-[11px] font-extrabold uppercase tracking-[0.25em] backdrop-blur-md sm:text-xs"
-          style={{
-            backgroundColor: "hsl(var(--hero-bg) / 0.65)",
-            color: "hsl(var(--hero-gold))",
-            border: "1px solid hsl(var(--hero-gold) / 0.35)",
-          }}
-        >
-          Toque para ativar o som
-        </div>
-      )}
-
-      {/* Toggle de mute discreto */}
-      {showMuteToggle && resolvedSrc && (
-        <button
-          type="button"
-          onClick={toggleMute}
-          aria-label={muted ? "Ativar som" : "Silenciar"}
-          className="absolute right-3 top-3 inline-flex h-10 w-10 items-center justify-center rounded-full backdrop-blur-md transition hover:scale-105"
-          style={{
-            backgroundColor: "hsl(var(--hero-bg) / 0.55)",
-            color: "hsl(var(--hero-gold))",
-            border: "1px solid hsl(var(--hero-gold) / 0.35)",
-          }}
-        >
-          {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-        </button>
+          {resolvedSrc && (
+            <button
+              type="button"
+              onClick={() => setStarted(true)}
+              aria-label="Reproduzir vídeo"
+              className="absolute inset-0 m-auto flex h-20 w-20 items-center justify-center rounded-full transition-all duration-300 hover:scale-105 sm:h-24 sm:w-24"
+              style={{
+                backgroundColor: "hsl(var(--hero-gold))",
+                color: "hsl(var(--hero-bg))",
+                boxShadow:
+                  "0 0 40px hsl(var(--hero-gold) / 0.55), 0 0 80px hsl(var(--hero-gold) / 0.25)",
+              }}
+            >
+              <Play className="ml-1 h-9 w-9 fill-current sm:h-10 sm:w-10" />
+            </button>
+          )}
+        </>
       )}
     </div>
   );
