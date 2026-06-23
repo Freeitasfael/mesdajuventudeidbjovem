@@ -4,8 +4,8 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import Rifa from "./pages/Rifa.tsx";
 import Home from "./pages/Home.tsx";
+const Rifa = lazy(() => import("./pages/Rifa.tsx"));
 import { RequireAdmin } from "./components/RequireAdmin";
 
 // Lazy-load tudo que não é a landing principal, para o /rifa abrir rápido no mobile
