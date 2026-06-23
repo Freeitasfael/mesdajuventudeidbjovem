@@ -1,0 +1,1 @@
+ALTER TABLE public.sponsorships ADD COLUMN IF NOT EXISTS owner_contact text;
