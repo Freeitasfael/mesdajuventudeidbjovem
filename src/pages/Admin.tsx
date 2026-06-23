@@ -860,6 +860,24 @@ const Admin = () => {
 
           {/* ORDERS */}
           <TabsContent value="orders" className="mt-6 space-y-4">
+            {/* KPIs individuais da Rifa */}
+            <div>
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">
+                Resumo da Rifa
+              </h2>
+              <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+                <StatCard label="Receita paga" value={fmtBRL(rifaKpis.revPaid)} />
+                <StatCard label="Receita pendente" value={fmtBRL(rifaKpis.revPending)} />
+                <StatCard label="Pedidos pagos" value={String(rifaKpis.paidCount)} />
+                <StatCard label="Números vendidos" value={String(stats?.numbers_paid ?? 0)} />
+                <StatCard label="Ticket médio" value={fmtBRL(rifaKpis.ticket)} />
+                <StatCard label="Conversão" value={`${rifaKpis.conv.toFixed(1)}%`} />
+                <StatCard label="Pendentes" value={String(rifaKpis.pendingCount)} />
+                <StatCard label="Disponíveis" value={String(stats?.numbers_available ?? 0)} />
+              </div>
+            </div>
+
+
             <ManualFreeNumber onDone={loadAll} />
 
             <Card className="space-y-3 p-4">
