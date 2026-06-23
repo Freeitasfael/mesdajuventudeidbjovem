@@ -219,6 +219,18 @@ export function EntradaPanel() {
     .reduce((acc, o) => acc + o.total_cents, 0);
   const totalReceived = applyFee(totalReceivedGross);
 
+  // KPIs individuais da Camiseta
+  const shirtKpis = (() => {
+    const paid = orders.filter((o) => o.status === "paid");
+    const pending = orders.filter((o) => o.status === "pending");
+    const revPaid = paid.reduce((a, o) => a + o.total_cents, 0);
+    const revPending = pending.reduce((a, o) => a + o.total_cents, 0);
+    const itemsSold = paid.reduce((a, o) => a + (o.quantity || 0), 0);
+    const ticket = paid.length > 0 ? Math.round(revPaid / paid.length) : 0;
+    const conv = orders.length > 0 ? (paid.length / orders.length) * 100 : 0;
+    return { revPaid, revPending, paidCount: paid.length, pendingCount: pending.length, itemsSold, ticket, conv };
+  })();
+
   const exportCsv = () => {
     if (filteredOrders.length === 0) {
       toast.info("Sem pedidos para exportar nesse filtro");
