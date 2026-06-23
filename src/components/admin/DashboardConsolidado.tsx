@@ -59,18 +59,22 @@ export function DashboardConsolidado() {
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [from, to]);
 
   const metrics = useMemo(() => {
-    const rifaTotal = rifa.reduce((a, o) => a + o.total_cents, 0);
+    const rifaGross = rifa.reduce((a, o) => a + o.total_cents, 0);
+    const rifaTotal = applyFee(rifaGross);
     const rifaCount = rifa.length;
-    const entTotal = entrada.reduce((a, o) => a + o.total_cents, 0);
+    const entGross = entrada.reduce((a, o) => a + o.total_cents, 0);
+    const entTotal = applyFee(entGross);
     const entCount = entrada.length;
     const pulseira = entrada.filter((e) => e.product === "pulseira");
     const kit = entrada.filter((e) => e.product === "kit");
-    const pulTotal = pulseira.reduce((a, o) => a + o.total_cents, 0);
-    const kitTotal = kit.reduce((a, o) => a + o.total_cents, 0);
+    const pulTotal = applyFee(pulseira.reduce((a, o) => a + o.total_cents, 0));
+    const kitTotal = applyFee(kit.reduce((a, o) => a + o.total_cents, 0));
     // Soma de unidades (cada pedido pode ter quantity > 1)
     const pulUnits = pulseira.reduce((a, o) => a + (o.quantity || 1), 0);
     const kitUnits = kit.reduce((a, o) => a + (o.quantity || 1), 0);
     const total = rifaTotal + entTotal;
+    const totalGross = rifaGross + entGross;
+    const feeCents = totalGross - total;
     const totalCount = rifaCount + entCount;
     const ticket = totalCount > 0 ? Math.round(total / totalCount) : 0;
 
@@ -85,7 +89,7 @@ export function DashboardConsolidado() {
     const margin = entTotal > 0 ? Math.round((entradaProfit / entTotal) * 100) : 0;
 
     return {
-      total, totalCount, ticket,
+      total, totalGross, feeCents, totalCount, ticket,
       rifaTotal, rifaCount,
       entTotal, entCount,
       pulTotal, pulCount: pulseira.length, pulUnits,
