@@ -3,6 +3,8 @@ import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { RaffleGrid } from "@/components/RaffleGrid";
 import { CheckoutBar } from "@/components/CheckoutBar";
+import { WhatsAppFab } from "@/components/WhatsAppFab";
+import { useSelection } from "@/hooks/useSelection";
 import { HeroRifa, type Prize, type HeroStats } from "@/components/HeroRifa";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -19,6 +21,7 @@ const Rifa = () => {
   const [stats, setStats] = useState<HeroStats | null>(null);
   const [heroLoading, setHeroLoading] = useState(true);
   const [sellerName, setSellerName] = useState<string | null>(null);
+  const { selected } = useSelection();
 
   // Capture ?ref=CODE and persist; lookup seller name
   useEffect(() => {
@@ -219,6 +222,11 @@ const Rifa = () => {
       <SiteFooter />
 
       <CheckoutBar pricePerNumber={pricePerNumber} />
+
+      <WhatsAppFab
+        bottomOffset={selected.length > 0 ? 96 : 0}
+        message="Olá! Estou na página da Rifa IDB Jovem e gostaria de tirar uma dúvida antes de finalizar minha compra."
+      />
     </main>
   );
 };

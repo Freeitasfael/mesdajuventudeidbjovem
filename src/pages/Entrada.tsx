@@ -5,6 +5,7 @@ import { PurchaseDialog } from "@/components/PurchaseDialog";
 import { Toaster } from "@/components/ui/sonner";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
+import { WhatsAppFab } from "@/components/WhatsAppFab";
 import heroBg from "@/assets/hero-rifa-bg.jpg";
 import logoIdb from "@/assets/idb-jovem-logo.png";
 import modeloImg from "@/assets/modelo-camiseta-pulseira.png.asset.json";
@@ -289,6 +290,8 @@ export default function Entrada() {
       <SiteFooter />
 
       <PurchaseDialog open={open} onOpenChange={setOpen} initialOption="kit" />
+
+      <WhatsAppFab message="Olá! Quero comprar a camiseta oficial do Mês da Juventude IDB e preciso de ajuda." />
     </div>
   );
 }

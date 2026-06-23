@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { Button } from "@/components/ui/button";
+import { WhatsAppFab } from "@/components/WhatsAppFab";
 import {
   ArrowLeft,
   ArrowRight,
@@ -380,6 +381,8 @@ export default function Inscricao() {
       </section>
 
       <SiteFooter />
+
+      <WhatsAppFab message="Olá! Quero garantir minha inscrição no Mês da Juventude IDB e preciso de ajuda." />
     </div>
   );
 }
