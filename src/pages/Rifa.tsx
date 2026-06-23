@@ -197,28 +197,18 @@ const Rifa = () => {
             do Mês da Juventude. Sua divulgação ajuda a custear tudo com excelência e honrar
             os participantes. <span className="font-semibold text-white">Obrigado a quem contribuir!</span>
           </p>
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+          <div className="mt-6 flex items-center justify-center">
             <Button
               asChild
               size="lg"
-              className="rounded-full font-bold"
+              className="rounded-full font-bold text-base sm:text-lg px-8 py-6 sm:px-10 sm:py-7 shadow-xl"
               style={{
                 backgroundColor: "hsl(var(--hero-gold))",
                 color: "hsl(var(--hero-bg))",
               }}
             >
               <Link to="/afiliacao">
-                <Handshake className="mr-2 h-5 w-5" /> Quero me afiliar agora
-              </Link>
-            </Button>
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="rounded-full border-white/30 bg-white/5 text-white hover:bg-white/10"
-            >
-              <Link to="/acompanhar">
-                <History className="mr-2 h-4 w-4" /> Acompanhar compra
+                <Handshake className="mr-2 h-6 w-6" /> Quero me afiliar agora
               </Link>
             </Button>
           </div>
