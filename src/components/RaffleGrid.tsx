@@ -24,8 +24,6 @@ export const RaffleGrid = ({ pricePerNumber }: Props) => {
   const [numbers, setNumbers] = useState<RaffleNumber[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isInlineVisible, setIsInlineVisible] = useState(false);
-  const observerRef = useRef<IntersectionObserver | null>(null);
 
   // Popup for already-reserved number selection
   const [blockedPopup, setBlockedPopup] = useState<{
@@ -34,27 +32,6 @@ export const RaffleGrid = ({ pricePerNumber }: Props) => {
     isInSelection: boolean;
   } | null>(null);
 
-  // Ref callback ensures the observer attaches as soon as the inline node mounts
-  const inlineRefCallback = (node: HTMLDivElement | null) => {
-    if (observerRef.current) {
-      observerRef.current.disconnect();
-      observerRef.current = null;
-    }
-    if (!node) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => setIsInlineVisible(entry.isIntersecting),
-      { threshold: 0.3 },
-    );
-    observer.observe(node);
-    observerRef.current = observer;
-  };
-
-  useEffect(() => {
-    return () => {
-      observerRef.current?.disconnect();
-      observerRef.current = null;
-    };
-  }, []);
 
 
   const load = async () => {
