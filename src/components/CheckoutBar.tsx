@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { Trash2 } from "lucide-react";
 import { useSelection } from "@/hooks/useSelection";
 import { Button } from "@/components/ui/button";
 
@@ -8,7 +9,7 @@ interface CheckoutBarProps {
 
 export const CheckoutBar = ({ pricePerNumber }: CheckoutBarProps) => {
   const navigate = useNavigate();
-  const { selected } = useSelection();
+  const { selected, clear } = useSelection();
 
   if (selected.length === 0) return null;
 
@@ -41,17 +42,36 @@ export const CheckoutBar = ({ pricePerNumber }: CheckoutBarProps) => {
           </p>
         </div>
 
-        <Button
-          size="lg"
-          onClick={() => navigate("/checkout")}
-          className="w-full font-extrabold sm:w-auto sm:min-w-[220px]"
-          style={{
-            backgroundColor: "hsl(var(--hero-gold))",
-            color: "hsl(var(--hero-bg))",
-          }}
-        >
-          Finalizar pagamento
-        </Button>
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center">
+          <Button
+            variant="outline"
+            size="lg"
+            onClick={() => {
+              if (
+                selected.length === 1 ||
+                window.confirm("Tem certeza que deseja limpar todos os números selecionados?")
+              ) {
+                clear();
+              }
+            }}
+            className="w-full border-white/30 bg-white/5 text-white hover:bg-white/10 hover:text-white sm:w-auto"
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            Limpar
+          </Button>
+
+          <Button
+            size="lg"
+            onClick={() => navigate("/checkout")}
+            className="w-full font-extrabold sm:w-auto sm:min-w-[220px]"
+            style={{
+              backgroundColor: "hsl(var(--hero-gold))",
+              color: "hsl(var(--hero-bg))",
+            }}
+          >
+            Finalizar pagamento
+          </Button>
+        </div>
       </div>
     </div>
   );
