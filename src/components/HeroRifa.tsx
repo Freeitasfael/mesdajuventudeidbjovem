@@ -203,54 +203,6 @@ export const HeroRifa = ({
           </p>
         </div>
 
-        {/* Trust indicators */}
-        <ul className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm text-white/85 sm:text-base">
-          <li className="inline-flex items-center gap-2">
-            <Shield className="h-4 w-4" style={{ color: "hsl(var(--hero-gold))" }} />
-            100% transparente
-          </li>
-          <li className="inline-flex items-center gap-2">
-            <CheckCircle className="h-4 w-4" style={{ color: "hsl(var(--hero-gold))" }} />
-            100% confiável
-          </li>
-          <li className="inline-flex items-center gap-2">
-            <Heart className="h-4 w-4" style={{ color: "hsl(var(--hero-gold))" }} />
-            100% do valor para o evento
-          </li>
-        </ul>
-
-
-
-        {/* Stats */}
-        <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-3">
-          {loading || !safeStats
-            ? Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={i} className="h-28 rounded-2xl bg-white/15" />
-              ))
-            : [
-                { icon: Calendar, value: `${safeStats.years} ANOS`, label: "de história" },
-                { icon: Users, value: safeStats.people, label: "de jovens impactados" },
-                { icon: Map, value: safeStats.coverage, label: "alcançado" },
-              ].map(({ icon: Icon, value, label }) => (
-                <div
-                  key={label}
-                  className="rounded-2xl border border-white/10 bg-white/5 p-5 text-center backdrop-blur-sm"
-                >
-                  <Icon
-                    className="mx-auto mb-2 h-6 w-6"
-                    style={{ color: "hsl(var(--hero-gold))" }}
-                  />
-                  <p
-                    className="text-xl font-extrabold tracking-wide sm:text-2xl"
-                    style={{ color: "hsl(var(--hero-gold))" }}
-                  >
-                    {value}
-                  </p>
-                  <p className="text-xs text-white/75 sm:text-sm">{label}</p>
-                </div>
-              ))}
-        </div>
-
         {/* Prizes */}
         <div className="w-full">
           <div className="mb-6 flex items-center justify-center gap-2 text-center">
