@@ -210,11 +210,11 @@ export function DashboardConsolidado() {
         </p>
       </div>
 
-      {/* Camisetas (antiga Rifa) */}
+      {/* Rifa */}
       <div>
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Camisetas</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Rifa</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <StatCard label="Arrecadado (camisetas)" value={fmtBRL(metrics.camisetasTotal)} />
+          <StatCard label="Arrecadado (rifa)" value={fmtBRL(metrics.camisetasTotal)} />
           <StatCard label="Pedidos pagos" value={String(metrics.camisetasCount)} />
           <StatCard label="Ticket médio" value={fmtBRL(metrics.camisetasCount > 0 ? Math.round(metrics.camisetasTotal / metrics.camisetasCount) : 0)} />
         </div>
@@ -222,7 +222,7 @@ export function DashboardConsolidado() {
 
       {/* Entrada */}
       <div>
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Camisetas & Pulseiras (Entrada)</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Entrada</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard label="Arrecadado (entrada)" value={fmtBRL(metrics.entTotal)} />
           <StatCard label="Pedidos pagos" value={String(metrics.entCount)} />
