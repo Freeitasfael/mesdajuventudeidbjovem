@@ -222,6 +222,11 @@ const Rifa = () => {
       <SiteFooter />
 
       <CheckoutBar pricePerNumber={pricePerNumber} />
+
+      <WhatsAppFab
+        bottomOffset={selected.length > 0 ? 96 : 0}
+        message="Olá! Estou na página da Rifa IDB Jovem e gostaria de tirar uma dúvida antes de finalizar minha compra."
+      />
     </main>
   );
 };
