@@ -16,6 +16,10 @@ const COST_STORAGE_KEY = "dashboard_costs_v1";
 
 const fmtBRL = (c: number) => `R$ ${(c / 100).toFixed(2).replace(".", ",")}`;
 
+// Taxa de transação (Mercado Pago PIX = 0,99%) descontada dos valores arrecadados.
+const TX_FEE_RATE = 0.0099;
+const applyFee = (cents: number) => Math.round(cents * (1 - TX_FEE_RATE));
+
 export function DashboardConsolidado() {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
