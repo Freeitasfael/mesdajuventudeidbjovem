@@ -19,6 +19,7 @@ import { AdminsPanel } from "@/components/admin/AdminsPanel";
 import { DashboardConsolidado } from "@/components/admin/DashboardConsolidado";
 import { ExpensesPanel } from "@/components/admin/ExpensesPanel";
 import { SponsorshipsPanel } from "@/components/admin/SponsorshipsPanel";
+import { RecapPanel } from "@/components/admin/RecapPanel";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
 
 const ALLOWED_MIME = new Set([
@@ -751,6 +752,7 @@ const Admin = () => {
               <TabsTrigger value="settings">Configurações</TabsTrigger>
               <TabsTrigger value="hero">Hero</TabsTrigger>
               <TabsTrigger value="vsl">VSL</TabsTrigger>
+              <TabsTrigger value="recap">Novidades</TabsTrigger>
               <TabsTrigger value="admins">Admins</TabsTrigger>
             </TabsList>
           </div>
@@ -774,6 +776,11 @@ const Admin = () => {
           {/* VSL — vídeo da Home */}
           <TabsContent value="vsl" className="mt-6">
             <VSLPanel />
+          </TabsContent>
+
+          {/* NOVIDADES & AVISOS (Recap Gallery) */}
+          <TabsContent value="recap" className="mt-6">
+            <RecapPanel />
           </TabsContent>
 
           {/* ADMINS */}
