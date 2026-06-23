@@ -398,9 +398,9 @@ const NumberButton = memo(
           isSelected &&
           "scale-110 shadow-gold-glow cursor-pointer ring-2 ring-offset-2 ring-offset-transparent",
         n.status === "reserved" &&
-          "bg-number-reserved text-number-reserved-foreground opacity-90",
+          "bg-number-reserved text-number-reserved-foreground cursor-not-allowed",
         n.status === "paid" &&
-          "bg-number-paid text-number-paid-foreground opacity-90",
+          "bg-number-paid text-number-paid-foreground cursor-not-allowed line-through decoration-2 decoration-white/80",
       )}
       style={
         n.status === "available" && isSelected
