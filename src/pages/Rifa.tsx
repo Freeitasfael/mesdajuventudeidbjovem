@@ -3,6 +3,8 @@ import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { RaffleGrid } from "@/components/RaffleGrid";
 import { CheckoutBar } from "@/components/CheckoutBar";
+import { WhatsAppFab } from "@/components/WhatsAppFab";
+import { useSelection } from "@/hooks/useSelection";
 import { HeroRifa, type Prize, type HeroStats } from "@/components/HeroRifa";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
