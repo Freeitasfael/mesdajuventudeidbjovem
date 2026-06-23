@@ -153,7 +153,7 @@ const Admin = () => {
   const [orderDateTo, setOrderDateTo] = useState("");
 
   useEffect(() => {
-    document.title = "Painel Admin — Camisetas";
+    document.title = "Painel Admin";
     loadAll();
   }, []);
 
