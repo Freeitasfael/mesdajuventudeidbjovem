@@ -393,14 +393,14 @@ const NumberButton = memo(
         "flex items-center justify-center relative",
         n.status === "available" &&
           !isSelected &&
-          "bg-number-available text-number-available-foreground hover:bg-number-available-hover hover:scale-110 hover:shadow-md active:scale-95 cursor-pointer",
+          "bg-number-available text-number-available-foreground border border-number-available-border hover:bg-number-available-hover hover:scale-110 hover:shadow-md active:scale-95 cursor-pointer",
         n.status === "available" &&
           isSelected &&
           "scale-110 shadow-gold-glow cursor-pointer ring-2 ring-offset-2 ring-offset-transparent",
         n.status === "reserved" &&
-          "bg-number-reserved text-number-reserved-foreground cursor-not-allowed",
+          "bg-number-reserved text-number-reserved-foreground cursor-not-allowed opacity-90",
         n.status === "paid" &&
-          "bg-number-paid text-number-paid-foreground cursor-not-allowed line-through decoration-2 decoration-white/80",
+          "bg-number-paid text-number-paid-foreground cursor-not-allowed opacity-80",
       )}
       style={
         n.status === "available" && isSelected
