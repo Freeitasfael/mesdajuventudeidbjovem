@@ -241,11 +241,11 @@ export function SponsorshipsPanel() {
             </select>
           </div>
           <div className="space-y-1 lg:col-span-2">
-            <Label className="text-xs">Contato do proprietário (opcional)</Label>
+            <Label className="text-xs">Nome e telefone do proprietário (opcional)</Label>
             <Input
               value={ownerContact}
               onChange={(e) => setOwnerContact(e.target.value)}
-              placeholder="Nome, telefone ou e-mail"
+              placeholder="Ex: João Silva — (34) 99999-9999"
             />
           </div>
           <div className="space-y-1 lg:col-span-4">
