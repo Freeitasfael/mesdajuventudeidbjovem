@@ -137,8 +137,8 @@ export const HeroRifa = ({
 
         {/* Headline */}
         <div className="animate-fade-in-up text-center">
-          <h1 className="text-4xl font-extrabold leading-[1.05] tracking-tight md:text-6xl lg:text-7xl">
-            ESTA RIFA CUSTEIA O
+          <h1 className="text-3xl font-extrabold leading-[1.1] tracking-tight sm:text-4xl md:text-5xl lg:text-6xl">
+            COMO FUNCIONA A RIFA DO
             <br />
             <span className="text-glow-gold" style={{ color: "hsl(var(--hero-gold))" }}>
               MÊS DA JUVENTUDE
@@ -146,19 +146,74 @@ export const HeroRifa = ({
           </h1>
         </div>
 
-        {/* Subheadline */}
-        <div className="animate-fade-in max-w-3xl text-center">
-          <p className="text-base text-white/85 sm:text-lg md:text-xl">
-            Há <span className="font-semibold text-white">16 anos</span> realizando esse evento
-            por todo o país, com milhares de jovens e um só propósito e uma só voz:
+        {/* Explicação */}
+        <div className="animate-fade-in max-w-3xl space-y-5 text-center">
+          <p className="text-base text-white/85 sm:text-lg">
+            Essa rifa faz parte da construção do <span className="font-semibold text-white">Mês da Juventude</span>,
+            um evento que há anos reúne jovens de todo o Brasil com um único propósito:
+            viver algo real com Deus.
           </p>
+
+          <div
+            className="mx-auto max-w-xl rounded-2xl border px-5 py-5 text-left backdrop-blur-md"
+            style={{
+              backgroundColor: "rgba(255,255,255,0.05)",
+              borderColor: "hsl(var(--hero-gold) / 0.35)",
+            }}
+          >
+            <p className="text-center text-sm font-semibold uppercase tracking-[0.25em] text-white/80">
+              Participar é simples
+            </p>
+            <ul className="mt-4 space-y-2 text-sm text-white/90 sm:text-base">
+              <li className="flex gap-2">
+                <CheckCircle className="mt-0.5 h-5 w-5 shrink-0" style={{ color: "hsl(var(--hero-gold))" }} />
+                <span>Cada número custa <span className="font-semibold text-white">R$ 10,00</span></span>
+              </li>
+              <li className="flex gap-2">
+                <CheckCircle className="mt-0.5 h-5 w-5 shrink-0" style={{ color: "hsl(var(--hero-gold))" }} />
+                <span>Você escolhe seus números</span>
+              </li>
+              <li className="flex gap-2">
+                <CheckCircle className="mt-0.5 h-5 w-5 shrink-0" style={{ color: "hsl(var(--hero-gold))" }} />
+                <span>Após o pagamento, eles ficam vinculados ao seu nome</span>
+              </li>
+              <li className="flex gap-2">
+                <CheckCircle className="mt-0.5 h-5 w-5 shrink-0" style={{ color: "hsl(var(--hero-gold))" }} />
+                <span>No final, será realizado o sorteio conforme as regras do evento</span>
+              </li>
+            </ul>
+          </div>
+
+          <div
+            className="inline-flex items-center gap-2 rounded-full border px-5 py-2 text-sm font-bold uppercase tracking-wider sm:text-base"
+            style={{
+              backgroundColor: "hsl(var(--hero-gold) / 0.15)",
+              borderColor: "hsl(var(--hero-gold) / 0.5)",
+              color: "hsl(var(--hero-gold))",
+            }}
+          >
+            <Calendar className="h-4 w-4" />
+            Sorteio: 13/07/2026
+          </div>
+
+          <p className="text-base text-white/85 sm:text-lg">
+            Além de concorrer, você também está contribuindo diretamente para que esse
+            movimento aconteça. Cada número ajuda a viabilizar estrutura, organização e
+            tudo o que envolve esse projeto.
+          </p>
+
           <p
-            className="mt-3 text-2xl font-extrabold tracking-wide text-glow-gold sm:text-3xl md:text-4xl"
+            className="text-2xl font-extrabold tracking-wide text-glow-gold sm:text-3xl md:text-4xl"
             style={{ color: "hsl(var(--hero-gold))" }}
           >
-            JESUS TRANSFORMA!
+            JESUS TRANSFORMA.
+          </p>
+
+          <p className="text-base font-semibold text-white sm:text-lg">
+            Escolha seus números e faça parte disso.
           </p>
         </div>
+
 
         {/* Price card */}
         <div
