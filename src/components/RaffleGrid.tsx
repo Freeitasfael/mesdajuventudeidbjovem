@@ -233,70 +233,8 @@ export const RaffleGrid = ({ pricePerNumber }: Props) => {
         </div>
       )}
 
-      {/* Spacer so grid doesn't hide behind the sticky footer */}
+      {/* Spacer so grid doesn't hide behind the sticky footer (rendered at page level) */}
       {selected.length > 0 && <div aria-hidden className="h-32 sm:h-28" />}
-
-      {/* Sticky payment footer */}
-      <div
-        aria-hidden={selected.length === 0}
-        className={cn(
-          "fixed bottom-0 left-0 right-0 z-50 border-t",
-          "transition-all duration-200 ease-out",
-          selected.length > 0
-            ? "opacity-100 translate-y-0 pointer-events-auto"
-            : "opacity-0 translate-y-full pointer-events-none",
-        )}
-        style={{
-          backgroundColor: "hsl(var(--hero-bg) / 0.96)",
-          borderColor: "hsl(var(--hero-gold) / 0.4)",
-          backdropFilter: "blur(10px)",
-          boxShadow: "0 -8px 24px rgba(0,0,0,0.35)",
-        }}
-      >
-        <div className="container py-3 sm:py-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-          <div className="flex-1 min-w-0 text-white">
-            <p className="text-sm font-semibold">
-              {selected.length}{" "}
-              {selected.length === 1 ? "número selecionado" : "números selecionados"}
-              {pricePerNumber !== null && (
-                <>
-                  {" · "}
-                  <span className="font-bold" style={{ color: "hsl(var(--hero-gold))" }}>
-                    R$ {(totalCents / 100).toFixed(2).replace(".", ",")}
-                  </span>
-                </>
-              )}
-            </p>
-            <p className="mt-0.5 text-xs text-white/70 truncate font-mono">
-              {[...selected]
-                .sort((a, b) => a - b)
-                .map((n) => n.toString().padStart(3, "0"))
-                .join(", ")}
-            </p>
-          </div>
-          <div className="flex gap-2 shrink-0">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={clear}
-              className="border-white/20 bg-transparent text-white hover:bg-white/10 hover:text-white"
-            >
-              Limpar
-            </Button>
-            <Button
-              size="sm"
-              onClick={goToCheckout}
-              className="font-bold flex-1 sm:flex-initial min-w-[180px]"
-              style={{
-                backgroundColor: "hsl(var(--hero-gold))",
-                color: "hsl(var(--hero-bg))",
-              }}
-            >
-              Finalizar pagamento
-            </Button>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
