@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Shield, CheckCircle, Heart, Calendar, Users, Map, Trophy, Zap } from "lucide-react";
-import { PixIcon } from "@/components/PixIcon";
+
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TransparentLogo } from "@/components/TransparentLogo";
@@ -270,20 +270,7 @@ export const HeroRifa = ({
               }}
               aria-hidden
             />
-            <div className="relative flex flex-col items-center gap-5 text-center sm:flex-row sm:text-left">
-              <div className="relative shrink-0">
-                <div
-                  className="absolute inset-0 rounded-full blur-2xl"
-                  style={{ background: "rgba(50,188,173,0.55)" }}
-                  aria-hidden
-                />
-                <div
-                  className="relative flex h-28 w-28 items-center justify-center rounded-3xl bg-white shadow-2xl sm:h-32 sm:w-32"
-                  style={{ boxShadow: "0 0 30px rgba(50,188,173,0.6)" }}
-                >
-                  <PixIcon className="h-20 w-20 sm:h-24 sm:w-24 animate-pulse" />
-                </div>
-              </div>
+            <div className="relative flex flex-col gap-5 text-center">
               <div className="flex-1">
                 <span
                   className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-extrabold uppercase tracking-[0.2em] shadow-md"
