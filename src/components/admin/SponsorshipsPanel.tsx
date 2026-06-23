@@ -84,6 +84,7 @@ export function SponsorshipsPanel() {
       kind,
       status,
       notes: notes.trim() || null,
+      owner_contact: ownerContact.trim() || null,
     });
     setSaving(false);
     if (error) return toast.error("Erro: " + error.message);
