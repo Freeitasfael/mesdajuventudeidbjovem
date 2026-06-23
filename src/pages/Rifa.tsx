@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { RaffleGrid } from "@/components/RaffleGrid";
+import { RaffleStickyFooter } from "@/components/RaffleStickyFooter";
 import { HeroRifa, type Prize, type HeroStats } from "@/components/HeroRifa";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Button } from "@/components/ui/button";
@@ -227,6 +228,8 @@ const Rifa = () => {
       <footer className="border-t border-white/10 py-8 text-center text-xs text-white/60">
         Sistema de rifa automatizado · Pagamento seguro via PIX · IDB Jovem Oficial
       </footer>
+
+      <RaffleStickyFooter pricePerNumber={pricePerNumber} />
     </main>
   );
 };
