@@ -9,4 +9,28 @@ import "@fontsource/manrope/600.css";
 import "@fontsource/manrope/700.css";
 import "./index.css";
 
+// Após um novo deploy, o index.html em cache pode tentar carregar chunks
+// JS com hashes antigos que não existem mais → tela branca com
+// "Failed to fetch dynamically imported module". Recarregamos a página
+// uma única vez para puxar o novo index.html.
+const CHUNK_RELOAD_KEY = "chunk_reload_attempt";
+const isChunkLoadError = (msg: string) =>
+  /Failed to fetch dynamically imported module|Importing a module script failed|ChunkLoadError|Loading chunk [\w-]+ failed/i.test(
+    msg,
+  );
+const handleChunkError = (msg: string) => {
+  if (!isChunkLoadError(msg)) return;
+  if (sessionStorage.getItem(CHUNK_RELOAD_KEY)) return;
+  sessionStorage.setItem(CHUNK_RELOAD_KEY, "1");
+  window.location.reload();
+};
+window.addEventListener("error", (e) => handleChunkError(e.message || ""));
+window.addEventListener("unhandledrejection", (e) =>
+  handleChunkError(String(e.reason?.message || e.reason || "")),
+);
+// Limpa o flag quando o app monta com sucesso
+window.addEventListener("load", () =>
+  sessionStorage.removeItem(CHUNK_RELOAD_KEY),
+);
+
 createRoot(document.getElementById("root")!).render(<App />);
