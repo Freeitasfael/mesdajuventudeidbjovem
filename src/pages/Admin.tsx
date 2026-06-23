@@ -109,6 +109,27 @@ const Admin = () => {
   const [revalidatingId, setRevalidatingId] = useState<string | null>(null);
   const [realtimeOk, setRealtimeOk] = useState(false);
 
+  // Ranking de vendedores (apenas para o painel Vendedores)
+  const [sellerRanking, setSellerRanking] = useState<Array<{
+    seller_id: string;
+    seller_name: string;
+    ref_code: string;
+    total_numbers: number;
+    total_cents: number;
+    total_orders: number;
+  }>>([]);
+
+  // Pagamentos da Camiseta (sub-aba Pagamentos > Camiseta)
+  const [shirtPayments, setShirtPayments] = useState<Array<{
+    id: string;
+    created_at: string;
+    buyer_name: string;
+    total_cents: number;
+    status: string;
+    mp_payment_id: string | null;
+    payment_method: string | null;
+  }>>([]);
+
   // Order detail dialog
   const [detailOrder, setDetailOrder] = useState<OrderRow | null>(null);
   const [detailNumbers, setDetailNumbers] = useState<number[]>([]);
@@ -190,6 +211,27 @@ const Admin = () => {
       return true;
     });
   }, [orders, orderStatusFilter, orderDateFrom, orderDateTo]);
+
+  // KPIs da Rifa (aba "Rifa")
+  const rifaKpis = useMemo(() => {
+    const paid = orders.filter((o) => o.status === "paid");
+    const pending = orders.filter((o) => o.status === "pending");
+    const revPaid = paid.reduce((a, o) => a + o.total_cents, 0);
+    const revPending = pending.reduce((a, o) => a + o.total_cents, 0);
+    const ticket = paid.length > 0 ? Math.round(revPaid / paid.length) : 0;
+    const totalCreated = orders.length;
+    const conv = totalCreated > 0 ? (paid.length / totalCreated) * 100 : 0;
+    return { revPaid, revPending, paidCount: paid.length, pendingCount: pending.length, ticket, conv };
+  }, [orders]);
+
+  // KPIs do Pagamentos
+  const paymentKpis = useMemo(() => {
+    const approved = payments.filter((p) => p.status === "approved" || p.status === "paid");
+    const pending = payments.filter((p) => p.status === "pending");
+    const revPaid = approved.reduce((a, p) => a + p.amount_cents, 0);
+    const revPending = pending.reduce((a, p) => a + p.amount_cents, 0);
+    return { revPaid, revPending, approvedCount: approved.length, pendingCount: pending.length };
+  }, [payments]);
 
   const exportOrdersCsv = () => {
     if (filteredOrders.length === 0) {
@@ -327,6 +369,22 @@ const Admin = () => {
       for (const row of b.data) map[row.id] = row as BuyerRow;
       setBuyers(map);
     }
+
+    // Ranking de vendedores (somente admin)
+    try {
+      const r = await supabase.rpc("get_seller_ranking");
+      if (r.data) setSellerRanking(r.data as typeof sellerRanking);
+    } catch {}
+
+    // Pagamentos da camiseta
+    try {
+      const sp = await supabase
+        .from("entrada_orders")
+        .select("id, created_at, buyer_name, total_cents, status, mp_payment_id, payment_method")
+        .order("created_at", { ascending: false })
+        .limit(100);
+      if (sp.data) setShirtPayments(sp.data as typeof shirtPayments);
+    } catch {}
     if (sl.data) setSellers(sl.data as SellerRow[]);
     for (const row of st.data ?? []) {
       if (row.key === "raffle_title" && typeof row.value === "string") setTitle(row.value);
@@ -748,60 +806,146 @@ const Admin = () => {
           </TabsContent>
 
           {/* PAYMENTS */}
-          <TabsContent value="payments" className="mt-6">
-            <Card className="overflow-x-auto">
-              <div className="flex items-center justify-between border-b border-border px-4 py-3">
-                <p className="text-sm font-semibold">Últimos pagamentos</p>
-                <span className="text-xs text-muted-foreground">{payments.length} registros</span>
-              </div>
-              <table className="w-full text-sm">
-                <thead className="bg-muted/50 text-left">
-                  <tr>
-                    <th className="px-4 py-3">Data</th>
-                    <th className="px-4 py-3">Pedido</th>
-                    <th className="px-4 py-3">MP ID</th>
-                    <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3 text-right">Valor</th>
-                    <th className="px-4 py-3 text-right">Ações</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {payments.map((p) => (
-                    <tr key={p.id} className="border-t border-border">
-                      <td className="px-4 py-3 whitespace-nowrap">{fmtDate(p.created_at)}</td>
-                      <td className="px-4 py-3 font-mono text-xs">{p.order_id.slice(0, 8)}</td>
-                      <td className="px-4 py-3 font-mono text-xs">
-                        {p.provider_payment_id ?? "—"}
-                      </td>
-                      <td className="px-4 py-3"><StatusBadge status={p.status} /></td>
-                      <td className="px-4 py-3 text-right font-medium">{fmtBRL(p.amount_cents)}</td>
-                      <td className="px-4 py-3 text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          disabled={!p.provider_payment_id || revalidatingId === p.id}
-                          onClick={() => revalidatePayment(p.id, p.order_id)}
-                          title="Revalidar com Mercado Pago"
-                        >
-                          <RotateCw className={`h-4 w-4 ${revalidatingId === p.id ? "animate-spin" : ""}`} />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                  {payments.length === 0 && (
-                    <tr>
-                      <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
-                        Nenhum pagamento registrado.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+          <TabsContent value="payments" className="mt-6 space-y-4">
+            <Card className="p-4 bg-muted/30">
+              <p className="text-sm font-semibold mb-1">Para que serve esta aba?</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Aqui você acompanha <strong>todos os pagamentos PIX gerados via Mercado Pago</strong> — tanto da Rifa quanto da Camiseta.
+                Use para conferir status (aprovado, pendente, expirado), copiar o ID do pagamento (MP ID) para conciliação
+                no painel do Mercado Pago, e <strong>revalidar manualmente</strong> um pagamento que ficou pendente
+                (caso o webhook não tenha chegado).
+              </p>
             </Card>
+
+            {/* Resumo financeiro consolidado */}
+            <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+              <StatCard label="Recebido (Rifa)" value={fmtBRL(paymentKpis.revPaid)} />
+              <StatCard label="Pendente (Rifa)" value={fmtBRL(paymentKpis.revPending)} />
+              <StatCard label="Aprovados" value={String(paymentKpis.approvedCount)} />
+              <StatCard label="Aguardando" value={String(paymentKpis.pendingCount)} />
+            </div>
+
+            <Tabs defaultValue="rifa">
+              <TabsList>
+                <TabsTrigger value="rifa">Rifa</TabsTrigger>
+                <TabsTrigger value="camiseta">Camiseta</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="rifa" className="mt-4">
+                <Card className="overflow-x-auto">
+                  <div className="flex items-center justify-between border-b border-border px-4 py-3">
+                    <p className="text-sm font-semibold">Pagamentos da Rifa</p>
+                    <span className="text-xs text-muted-foreground">{payments.length} registros</span>
+                  </div>
+                  <table className="w-full text-sm">
+                    <thead className="bg-muted/50 text-left">
+                      <tr>
+                        <th className="px-4 py-3">Data</th>
+                        <th className="px-4 py-3">Pedido</th>
+                        <th className="px-4 py-3">MP ID</th>
+                        <th className="px-4 py-3">Status</th>
+                        <th className="px-4 py-3 text-right">Valor</th>
+                        <th className="px-4 py-3 text-right">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {payments.map((p) => (
+                        <tr key={p.id} className="border-t border-border">
+                          <td className="px-4 py-3 whitespace-nowrap">{fmtDate(p.created_at)}</td>
+                          <td className="px-4 py-3 font-mono text-xs">{p.order_id.slice(0, 8)}</td>
+                          <td className="px-4 py-3 font-mono text-xs">{p.provider_payment_id ?? "—"}</td>
+                          <td className="px-4 py-3"><StatusBadge status={p.status} /></td>
+                          <td className="px-4 py-3 text-right font-medium">{fmtBRL(p.amount_cents)}</td>
+                          <td className="px-4 py-3 text-right">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              disabled={!p.provider_payment_id || revalidatingId === p.id}
+                              onClick={() => revalidatePayment(p.id, p.order_id)}
+                              title="Revalidar com Mercado Pago"
+                            >
+                              <RotateCw className={`h-4 w-4 ${revalidatingId === p.id ? "animate-spin" : ""}`} />
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                      {payments.length === 0 && (
+                        <tr>
+                          <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                            Nenhum pagamento registrado.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="camiseta" className="mt-4">
+                <Card className="overflow-x-auto">
+                  <div className="flex items-center justify-between border-b border-border px-4 py-3">
+                    <p className="text-sm font-semibold">Pagamentos da Camiseta / Entrada</p>
+                    <span className="text-xs text-muted-foreground">{shirtPayments.length} registros</span>
+                  </div>
+                  <table className="w-full text-sm">
+                    <thead className="bg-muted/50 text-left">
+                      <tr>
+                        <th className="px-4 py-3">Data</th>
+                        <th className="px-4 py-3">Pedido</th>
+                        <th className="px-4 py-3">Comprador</th>
+                        <th className="px-4 py-3">MP ID</th>
+                        <th className="px-4 py-3">Método</th>
+                        <th className="px-4 py-3">Status</th>
+                        <th className="px-4 py-3 text-right">Valor</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {shirtPayments.map((p) => (
+                        <tr key={p.id} className="border-t border-border">
+                          <td className="px-4 py-3 whitespace-nowrap">{fmtDate(p.created_at)}</td>
+                          <td className="px-4 py-3 font-mono text-xs">{p.id.slice(0, 8)}</td>
+                          <td className="px-4 py-3">{p.buyer_name}</td>
+                          <td className="px-4 py-3 font-mono text-xs">{p.mp_payment_id ?? "—"}</td>
+                          <td className="px-4 py-3 text-xs uppercase">{p.payment_method ?? "—"}</td>
+                          <td className="px-4 py-3"><StatusBadge status={p.status} /></td>
+                          <td className="px-4 py-3 text-right font-medium">{fmtBRL(p.total_cents)}</td>
+                        </tr>
+                      ))}
+                      {shirtPayments.length === 0 && (
+                        <tr>
+                          <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
+                            Nenhum pagamento de camiseta registrado.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </TabsContent>
+
 
           {/* ORDERS */}
           <TabsContent value="orders" className="mt-6 space-y-4">
+            {/* KPIs individuais da Rifa */}
+            <div>
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">
+                Resumo da Rifa
+              </h2>
+              <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+                <StatCard label="Receita paga" value={fmtBRL(rifaKpis.revPaid)} />
+                <StatCard label="Receita pendente" value={fmtBRL(rifaKpis.revPending)} />
+                <StatCard label="Pedidos pagos" value={String(rifaKpis.paidCount)} />
+                <StatCard label="Números vendidos" value={String(stats?.numbers_paid ?? 0)} />
+                <StatCard label="Ticket médio" value={fmtBRL(rifaKpis.ticket)} />
+                <StatCard label="Conversão" value={`${rifaKpis.conv.toFixed(1)}%`} />
+                <StatCard label="Pendentes" value={String(rifaKpis.pendingCount)} />
+                <StatCard label="Disponíveis" value={String(stats?.numbers_available ?? 0)} />
+              </div>
+            </div>
+
+
             <ManualFreeNumber onDone={loadAll} />
 
             <Card className="space-y-3 p-4">
@@ -1046,6 +1190,62 @@ const Admin = () => {
 
           {/* SELLERS */}
           <TabsContent value="sellers" className="mt-6 space-y-6">
+            {/* KPIs individuais de Vendedores */}
+            {(() => {
+              const totalRev = sellerRanking.reduce((a, r) => a + (r.total_cents || 0), 0);
+              const totalNums = sellerRanking.reduce((a, r) => a + (r.total_numbers || 0), 0);
+              const active = sellerRanking.filter((r) => (r.total_orders || 0) > 0).length;
+              const top = sellerRanking.slice(0, 5);
+              return (
+                <>
+                  <div>
+                    <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">
+                      Resumo de Vendedores
+                    </h2>
+                    <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+                      <StatCard label="Total cadastrados" value={String(sellers.length)} />
+                      <StatCard label="Com vendas" value={String(active)} />
+                      <StatCard label="Receita por indicação" value={fmtBRL(totalRev)} />
+                      <StatCard label="Números vendidos (indicados)" value={String(totalNums)} />
+                    </div>
+                  </div>
+
+                  {top.length > 0 && (
+                    <Card className="overflow-x-auto">
+                      <div className="border-b border-border px-4 py-3">
+                        <p className="text-sm font-semibold">🏆 Top 5 vendedores</p>
+                      </div>
+                      <table className="w-full text-sm">
+                        <thead className="bg-muted/50 text-left">
+                          <tr>
+                            <th className="px-4 py-3">#</th>
+                            <th className="px-4 py-3">Vendedor</th>
+                            <th className="px-4 py-3">Código</th>
+                            <th className="px-4 py-3 text-right">Pedidos</th>
+                            <th className="px-4 py-3 text-right">Números</th>
+                            <th className="px-4 py-3 text-right">Receita</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {top.map((r, i) => (
+                            <tr key={r.seller_id} className="border-t border-border">
+                              <td className="px-4 py-3 font-semibold">{i + 1}º</td>
+                              <td className="px-4 py-3">{r.seller_name}</td>
+                              <td className="px-4 py-3 font-mono text-xs">{r.ref_code}</td>
+                              <td className="px-4 py-3 text-right">{r.total_orders}</td>
+                              <td className="px-4 py-3 text-right">{r.total_numbers}</td>
+                              <td className="px-4 py-3 text-right font-medium">{fmtBRL(r.total_cents)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </Card>
+                  )}
+                </>
+              );
+            })()}
+
+
             <Card className="p-4">
               <h3 className="mb-3 font-semibold">Novo vendedor</h3>
               <div className="grid gap-3 sm:grid-cols-4">

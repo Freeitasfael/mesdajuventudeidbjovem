@@ -219,6 +219,18 @@ export function EntradaPanel() {
     .reduce((acc, o) => acc + o.total_cents, 0);
   const totalReceived = applyFee(totalReceivedGross);
 
+  // KPIs individuais da Camiseta
+  const shirtKpis = (() => {
+    const paid = orders.filter((o) => o.status === "paid");
+    const pending = orders.filter((o) => o.status === "pending");
+    const revPaid = paid.reduce((a, o) => a + o.total_cents, 0);
+    const revPending = pending.reduce((a, o) => a + o.total_cents, 0);
+    const itemsSold = paid.reduce((a, o) => a + (o.quantity || 0), 0);
+    const ticket = paid.length > 0 ? Math.round(revPaid / paid.length) : 0;
+    const conv = orders.length > 0 ? (paid.length / orders.length) * 100 : 0;
+    return { revPaid, revPending, paidCount: paid.length, pendingCount: pending.length, itemsSold, ticket, conv };
+  })();
+
   const exportCsv = () => {
     if (filteredOrders.length === 0) {
       toast.info("Sem pedidos para exportar nesse filtro");
@@ -255,6 +267,23 @@ export function EntradaPanel() {
       </TabsList>
 
       <TabsContent value="transacoes" className="space-y-3">
+        {/* KPIs individuais da Camiseta */}
+        <div>
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">
+            Resumo da Camiseta
+          </h3>
+          <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+            <KpiCard label="Receita paga" value={fmtBRL(shirtKpis.revPaid)} />
+            <KpiCard label="Receita pendente" value={fmtBRL(shirtKpis.revPending)} />
+            <KpiCard label="Pedidos pagos" value={String(shirtKpis.paidCount)} />
+            <KpiCard label="Itens vendidos" value={String(shirtKpis.itemsSold)} />
+            <KpiCard label="Ticket médio" value={fmtBRL(shirtKpis.ticket)} />
+            <KpiCard label="Conversão" value={`${shirtKpis.conv.toFixed(1)}%`} />
+            <KpiCard label="Pendentes" value={String(shirtKpis.pendingCount)} />
+            <KpiCard label="Líquido (−0,99%)" value={fmtBRL(applyFee(shirtKpis.revPaid))} />
+          </div>
+        </div>
+
         <Card className="p-3">
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
             <div className="space-y-1">
@@ -445,5 +474,14 @@ export function EntradaPanel() {
         </Card>
       </TabsContent>
     </Tabs>
+  );
+}
+
+function KpiCard({ label, value }: { label: string; value: string }) {
+  return (
+    <Card className="p-3">
+      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="mt-1 text-lg font-bold">{value}</p>
+    </Card>
   );
 }
