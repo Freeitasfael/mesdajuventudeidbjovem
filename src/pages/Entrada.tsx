@@ -4,6 +4,7 @@ import { Sparkles, Check, Instagram, MapPin, ArrowRight, Shield, Heart, Ticket }
 import { PurchaseDialog } from "@/components/PurchaseDialog";
 import { Toaster } from "@/components/ui/sonner";
 import { SiteHeader } from "@/components/SiteHeader";
+import { SiteFooter } from "@/components/SiteFooter";
 import heroBg from "@/assets/hero-rifa-bg.jpg";
 import logoIdb from "@/assets/idb-jovem-logo.png";
 import modeloImg from "@/assets/modelo-camiseta-pulseira.png.asset.json";
@@ -285,77 +286,7 @@ export default function Entrada() {
 
       </section>
 
-      {/* Footer */}
-      <footer
-        className="py-12 border-t"
-        style={{
-          backgroundColor: "hsl(var(--hero-bg-deep))",
-          borderColor: "hsl(var(--hero-gold) / 0.15)",
-        }}
-      >
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-3 gap-8 mb-8">
-            <div>
-              <img src={logoIdb} alt="IDB Jovem" loading="lazy" decoding="async" className="h-16 w-auto mb-3" />
-              <p className="text-sm text-white/60">Garanta sua camiseta oficial!</p>
-            </div>
-            <div>
-              <h4
-                className="font-extrabold mb-3 uppercase tracking-wider text-sm"
-                style={{ color: "hsl(var(--hero-gold))" }}
-              >
-                Siga nas redes
-              </h4>
-              <a
-                href="https://instagram.com/idbjovemminas"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-sm text-white/80 hover:text-white transition"
-              >
-                <span
-                  className="w-10 h-10 rounded-full flex items-center justify-center transition border"
-                  style={{
-                    borderColor: "hsl(var(--hero-gold) / 0.3)",
-                    backgroundColor: "rgba(255,255,255,0.04)",
-                  }}
-                >
-                  <Instagram
-                    className="h-4 w-4"
-                    style={{ color: "hsl(var(--hero-gold))" }}
-                  />
-                </span>
-                @idbjovemminas
-              </a>
-            </div>
-            <div>
-              <h4
-                className="font-extrabold mb-3 uppercase tracking-wider text-sm"
-                style={{ color: "hsl(var(--hero-gold))" }}
-              >
-                Local e data
-              </h4>
-              <p className="text-sm text-white/70 flex items-start gap-2">
-                <MapPin
-                  className="h-4 w-4 mt-0.5 flex-shrink-0"
-                  style={{ color: "hsl(var(--hero-gold))" }}
-                />
-                <span>
-                  Portão 6 — Estádio João Havelange, Uberlândia
-                  <br />
-                  18 de julho de 2026
-                </span>
-              </p>
-            </div>
-          </div>
-          <div
-            className="border-t pt-6 text-center text-xs text-white/50"
-            style={{ borderColor: "hsl(var(--hero-gold) / 0.1)" }}
-          >
-            © {new Date().getFullYear()} Mês da Juventude · IDB Jovem. Todos os direitos
-            reservados.
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
 
       <PurchaseDialog open={open} onOpenChange={setOpen} initialOption="kit" />
     </div>
