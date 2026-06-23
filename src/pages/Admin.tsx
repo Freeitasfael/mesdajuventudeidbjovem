@@ -348,6 +348,22 @@ const Admin = () => {
       for (const row of b.data) map[row.id] = row as BuyerRow;
       setBuyers(map);
     }
+
+    // Ranking de vendedores (somente admin)
+    try {
+      const r = await supabase.rpc("get_seller_ranking");
+      if (r.data) setSellerRanking(r.data as typeof sellerRanking);
+    } catch {}
+
+    // Pagamentos da camiseta
+    try {
+      const sp = await supabase
+        .from("entrada_orders")
+        .select("id, created_at, buyer_name, total_cents, status, mp_payment_id, payment_method")
+        .order("created_at", { ascending: false })
+        .limit(100);
+      if (sp.data) setShirtPayments(sp.data as typeof shirtPayments);
+    } catch {}
     if (sl.data) setSellers(sl.data as SellerRow[]);
     for (const row of st.data ?? []) {
       if (row.key === "raffle_title" && typeof row.value === "string") setTitle(row.value);
