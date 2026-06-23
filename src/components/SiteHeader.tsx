@@ -158,6 +158,23 @@ export const SiteHeader = ({ variant = "light", breadcrumbs }: Props) => {
         <nav className="hidden items-center gap-1 lg:flex">{renderLinks()}</nav>
 
         <div className="flex items-center gap-2">
+          <a
+            href={INSTAGRAM_URL}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={`Instagram ${INSTAGRAM_HANDLE}`}
+            title={INSTAGRAM_HANDLE}
+            className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-xs font-semibold transition hover:scale-[1.03] sm:px-3 sm:text-sm ${
+              isDark
+                ? "border-white/25 bg-white/5 text-white hover:bg-white/10"
+                : "border-border bg-background text-foreground hover:bg-muted"
+            }`}
+            style={{ color: "hsl(var(--hero-gold))", borderColor: "hsl(var(--hero-gold) / 0.4)" }}
+          >
+            <Instagram className="h-4 w-4" />
+            <span className="hidden sm:inline">{INSTAGRAM_HANDLE}</span>
+          </a>
+
           <Button
             asChild
             size="sm"
