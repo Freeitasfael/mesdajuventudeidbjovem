@@ -290,6 +290,8 @@ export default function Entrada() {
       <SiteFooter />
 
       <PurchaseDialog open={open} onOpenChange={setOpen} initialOption="kit" />
+
+      <WhatsAppFab message="Olá! Quero comprar a camiseta oficial do Mês da Juventude IDB e preciso de ajuda." />
     </div>
   );
 }
