@@ -17,6 +17,8 @@ interface Sponsorship {
   status: "confirmed" | "pending";
   notes: string | null;
   owner_contact: string | null;
+  owner_name: string | null;
+  owner_phone: string | null;
   created_at: string;
 }
 
