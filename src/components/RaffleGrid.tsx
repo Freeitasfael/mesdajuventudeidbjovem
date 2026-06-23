@@ -138,7 +138,8 @@ export const RaffleGrid = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
+
       {/* Blocked number popup — fixed top */}
       {blockedPopup && (
         <div className="fixed top-0 left-0 right-0 z-[60] animate-fade-in-down">
