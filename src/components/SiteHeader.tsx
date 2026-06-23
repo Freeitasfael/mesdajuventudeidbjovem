@@ -205,6 +205,19 @@ export const SiteHeader = ({ variant = "light", breadcrumbs }: Props) => {
             </SheetTrigger>
             <SheetContent side="right" className="w-[85vw] max-w-[320px] bg-card text-foreground p-5 sm:p-6">
               <div className="mt-8 flex flex-col gap-1">{renderLinks(undefined, true)}</div>
+              <a
+                href={INSTAGRAM_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-4 inline-flex items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold"
+                style={{
+                  color: "hsl(var(--hero-gold))",
+                  borderColor: "hsl(var(--hero-gold) / 0.4)",
+                }}
+              >
+                <Instagram className="h-4 w-4" />
+                {INSTAGRAM_HANDLE}
+              </a>
             </SheetContent>
           </Sheet>
         </div>
