@@ -153,7 +153,7 @@ const Admin = () => {
   const [orderDateTo, setOrderDateTo] = useState("");
 
   useEffect(() => {
-    document.title = "Painel Admin — Camisetas";
+    document.title = "Painel Admin";
     loadAll();
   }, []);
 
@@ -683,10 +683,11 @@ const Admin = () => {
           <div className="-mx-2 overflow-x-auto px-2 sm:mx-0 sm:px-0">
             <TabsList className="inline-flex w-max min-w-full sm:w-auto sm:min-w-0">
               <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-              <TabsTrigger value="orders">Camisetas</TabsTrigger>
-              <TabsTrigger value="payments">Pagamentos</TabsTrigger>
-              <TabsTrigger value="sellers">Vendedores</TabsTrigger>
+              <TabsTrigger value="orders">Rifa</TabsTrigger>
+              <TabsTrigger value="camiseta">Camiseta</TabsTrigger>
               <TabsTrigger value="entrada">Entrada</TabsTrigger>
+              <TabsTrigger value="sellers">Vendedores</TabsTrigger>
+              <TabsTrigger value="payments">Pagamentos</TabsTrigger>
               <TabsTrigger value="expenses">Gastos</TabsTrigger>
               <TabsTrigger value="sponsors">Patrocínios</TabsTrigger>
               <TabsTrigger value="settings">Configurações</TabsTrigger>
@@ -695,6 +696,16 @@ const Admin = () => {
               <TabsTrigger value="admins">Admins</TabsTrigger>
             </TabsList>
           </div>
+
+          {/* CAMISETA — venda de produtos físicos (em breve) */}
+          <TabsContent value="camiseta" className="mt-6">
+            <Card className="p-8 text-center space-y-2">
+              <h2 className="text-xl font-semibold">Camiseta</h2>
+              <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                Módulo de venda de camisetas (produto físico). Em breve será disponibilizado aqui o cadastro de produtos, estoque e pedidos avulsos de camisetas.
+              </p>
+            </Card>
+          </TabsContent>
 
           {/* GASTOS */}
           <TabsContent value="expenses" className="mt-6">
