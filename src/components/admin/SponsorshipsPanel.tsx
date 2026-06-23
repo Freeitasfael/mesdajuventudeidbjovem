@@ -301,7 +301,7 @@ export function SponsorshipsPanel() {
                   {s.owner_name ?? (s.owner_contact ?? "—")}
                 </td>
                 <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">
-                  {s.owner_phone ?? "—"}
+                  {s.owner_phone ? <WhatsAppLink phone={s.owner_phone} message={`Olá! Sobre o patrocínio de ${s.sponsor_name}.`} /> : "—"}
                 </td>
                 <td className="px-4 py-3 text-xs">
                   <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5">
