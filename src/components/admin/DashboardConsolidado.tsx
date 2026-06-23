@@ -138,6 +138,9 @@ export function DashboardConsolidado() {
             }
           />
         </div>
+        <p className="text-xs text-muted-foreground mt-2">
+          Bruto: {fmtBRL(metrics.totalGross)} · Taxa descontada (0,99%): {fmtBRL(metrics.feeCents)}
+        </p>
       </div>
 
       {/* Rifa */}
