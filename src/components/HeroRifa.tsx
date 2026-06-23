@@ -294,12 +294,20 @@ export const HeroRifa = ({
                 >
                   <Zap className="h-3.5 w-3.5" /> Prêmio principal
                 </span>
-                <h3 className="mt-3 text-3xl font-extrabold uppercase tracking-wider text-white sm:text-4xl">
-                  Prêmio em <span style={{ color: "#32BCAD" }}>PIX</span>
+                <h3 className="mt-3 text-2xl font-extrabold uppercase tracking-wider text-white sm:text-3xl">
+                  Concorra a
                 </h3>
-                <p className="mt-2 text-sm text-white/80 sm:text-base">
-                  Você concorre a uma premiação em dinheiro via Pix —
-                  rápido, seguro e direto na sua conta.
+                <p
+                  className="mt-1 font-extrabold leading-none tracking-tight text-glow-gold text-6xl sm:text-7xl lg:text-8xl"
+                  style={{ color: "hsl(var(--hero-gold))" }}
+                >
+                  R$ 500
+                </p>
+                <p className="mt-3 text-sm font-semibold uppercase tracking-[0.25em] sm:text-base" style={{ color: "#32BCAD" }}>
+                  em PIX na sua conta
+                </p>
+                <p className="mt-2 text-sm text-white/75 sm:text-base">
+                  Rápido, seguro e direto — sem burocracia.
                 </p>
               </div>
             </div>
