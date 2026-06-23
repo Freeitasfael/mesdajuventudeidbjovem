@@ -177,7 +177,7 @@ const Rifa = () => {
             className="rounded-3xl border bg-white/[0.03] p-4 shadow-2xl backdrop-blur-md scroll-mt-6 sm:p-6"
             style={{ borderColor: "hsl(var(--hero-gold) / 0.25)" }}
           >
-            <RaffleGrid pricePerNumber={pricePerNumber} />
+            <RaffleGrid />
           </div>
         </div>
       </section>

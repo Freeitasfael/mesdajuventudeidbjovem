@@ -13,11 +13,7 @@ interface RaffleNumber {
   status: NumberStatus;
 }
 
-interface Props {
-  pricePerNumber: number | null;
-}
-
-export const RaffleGrid = ({ pricePerNumber }: Props) => {
+export const RaffleGrid = () => {
   const { selected, toggle } = useSelection();
   const [numbers, setNumbers] = useState<RaffleNumber[]>([]);
   const [loading, setLoading] = useState(true);
