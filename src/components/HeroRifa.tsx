@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Shield, CheckCircle, Heart, Calendar, Users, Map, Trophy } from "lucide-react";
+import { Shield, CheckCircle, Heart, Calendar, Users, Map, Trophy, Zap } from "lucide-react";
+import { PixIcon } from "@/components/PixIcon";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TransparentLogo } from "@/components/TransparentLogo";
