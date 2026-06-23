@@ -32,6 +32,7 @@ export function SponsorshipsPanel() {
   const [kind, setKind] = useState<"cash" | "permuta">("cash");
   const [status, setStatus] = useState<"confirmed" | "pending">("pending");
   const [notes, setNotes] = useState("");
+  const [ownerContact, setOwnerContact] = useState("");
 
   const load = async () => {
     setLoading(true);
