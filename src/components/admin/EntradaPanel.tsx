@@ -355,7 +355,7 @@ export function EntradaPanel() {
                       {canRefund && (
                         <Button size="sm" variant="outline" onClick={() => refundOrder(o)} disabled={refundingId === o.id}>
                           <Undo2 className="mr-1 h-3 w-3" />
-                          {refundingId === o.id ? "..." : o.status === "paid" ? "Reembolsar" : "Cancelar"}
+                          {refundingId === o.id ? "..." : "Reembolso"}
                         </Button>
                       )}
                     </td>
