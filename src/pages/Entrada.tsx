@@ -80,12 +80,12 @@ export default function Entrada() {
             ADQUIRA SUA
             <br />
             <span className="text-glow-gold" style={{ color: "hsl(var(--hero-gold))" }}>
-              CAMISA OFICIAL
+              CAMISETA OFICIAL
             </span>
           </h1>
 
           <p className="animate-fade-in max-w-2xl mx-auto text-base sm:text-lg md:text-xl text-white/85 mb-10">
-            A camisa oficial do <span className="font-semibold text-white">Mês da Juventude</span> é a sua
+            A camiseta oficial do <span className="font-semibold text-white">Mês da Juventude</span> é a sua
             forma de fazer parte desse momento especial de celebração, comunhão e fé.{" "}
             <span
               className="font-extrabold tracking-wide"
@@ -115,7 +115,7 @@ export default function Entrada() {
             </li>
             <li className="inline-flex items-center gap-2">
               <Heart className="h-4 w-4" style={{ color: "hsl(var(--hero-gold))" }} />
-              Camisa oficial garantida
+              Camiseta oficial garantida
             </li>
             <li className="inline-flex items-center gap-2">
               <Heart className="h-4 w-4" style={{ color: "hsl(var(--hero-gold))" }} />
@@ -142,7 +142,7 @@ export default function Entrada() {
           </h2>
           <p className="text-lg text-white/75 leading-relaxed">
             O Mês da Juventude é um evento especial preparado para reunir jovens em momentos de
-            alegria, comunhão, fé, amizade e celebração. Garanta sua camisa oficial e venha
+            alegria, comunhão, fé, amizade e celebração. Garanta sua camiseta oficial e venha
             fazer parte dessa experiência inesquecível.
           </p>
         </div>
@@ -181,7 +181,7 @@ export default function Entrada() {
                   Adquira a sua
                 </span>
                 <h2 className="font-extrabold text-4xl md:text-5xl mt-3 tracking-tight uppercase">
-                  Camisa Oficial
+                  Camiseta Oficial
                 </h2>
               </div>
 
@@ -197,14 +197,14 @@ export default function Entrada() {
                   }}
                 >
                   <h3 className="font-extrabold text-2xl mb-2 uppercase tracking-wide">
-                    Camisa Oficial
+                    Camiseta Oficial
                   </h3>
                   <p className="text-white/70 mb-6">
-                    Garanta sua camisa oficial do Mês da Juventude.
+                    Garanta sua camiseta oficial do Mês da Juventude.
                   </p>
                   <ul className="space-y-2 mb-8 text-sm text-white/85">
                     <li className="flex items-center gap-2">
-                      <Check className="h-4 w-4" style={{ color: "hsl(var(--hero-gold))" }} /> Camisa
+                      <Check className="h-4 w-4" style={{ color: "hsl(var(--hero-gold))" }} /> Camiseta
                       oficial do evento
                     </li>
                   </ul>
@@ -297,7 +297,7 @@ export default function Entrada() {
           <div className="grid md:grid-cols-3 gap-8 mb-8">
             <div>
               <img src={logoIdb} alt="IDB Jovem" loading="lazy" decoding="async" className="h-16 w-auto mb-3" />
-              <p className="text-sm text-white/60">Garanta sua camisa oficial!</p>
+              <p className="text-sm text-white/60">Garanta sua camiseta oficial!</p>
             </div>
             <div>
               <h4
