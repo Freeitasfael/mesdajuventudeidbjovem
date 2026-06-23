@@ -321,6 +321,7 @@ const Acompanhar = () => {
           </div>
         )}
       </section>
+      <WhatsAppFab message="Olá! Estou tentando consultar meu número/pedido no site da IDB Jovem e preciso de ajuda." />
     </main>
   );
 };
