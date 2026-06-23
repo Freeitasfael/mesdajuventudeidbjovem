@@ -331,7 +331,7 @@ export function EntradaPanel() {
             </thead>
             <tbody>
               {filteredOrders.map((o) => {
-                const canRefund = o.status === "paid" || o.status === "pending";
+                const canRefund = o.status !== "refunded";
                 return (
                   <tr key={o.id} className="border-t border-border">
                     <td className="px-4 py-3 whitespace-nowrap">{fmtDate(o.created_at)}</td>
