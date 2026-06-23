@@ -301,7 +301,7 @@ export function EntradaPanel() {
 
         <div className="flex items-center justify-between flex-wrap gap-2">
           <p className="text-sm text-muted-foreground">
-            {filteredOrders.length} de {orders.length} pedidos · {fmtBRL(totalReceived)} recebido
+            {filteredOrders.length} de {orders.length} pedidos · {fmtBRL(totalReceived)} líquido <span className="text-xs">(bruto {fmtBRL(totalReceivedGross)} – taxa 0,99%)</span>
           </p>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={exportCsv} disabled={filteredOrders.length === 0}>
