@@ -72,7 +72,8 @@ export function SponsorshipsPanel() {
     setKind("cash");
     setStatus("pending");
     setNotes("");
-    setOwnerContact("");
+    setOwnerName("");
+    setOwnerPhone("");
   };
 
   const handleSave = async () => {
@@ -87,7 +88,8 @@ export function SponsorshipsPanel() {
       kind,
       status,
       notes: notes.trim() || null,
-      owner_contact: ownerContact.trim() || null,
+      owner_name: ownerName.trim() || null,
+      owner_phone: ownerPhone.trim() || null,
     });
     setSaving(false);
     if (error) return toast.error("Erro: " + error.message);
