@@ -19,6 +19,7 @@ import { AdminsPanel } from "@/components/admin/AdminsPanel";
 import { DashboardConsolidado } from "@/components/admin/DashboardConsolidado";
 import { ExpensesPanel } from "@/components/admin/ExpensesPanel";
 import { SponsorshipsPanel } from "@/components/admin/SponsorshipsPanel";
+import { WhatsAppLink } from "@/components/WhatsAppLink";
 
 const ALLOWED_MIME = new Set([
   "image/png",
