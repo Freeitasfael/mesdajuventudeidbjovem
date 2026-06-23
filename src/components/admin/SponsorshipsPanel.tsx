@@ -240,7 +240,15 @@ export function SponsorshipsPanel() {
               <option value="confirmed">Confirmado</option>
             </select>
           </div>
-          <div className="space-y-1 lg:col-span-3">
+          <div className="space-y-1 lg:col-span-2">
+            <Label className="text-xs">Contato do proprietário (opcional)</Label>
+            <Input
+              value={ownerContact}
+              onChange={(e) => setOwnerContact(e.target.value)}
+              placeholder="Nome, telefone ou e-mail"
+            />
+          </div>
+          <div className="space-y-1 lg:col-span-4">
             <Label className="text-xs">Observação</Label>
             <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} placeholder="Detalhes (opcional)" />
           </div>
