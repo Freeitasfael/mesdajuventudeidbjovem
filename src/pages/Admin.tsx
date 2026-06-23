@@ -17,6 +17,8 @@ import { EntradaPanel } from "@/components/admin/EntradaPanel";
 import { VSLPanel } from "@/components/admin/VSLPanel";
 import { AdminsPanel } from "@/components/admin/AdminsPanel";
 import { DashboardConsolidado } from "@/components/admin/DashboardConsolidado";
+import { ExpensesPanel } from "@/components/admin/ExpensesPanel";
+import { SponsorshipsPanel } from "@/components/admin/SponsorshipsPanel";
 
 const ALLOWED_MIME = new Set([
   "image/png",
