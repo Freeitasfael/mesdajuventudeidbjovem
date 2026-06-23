@@ -743,10 +743,10 @@ const Admin = () => {
               <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
               <TabsTrigger value="orders">Rifa</TabsTrigger>
               <TabsTrigger value="entrada">Camiseta</TabsTrigger>
-              <TabsTrigger value="sellers">Vendedores</TabsTrigger>
-              <TabsTrigger value="payments">Pagamentos</TabsTrigger>
               <TabsTrigger value="expenses">Gastos</TabsTrigger>
               <TabsTrigger value="sponsors">Patrocínios</TabsTrigger>
+              <TabsTrigger value="sellers">Vendedores</TabsTrigger>
+              <TabsTrigger value="payments">Pagamentos</TabsTrigger>
               <TabsTrigger value="settings">Configurações</TabsTrigger>
               <TabsTrigger value="hero">Hero</TabsTrigger>
               <TabsTrigger value="vsl">VSL</TabsTrigger>
