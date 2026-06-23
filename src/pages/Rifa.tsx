@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { RaffleGrid } from "@/components/RaffleGrid";
-import { RaffleStickyFooter } from "@/components/RaffleStickyFooter";
+import { CheckoutBar } from "@/components/CheckoutBar";
 import { HeroRifa, type Prize, type HeroStats } from "@/components/HeroRifa";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Button } from "@/components/ui/button";
@@ -177,7 +177,7 @@ const Rifa = () => {
             className="rounded-3xl border bg-white/[0.03] p-4 shadow-2xl backdrop-blur-md scroll-mt-6 sm:p-6"
             style={{ borderColor: "hsl(var(--hero-gold) / 0.25)" }}
           >
-            <RaffleGrid pricePerNumber={pricePerNumber} />
+            <RaffleGrid />
           </div>
         </div>
       </section>
@@ -229,7 +229,7 @@ const Rifa = () => {
         Sistema de rifa automatizado · Pagamento seguro via PIX · IDB Jovem Oficial
       </footer>
 
-      <RaffleStickyFooter pricePerNumber={pricePerNumber} />
+      <CheckoutBar pricePerNumber={pricePerNumber} />
     </main>
   );
 };
