@@ -221,9 +221,9 @@ export const RaffleGrid = ({ pricePerNumber }: Props) => {
       )}
 
       <div className="flex flex-wrap items-center justify-center gap-4 text-xs sm:text-sm">
-        <LegendDot className="bg-number-available" label={`Disponíveis (${counts.available})`} />
-        <LegendDot className="bg-number-reserved" label={`Reservados (${counts.reserved})`} />
-        <LegendDot className="bg-number-paid" label={`Pagos (${counts.paid})`} />
+        <LegendDot className="bg-number-available" label="Disponíveis" />
+        <LegendDot className="bg-number-reserved" label="Reservados" />
+        <LegendDot className="bg-number-paid" label="Pagos" />
       </div>
 
       {loading ? (
