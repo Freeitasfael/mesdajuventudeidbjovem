@@ -282,6 +282,9 @@ export function SponsorshipsPanel() {
             {items.map((s) => (
               <tr key={s.id} className="border-t border-border">
                 <td className="px-4 py-3 font-medium">{s.sponsor_name}</td>
+                <td className="px-4 py-3 text-xs text-muted-foreground max-w-[180px] truncate">
+                  {s.owner_contact ?? "—"}
+                </td>
                 <td className="px-4 py-3 text-xs">
                   <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5">
                     {s.kind === "cash" ? "Dinheiro" : "Permuta"}
