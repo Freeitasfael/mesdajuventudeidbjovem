@@ -127,7 +127,7 @@ export function DashboardConsolidado() {
       <div>
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Visão geral</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard label="Total arrecadado" value={fmtBRL(metrics.total)} highlight />
+          <StatCard label="Total arrecadado (líquido)" value={fmtBRL(metrics.total)} highlight />
           <StatCard label="Total de pedidos" value={String(metrics.totalCount)} />
           <StatCard label="Ticket médio" value={fmtBRL(metrics.ticket)} />
           <StatCard
