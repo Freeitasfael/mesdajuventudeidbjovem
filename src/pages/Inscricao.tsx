@@ -381,6 +381,8 @@ export default function Inscricao() {
       </section>
 
       <SiteFooter />
+
+      <WhatsAppFab message="Olá! Quero garantir minha inscrição no Mês da Juventude IDB e preciso de ajuda." />
     </div>
   );
 }
