@@ -174,7 +174,7 @@ const Rifa = () => {
 
           <div
             id="rifa-grid"
-            className="rounded-3xl border bg-white/[0.03] p-4 shadow-2xl backdrop-blur-md scroll-mt-6 sm:p-6"
+            className="rounded-3xl border bg-white/[0.03] px-4 pt-4 pb-4 shadow-2xl backdrop-blur-md scroll-mt-6 sm:px-6 sm:pt-6 sm:pb-5"
             style={{ borderColor: "hsl(var(--hero-gold) / 0.25)" }}
           >
             <RaffleGrid />
