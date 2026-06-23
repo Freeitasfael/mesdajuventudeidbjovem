@@ -283,7 +283,8 @@ export function SponsorshipsPanel() {
           <thead className="bg-muted/50 text-left">
             <tr>
               <th className="px-4 py-3">Patrocinador</th>
-              <th className="px-4 py-3">Contato</th>
+              <th className="px-4 py-3">Proprietário</th>
+              <th className="px-4 py-3">Telefone</th>
               <th className="px-4 py-3">Tipo</th>
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3">Observação</th>
@@ -295,8 +296,11 @@ export function SponsorshipsPanel() {
             {items.map((s) => (
               <tr key={s.id} className="border-t border-border">
                 <td className="px-4 py-3 font-medium">{s.sponsor_name}</td>
-                <td className="px-4 py-3 text-xs text-muted-foreground max-w-[180px] truncate">
-                  {s.owner_contact ?? "—"}
+                <td className="px-4 py-3 text-xs text-muted-foreground">
+                  {s.owner_name ?? (s.owner_contact ?? "—")}
+                </td>
+                <td className="px-4 py-3 text-xs text-muted-foreground whitespace-nowrap">
+                  {s.owner_phone ?? "—"}
                 </td>
                 <td className="px-4 py-3 text-xs">
                   <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5">
