@@ -64,26 +64,6 @@ const PATHS: PathCard[] = [
   },
 ];
 
-const NEWS = [
-  {
-    tag: "Programação",
-    title: "Veja a grade completa do Mês da Juventude",
-    description:
-      "Confira datas, atrações e os principais momentos da edição deste ano.",
-  },
-  {
-    tag: "Comunidade",
-    title: "16 anos transformando histórias",
-    description:
-      "Relembre como tudo começou e os impactos do movimento por todo o país.",
-  },
-  {
-    tag: "Bastidores",
-    title: "Como sua participação financia o evento",
-    description:
-      "Entenda como rifa, camisetas e inscrições viabilizam cada edição.",
-  },
-];
 
 export default function Home() {
   const scrollTo = (id: string) =>
