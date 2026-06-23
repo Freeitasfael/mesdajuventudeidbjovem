@@ -214,9 +214,10 @@ export function EntradaPanel() {
     });
   }, [orders, statusFilter, productFilter, dateFrom, dateTo, search]);
 
-  const totalReceived = filteredOrders
+  const totalReceivedGross = filteredOrders
     .filter((o) => o.status === "paid")
     .reduce((acc, o) => acc + o.total_cents, 0);
+  const totalReceived = applyFee(totalReceivedGross);
 
   const exportCsv = () => {
     if (filteredOrders.length === 0) {
