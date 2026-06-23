@@ -47,8 +47,8 @@
     --number-available: 44 38% 92%;            /* cream chip on dark, border-only on light */
     --number-available-foreground: 158 78% 12%;
     --number-available-hover: 43 53% 80%;
-    --number-reserved: 43 53% 72%;             /* soft champagne */
-    --number-reserved-foreground: 158 78% 12%;
+    --number-reserved: 25 85% 60%;             /* amber/laranja — distinto do dourado */
+    --number-reserved-foreground: 0 0% 100%;
     --number-paid: 43 53% 54%;                 /* full gold */
     --number-paid-foreground: 158 78% 12%;
 
