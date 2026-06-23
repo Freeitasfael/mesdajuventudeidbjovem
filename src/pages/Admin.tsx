@@ -806,57 +806,125 @@ const Admin = () => {
           </TabsContent>
 
           {/* PAYMENTS */}
-          <TabsContent value="payments" className="mt-6">
-            <Card className="overflow-x-auto">
-              <div className="flex items-center justify-between border-b border-border px-4 py-3">
-                <p className="text-sm font-semibold">Últimos pagamentos</p>
-                <span className="text-xs text-muted-foreground">{payments.length} registros</span>
-              </div>
-              <table className="w-full text-sm">
-                <thead className="bg-muted/50 text-left">
-                  <tr>
-                    <th className="px-4 py-3">Data</th>
-                    <th className="px-4 py-3">Pedido</th>
-                    <th className="px-4 py-3">MP ID</th>
-                    <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3 text-right">Valor</th>
-                    <th className="px-4 py-3 text-right">Ações</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {payments.map((p) => (
-                    <tr key={p.id} className="border-t border-border">
-                      <td className="px-4 py-3 whitespace-nowrap">{fmtDate(p.created_at)}</td>
-                      <td className="px-4 py-3 font-mono text-xs">{p.order_id.slice(0, 8)}</td>
-                      <td className="px-4 py-3 font-mono text-xs">
-                        {p.provider_payment_id ?? "—"}
-                      </td>
-                      <td className="px-4 py-3"><StatusBadge status={p.status} /></td>
-                      <td className="px-4 py-3 text-right font-medium">{fmtBRL(p.amount_cents)}</td>
-                      <td className="px-4 py-3 text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          disabled={!p.provider_payment_id || revalidatingId === p.id}
-                          onClick={() => revalidatePayment(p.id, p.order_id)}
-                          title="Revalidar com Mercado Pago"
-                        >
-                          <RotateCw className={`h-4 w-4 ${revalidatingId === p.id ? "animate-spin" : ""}`} />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                  {payments.length === 0 && (
-                    <tr>
-                      <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
-                        Nenhum pagamento registrado.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+          <TabsContent value="payments" className="mt-6 space-y-4">
+            <Card className="p-4 bg-muted/30">
+              <p className="text-sm font-semibold mb-1">Para que serve esta aba?</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Aqui você acompanha <strong>todos os pagamentos PIX gerados via Mercado Pago</strong> — tanto da Rifa quanto da Camiseta.
+                Use para conferir status (aprovado, pendente, expirado), copiar o ID do pagamento (MP ID) para conciliação
+                no painel do Mercado Pago, e <strong>revalidar manualmente</strong> um pagamento que ficou pendente
+                (caso o webhook não tenha chegado).
+              </p>
             </Card>
+
+            {/* Resumo financeiro consolidado */}
+            <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+              <StatCard label="Recebido (Rifa)" value={fmtBRL(paymentKpis.revPaid)} />
+              <StatCard label="Pendente (Rifa)" value={fmtBRL(paymentKpis.revPending)} />
+              <StatCard label="Aprovados" value={String(paymentKpis.approvedCount)} />
+              <StatCard label="Aguardando" value={String(paymentKpis.pendingCount)} />
+            </div>
+
+            <Tabs defaultValue="rifa">
+              <TabsList>
+                <TabsTrigger value="rifa">Rifa</TabsTrigger>
+                <TabsTrigger value="camiseta">Camiseta</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="rifa" className="mt-4">
+                <Card className="overflow-x-auto">
+                  <div className="flex items-center justify-between border-b border-border px-4 py-3">
+                    <p className="text-sm font-semibold">Pagamentos da Rifa</p>
+                    <span className="text-xs text-muted-foreground">{payments.length} registros</span>
+                  </div>
+                  <table className="w-full text-sm">
+                    <thead className="bg-muted/50 text-left">
+                      <tr>
+                        <th className="px-4 py-3">Data</th>
+                        <th className="px-4 py-3">Pedido</th>
+                        <th className="px-4 py-3">MP ID</th>
+                        <th className="px-4 py-3">Status</th>
+                        <th className="px-4 py-3 text-right">Valor</th>
+                        <th className="px-4 py-3 text-right">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {payments.map((p) => (
+                        <tr key={p.id} className="border-t border-border">
+                          <td className="px-4 py-3 whitespace-nowrap">{fmtDate(p.created_at)}</td>
+                          <td className="px-4 py-3 font-mono text-xs">{p.order_id.slice(0, 8)}</td>
+                          <td className="px-4 py-3 font-mono text-xs">{p.provider_payment_id ?? "—"}</td>
+                          <td className="px-4 py-3"><StatusBadge status={p.status} /></td>
+                          <td className="px-4 py-3 text-right font-medium">{fmtBRL(p.amount_cents)}</td>
+                          <td className="px-4 py-3 text-right">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              disabled={!p.provider_payment_id || revalidatingId === p.id}
+                              onClick={() => revalidatePayment(p.id, p.order_id)}
+                              title="Revalidar com Mercado Pago"
+                            >
+                              <RotateCw className={`h-4 w-4 ${revalidatingId === p.id ? "animate-spin" : ""}`} />
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                      {payments.length === 0 && (
+                        <tr>
+                          <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                            Nenhum pagamento registrado.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="camiseta" className="mt-4">
+                <Card className="overflow-x-auto">
+                  <div className="flex items-center justify-between border-b border-border px-4 py-3">
+                    <p className="text-sm font-semibold">Pagamentos da Camiseta / Entrada</p>
+                    <span className="text-xs text-muted-foreground">{shirtPayments.length} registros</span>
+                  </div>
+                  <table className="w-full text-sm">
+                    <thead className="bg-muted/50 text-left">
+                      <tr>
+                        <th className="px-4 py-3">Data</th>
+                        <th className="px-4 py-3">Pedido</th>
+                        <th className="px-4 py-3">Comprador</th>
+                        <th className="px-4 py-3">MP ID</th>
+                        <th className="px-4 py-3">Método</th>
+                        <th className="px-4 py-3">Status</th>
+                        <th className="px-4 py-3 text-right">Valor</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {shirtPayments.map((p) => (
+                        <tr key={p.id} className="border-t border-border">
+                          <td className="px-4 py-3 whitespace-nowrap">{fmtDate(p.created_at)}</td>
+                          <td className="px-4 py-3 font-mono text-xs">{p.id.slice(0, 8)}</td>
+                          <td className="px-4 py-3">{p.buyer_name}</td>
+                          <td className="px-4 py-3 font-mono text-xs">{p.mp_payment_id ?? "—"}</td>
+                          <td className="px-4 py-3 text-xs uppercase">{p.payment_method ?? "—"}</td>
+                          <td className="px-4 py-3"><StatusBadge status={p.status} /></td>
+                          <td className="px-4 py-3 text-right font-medium">{fmtBRL(p.total_cents)}</td>
+                        </tr>
+                      ))}
+                      {shirtPayments.length === 0 && (
+                        <tr>
+                          <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
+                            Nenhum pagamento de camiseta registrado.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </TabsContent>
+
 
           {/* ORDERS */}
           <TabsContent value="orders" className="mt-6 space-y-4">
