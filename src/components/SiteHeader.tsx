@@ -19,7 +19,11 @@ import {
   Menu,
   UserPlus,
   Shirt,
+  Instagram,
 } from "lucide-react";
+
+const INSTAGRAM_URL = "https://instagram.com/idbjovemminas";
+const INSTAGRAM_HANDLE = "@idbjovemminas";
 
 interface NavItem {
   to: string;
