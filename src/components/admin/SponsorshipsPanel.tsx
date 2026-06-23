@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Plus, Trash2, RefreshCw, CheckCircle2, Clock, Download, Star } from "lucide-react";
 import cotasPdf from "@/assets/cotas-patrocinio.pdf.asset.json";
+import { WhatsAppLink } from "@/components/WhatsAppLink";
 
 interface Sponsorship {
   id: string;
