@@ -378,6 +378,8 @@ export default function Inscricao() {
           Voltar para a home
         </Link>
       </section>
+
+      <SiteFooter />
     </div>
   );
 }
