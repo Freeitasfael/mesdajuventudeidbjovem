@@ -16,7 +16,7 @@ export default defineConfig(({ mode }) => ({
       // mas no dev (vite) o caminho cai no fallback SPA e retorna HTML,
       // quebrando <img>. Proxy direto para o CDN resolve isso.
       "/__l5e": {
-        target: "https://cdn.lovable.dev",
+        target: "https://idbjovem-site.lovable.app",
         changeOrigin: true,
         secure: true,
       },
