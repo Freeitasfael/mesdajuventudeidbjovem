@@ -19,6 +19,7 @@ import { AdminsPanel } from "@/components/admin/AdminsPanel";
 import { DashboardConsolidado } from "@/components/admin/DashboardConsolidado";
 import { ExpensesPanel } from "@/components/admin/ExpensesPanel";
 import { SponsorshipsPanel } from "@/components/admin/SponsorshipsPanel";
+import { WhatsAppLink } from "@/components/WhatsAppLink";
 
 const ALLOWED_MIME = new Set([
   "image/png",
@@ -1019,7 +1020,7 @@ const Admin = () => {
                           {o.id.slice(0, 8)}
                         </td>
                         <td className="px-4 py-3">{buyer?.name ?? "—"}</td>
-                        <td className="px-4 py-3">{buyer?.phone ?? "—"}</td>
+                        <td className="px-4 py-3">{buyer?.phone ? <WhatsAppLink phone={buyer.phone} /> : "—"}</td>
                         <td className="px-4 py-3">
                           {seller ? (
                             <span className="inline-flex flex-col">
@@ -1093,7 +1094,7 @@ const Admin = () => {
                         <div>
                           <p className="text-xs uppercase text-muted-foreground">Comprador</p>
                           <p className="font-medium">{buyer?.name ?? "—"}</p>
-                          <p className="text-xs text-muted-foreground">{buyer?.phone ?? "—"}</p>
+                          <div className="text-xs text-muted-foreground">{buyer?.phone ? <WhatsAppLink phone={buyer.phone} /> : "—"}</div>
                         </div>
                         <div>
                           <p className="text-xs uppercase text-muted-foreground">Total</p>
@@ -1118,7 +1119,7 @@ const Admin = () => {
                               Código: {seller.ref_code}
                             </p>
                             {seller.phone && (
-                              <p className="text-xs text-muted-foreground">Tel: {seller.phone}</p>
+                              <div className="text-xs text-muted-foreground inline-flex items-center gap-1">Tel: <WhatsAppLink phone={seller.phone} /></div>
                             )}
                             {detailOrder.referral_label && (
                               <p className="mt-1 text-xs text-muted-foreground">
@@ -1285,7 +1286,7 @@ const Admin = () => {
                     <tr key={s.id} className="border-t border-border">
                       <td className="px-4 py-3">{s.name}</td>
                       <td className="px-4 py-3 font-mono text-xs">{s.ref_code}</td>
-                      <td className="px-4 py-3">{s.phone ?? "—"}</td>
+                      <td className="px-4 py-3">{s.phone ? <WhatsAppLink phone={s.phone} /> : "—"}</td>
                       <td className="px-4 py-3 text-right">
                         <Button
                           variant="ghost"

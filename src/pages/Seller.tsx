@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { buildCsv, downloadCsv } from "@/lib/csv";
+import { WhatsAppLink } from "@/components/WhatsAppLink";
 import {
   CheckCircle2,
   Clock,
@@ -460,9 +461,10 @@ const OrderRow = ({ order }: { order: SellerOrder }) => {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="font-semibold">{order.buyer_name}</p>
-          <p className="text-xs text-muted-foreground">
-            {order.buyer_phone} · {formatDate(order.created_at)}
-          </p>
+          <div className="text-xs text-muted-foreground inline-flex items-center gap-1 flex-wrap">
+            <WhatsAppLink phone={order.buyer_phone} />
+            <span>· {formatDate(order.created_at)}</span>
+          </div>
         </div>
         <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs ${tone}`}>
           {order.status === "paid" ? (

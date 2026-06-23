@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SiteHeader } from "@/components/SiteHeader";
 import { toast } from "sonner";
+import { WhatsAppLink } from "@/components/WhatsAppLink";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -220,7 +221,12 @@ const SellerOrderDetail = () => {
 
               <div className="grid gap-3 sm:grid-cols-2">
                 <Detail label="Comprador" value={order.buyer_name} />
-                <Detail label="Telefone" value={order.buyer_phone} />
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground">Telefone</p>
+                  <div className="text-sm font-medium">
+                    {order.buyer_phone ? <WhatsAppLink phone={order.buyer_phone} /> : "—"}
+                  </div>
+                </div>
                 <Detail label="Total" value={formatBRL(order.total_cents)} />
                 <Detail
                   label="Expira em"

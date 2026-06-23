@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Download, RefreshCw, Save, Undo2, UserPlus } from "lucide-react";
 import { buildCsv, downloadCsv } from "@/lib/csv";
+import { WhatsAppLink } from "@/components/WhatsAppLink";
 
 interface EntradaOrder {
   id: string;
@@ -367,7 +368,7 @@ export function EntradaPanel() {
                   <tr key={o.id} className="border-t border-border">
                     <td className="px-4 py-3 whitespace-nowrap">{fmtDate(o.created_at)}</td>
                     <td className="px-4 py-3">{o.buyer_name}</td>
-                    <td className="px-4 py-3">{o.buyer_phone}</td>
+                    <td className="px-4 py-3">{o.buyer_phone ? <WhatsAppLink phone={o.buyer_phone} /> : "—"}</td>
                     <td className="px-4 py-3 capitalize">{o.product}</td>
                     <td className="px-4 py-3 capitalize">{o.product === "kit" ? (o.model ?? "adulto") : "—"}</td>
                     <td className="px-4 py-3">{o.size ?? "—"}</td>
