@@ -683,10 +683,11 @@ const Admin = () => {
           <div className="-mx-2 overflow-x-auto px-2 sm:mx-0 sm:px-0">
             <TabsList className="inline-flex w-max min-w-full sm:w-auto sm:min-w-0">
               <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-              <TabsTrigger value="orders">Camisetas</TabsTrigger>
-              <TabsTrigger value="payments">Pagamentos</TabsTrigger>
-              <TabsTrigger value="sellers">Vendedores</TabsTrigger>
+              <TabsTrigger value="orders">Rifa</TabsTrigger>
+              <TabsTrigger value="camiseta">Camiseta</TabsTrigger>
               <TabsTrigger value="entrada">Entrada</TabsTrigger>
+              <TabsTrigger value="sellers">Vendedores</TabsTrigger>
+              <TabsTrigger value="payments">Pagamentos</TabsTrigger>
               <TabsTrigger value="expenses">Gastos</TabsTrigger>
               <TabsTrigger value="sponsors">Patrocínios</TabsTrigger>
               <TabsTrigger value="settings">Configurações</TabsTrigger>
