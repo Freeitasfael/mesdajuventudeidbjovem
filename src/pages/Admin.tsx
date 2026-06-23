@@ -1122,6 +1122,62 @@ const Admin = () => {
 
           {/* SELLERS */}
           <TabsContent value="sellers" className="mt-6 space-y-6">
+            {/* KPIs individuais de Vendedores */}
+            {(() => {
+              const totalRev = sellerRanking.reduce((a, r) => a + (r.total_cents || 0), 0);
+              const totalNums = sellerRanking.reduce((a, r) => a + (r.total_numbers || 0), 0);
+              const active = sellerRanking.filter((r) => (r.total_orders || 0) > 0).length;
+              const top = sellerRanking.slice(0, 5);
+              return (
+                <>
+                  <div>
+                    <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">
+                      Resumo de Vendedores
+                    </h2>
+                    <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+                      <StatCard label="Total cadastrados" value={String(sellers.length)} />
+                      <StatCard label="Com vendas" value={String(active)} />
+                      <StatCard label="Receita por indicação" value={fmtBRL(totalRev)} />
+                      <StatCard label="Números vendidos (indicados)" value={String(totalNums)} />
+                    </div>
+                  </div>
+
+                  {top.length > 0 && (
+                    <Card className="overflow-x-auto">
+                      <div className="border-b border-border px-4 py-3">
+                        <p className="text-sm font-semibold">🏆 Top 5 vendedores</p>
+                      </div>
+                      <table className="w-full text-sm">
+                        <thead className="bg-muted/50 text-left">
+                          <tr>
+                            <th className="px-4 py-3">#</th>
+                            <th className="px-4 py-3">Vendedor</th>
+                            <th className="px-4 py-3">Código</th>
+                            <th className="px-4 py-3 text-right">Pedidos</th>
+                            <th className="px-4 py-3 text-right">Números</th>
+                            <th className="px-4 py-3 text-right">Receita</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {top.map((r, i) => (
+                            <tr key={r.seller_id} className="border-t border-border">
+                              <td className="px-4 py-3 font-semibold">{i + 1}º</td>
+                              <td className="px-4 py-3">{r.seller_name}</td>
+                              <td className="px-4 py-3 font-mono text-xs">{r.ref_code}</td>
+                              <td className="px-4 py-3 text-right">{r.total_orders}</td>
+                              <td className="px-4 py-3 text-right">{r.total_numbers}</td>
+                              <td className="px-4 py-3 text-right font-medium">{fmtBRL(r.total_cents)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </Card>
+                  )}
+                </>
+              );
+            })()}
+
+
             <Card className="p-4">
               <h3 className="mb-3 font-semibold">Novo vendedor</h3>
               <div className="grid gap-3 sm:grid-cols-4">
