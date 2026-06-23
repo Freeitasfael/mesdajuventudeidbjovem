@@ -270,6 +270,7 @@ export function SponsorshipsPanel() {
           <thead className="bg-muted/50 text-left">
             <tr>
               <th className="px-4 py-3">Patrocinador</th>
+              <th className="px-4 py-3">Contato</th>
               <th className="px-4 py-3">Tipo</th>
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3">Observação</th>
