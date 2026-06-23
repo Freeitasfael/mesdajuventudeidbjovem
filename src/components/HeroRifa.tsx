@@ -225,22 +225,16 @@ export const HeroRifa = ({
           }}
         >
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-white/70 sm:text-base">
-            Por apenas
+            Cada Número por apenas
           </p>
-          {safePrice === null ? (
-            <div className="mt-4 flex justify-center">
-              <Skeleton className="h-20 w-64 rounded-xl bg-white/15 sm:h-24 sm:w-80" />
-            </div>
-          ) : (
-            <p
-              className="mt-3 font-extrabold leading-none tracking-tight text-glow-gold text-6xl sm:text-7xl lg:text-8xl"
-              style={{ color: "hsl(var(--hero-gold))" }}
-            >
-              {formatPrice(safePrice)}
-            </p>
-          )}
+          <p
+            className="mt-3 font-extrabold leading-none tracking-tight text-glow-gold text-6xl sm:text-7xl lg:text-8xl"
+            style={{ color: "hsl(var(--hero-gold))" }}
+          >
+            R$ 10,00
+          </p>
           <p className="mt-3 text-sm font-semibold uppercase tracking-[0.3em] text-white/70 sm:text-base">
-            Por número
+            cada número
           </p>
 
           <Button
@@ -252,11 +246,8 @@ export const HeroRifa = ({
               color: "hsl(var(--hero-bg))",
             }}
           >
-            Quero Participar!
+            Quero comprar um número
           </Button>
-          <p className="mt-2 text-xs text-white/70 sm:text-sm">
-            Escolha seus números e concorra
-          </p>
         </div>
 
         {/* Prizes */}
