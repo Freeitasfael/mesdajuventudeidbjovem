@@ -16,6 +16,7 @@ interface Sponsorship {
   kind: "cash" | "permuta";
   status: "confirmed" | "pending";
   notes: string | null;
+  owner_contact: string | null;
   created_at: string;
 }
 
@@ -31,12 +32,13 @@ export function SponsorshipsPanel() {
   const [kind, setKind] = useState<"cash" | "permuta">("cash");
   const [status, setStatus] = useState<"confirmed" | "pending">("pending");
   const [notes, setNotes] = useState("");
+  const [ownerContact, setOwnerContact] = useState("");
 
   const load = async () => {
     setLoading(true);
     const { data, error } = await supabase
       .from("sponsorships")
-      .select("id, sponsor_name, amount_cents, kind, status, notes, created_at")
+      .select("id, sponsor_name, amount_cents, kind, status, notes, owner_contact, created_at")
       .order("created_at", { ascending: false })
       .limit(1000);
     if (error) toast.error("Erro ao carregar: " + error.message);
@@ -67,6 +69,7 @@ export function SponsorshipsPanel() {
     setKind("cash");
     setStatus("pending");
     setNotes("");
+    setOwnerContact("");
   };
 
   const handleSave = async () => {
@@ -81,6 +84,7 @@ export function SponsorshipsPanel() {
       kind,
       status,
       notes: notes.trim() || null,
+      owner_contact: ownerContact.trim() || null,
     });
     setSaving(false);
     if (error) return toast.error("Erro: " + error.message);
@@ -236,7 +240,15 @@ export function SponsorshipsPanel() {
               <option value="confirmed">Confirmado</option>
             </select>
           </div>
-          <div className="space-y-1 lg:col-span-3">
+          <div className="space-y-1 lg:col-span-2">
+            <Label className="text-xs">Contato do proprietário (opcional)</Label>
+            <Input
+              value={ownerContact}
+              onChange={(e) => setOwnerContact(e.target.value)}
+              placeholder="Nome, telefone ou e-mail"
+            />
+          </div>
+          <div className="space-y-1 lg:col-span-4">
             <Label className="text-xs">Observação</Label>
             <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} placeholder="Detalhes (opcional)" />
           </div>
@@ -258,6 +270,7 @@ export function SponsorshipsPanel() {
           <thead className="bg-muted/50 text-left">
             <tr>
               <th className="px-4 py-3">Patrocinador</th>
+              <th className="px-4 py-3">Contato</th>
               <th className="px-4 py-3">Tipo</th>
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3">Observação</th>
@@ -269,6 +282,9 @@ export function SponsorshipsPanel() {
             {items.map((s) => (
               <tr key={s.id} className="border-t border-border">
                 <td className="px-4 py-3 font-medium">{s.sponsor_name}</td>
+                <td className="px-4 py-3 text-xs text-muted-foreground max-w-[180px] truncate">
+                  {s.owner_contact ?? "—"}
+                </td>
                 <td className="px-4 py-3 text-xs">
                   <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5">
                     {s.kind === "cash" ? "Dinheiro" : "Permuta"}
@@ -299,7 +315,7 @@ export function SponsorshipsPanel() {
             ))}
             {items.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
                   Nenhum patrocínio cadastrado.
                 </td>
               </tr>

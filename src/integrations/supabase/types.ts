@@ -583,6 +583,7 @@ export type Database = {
           id: string
           kind: string
           notes: string | null
+          owner_contact: string | null
           sponsor_name: string
           status: string
           updated_at: string
@@ -594,6 +595,7 @@ export type Database = {
           id?: string
           kind?: string
           notes?: string | null
+          owner_contact?: string | null
           sponsor_name: string
           status?: string
           updated_at?: string
@@ -605,6 +607,7 @@ export type Database = {
           id?: string
           kind?: string
           notes?: string | null
+          owner_contact?: string | null
           sponsor_name?: string
           status?: string
           updated_at?: string
