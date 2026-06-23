@@ -138,8 +138,10 @@
   }
 
   html, body {
-    /* Bloqueia rolagem lateral em qualquer viewport */
-    overflow-x: hidden;
+    /* Bloqueia rolagem lateral em qualquer viewport.
+       Usamos `clip` em vez de `hidden` para não criar um contexto de
+       rolagem no <html>, o que quebraria `position: sticky` do header. */
+    overflow-x: clip;
     max-width: 100vw;
   }
 
