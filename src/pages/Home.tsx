@@ -21,6 +21,7 @@ import { VSLPlayer } from "@/components/VSLPlayer";
 import { SiteFooter } from "@/components/SiteFooter";
 import heroBg from "@/assets/hero-rifa-bg.jpg";
 import logoIdb from "@/assets/idb-jovem-logo.png";
+import { RecapGallery } from "@/components/RecapGallery";
 
 type PathCard = {
   to: string;
@@ -382,59 +383,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ============ NOVIDADES ============ */}
-      <section
-        className="relative py-20 sm:py-28"
-        style={{ backgroundColor: "hsl(var(--hero-bg-deep))" }}
-      >
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
-            <div>
-              <p
-                className="text-xs font-extrabold uppercase tracking-[0.3em]"
-                style={{ color: "hsl(var(--hero-gold))" }}
-              >
-                Novidades & avisos
-              </p>
-              <h2 className="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">
-                Acompanhe o movimento
-              </h2>
-            </div>
-          </div>
-
-          <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3">
-            {NEWS.map((n) => (
-              <article
-                key={n.title}
-                className="flex flex-col rounded-2xl border bg-white/5 p-6 backdrop-blur-sm transition-all hover:-translate-y-1 hover:shadow-gold-glow"
-                style={{ borderColor: "hsl(var(--hero-gold) / 0.18)" }}
-              >
-                <span
-                  className="self-start rounded-full border px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest"
-                  style={{
-                    borderColor: "hsl(var(--hero-gold) / 0.4)",
-                    color: "hsl(var(--hero-gold))",
-                  }}
-                >
-                  {n.tag}
-                </span>
-                <h3 className="mt-4 text-lg font-extrabold text-white">
-                  {n.title}
-                </h3>
-                <p className="mt-2 flex-1 text-sm text-white/75">
-                  {n.description}
-                </p>
-                <p
-                  className="mt-5 inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-widest"
-                  style={{ color: "hsl(var(--hero-gold))" }}
-                >
-                  Em breve <ArrowRight className="h-3.5 w-3.5" />
-                </p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* ============ RECAP / NOVIDADES ============ */}
+      <RecapGallery />
 
       {/* ============ CTA FINAL ============ */}
       <section
