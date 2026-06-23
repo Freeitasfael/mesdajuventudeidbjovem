@@ -212,6 +212,27 @@ const Admin = () => {
     });
   }, [orders, orderStatusFilter, orderDateFrom, orderDateTo]);
 
+  // KPIs da Rifa (aba "Rifa")
+  const rifaKpis = useMemo(() => {
+    const paid = orders.filter((o) => o.status === "paid");
+    const pending = orders.filter((o) => o.status === "pending");
+    const revPaid = paid.reduce((a, o) => a + o.total_cents, 0);
+    const revPending = pending.reduce((a, o) => a + o.total_cents, 0);
+    const ticket = paid.length > 0 ? Math.round(revPaid / paid.length) : 0;
+    const totalCreated = orders.length;
+    const conv = totalCreated > 0 ? (paid.length / totalCreated) * 100 : 0;
+    return { revPaid, revPending, paidCount: paid.length, pendingCount: pending.length, ticket, conv };
+  }, [orders]);
+
+  // KPIs do Pagamentos
+  const paymentKpis = useMemo(() => {
+    const approved = payments.filter((p) => p.status === "approved" || p.status === "paid");
+    const pending = payments.filter((p) => p.status === "pending");
+    const revPaid = approved.reduce((a, p) => a + p.amount_cents, 0);
+    const revPending = pending.reduce((a, p) => a + p.amount_cents, 0);
+    return { revPaid, revPending, approvedCount: approved.length, pendingCount: pending.length };
+  }, [payments]);
+
   const exportOrdersCsv = () => {
     if (filteredOrders.length === 0) {
       toast.info("Sem pedidos para exportar nesse filtro");
