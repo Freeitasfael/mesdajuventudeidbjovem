@@ -5,6 +5,7 @@ import { RaffleGrid } from "@/components/RaffleGrid";
 import { CheckoutBar } from "@/components/CheckoutBar";
 import { HeroRifa, type Prize, type HeroStats } from "@/components/HeroRifa";
 import { SiteHeader } from "@/components/SiteHeader";
+import { SiteFooter } from "@/components/SiteFooter";
 import { Button } from "@/components/ui/button";
 import { Handshake, Sparkles, History, Search, ArrowRight } from "lucide-react";
 
