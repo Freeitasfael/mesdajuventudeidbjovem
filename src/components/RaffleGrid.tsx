@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -24,8 +24,6 @@ export const RaffleGrid = ({ pricePerNumber }: Props) => {
   const [numbers, setNumbers] = useState<RaffleNumber[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isInlineVisible, setIsInlineVisible] = useState(false);
-  const observerRef = useRef<IntersectionObserver | null>(null);
 
   // Popup for already-reserved number selection
   const [blockedPopup, setBlockedPopup] = useState<{
@@ -34,27 +32,6 @@ export const RaffleGrid = ({ pricePerNumber }: Props) => {
     isInSelection: boolean;
   } | null>(null);
 
-  // Ref callback ensures the observer attaches as soon as the inline node mounts
-  const inlineRefCallback = (node: HTMLDivElement | null) => {
-    if (observerRef.current) {
-      observerRef.current.disconnect();
-      observerRef.current = null;
-    }
-    if (!node) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => setIsInlineVisible(entry.isIntersecting),
-      { threshold: 0.3 },
-    );
-    observer.observe(node);
-    observerRef.current = observer;
-  };
-
-  useEffect(() => {
-    return () => {
-      observerRef.current?.disconnect();
-      observerRef.current = null;
-    };
-  }, []);
 
 
   const load = async () => {
@@ -256,91 +233,48 @@ export const RaffleGrid = ({ pricePerNumber }: Props) => {
         </div>
       )}
 
-      {/* Inline payment bar (original) — always rendered, visibility controlled by selection */}
+      {/* Spacer so grid doesn't hide behind the sticky footer */}
+      {selected.length > 0 && <div aria-hidden className="h-32 sm:h-28" />}
+
+      {/* Sticky payment footer */}
       <div
-        ref={inlineRefCallback}
         aria-hidden={selected.length === 0}
         className={cn(
-          "min-h-[120px] transition-opacity duration-200",
-          selected.length > 0 ? "opacity-100" : "opacity-0 pointer-events-none",
-        )}
-      >
-        <div
-          className="rounded-xl border p-4 min-h-[110px] flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4"
-          style={{
-            backgroundColor: "hsl(var(--hero-bg) / 0.6)",
-            borderColor: "hsl(var(--hero-gold) / 0.4)",
-          }}
-        >
-          <div className="flex-1 min-w-0 text-white">
-            <p className="text-sm font-medium">
-              {selected.length}{" "}
-              {selected.length === 1 ? "número selecionado" : "números selecionados"}
-            </p>
-            {pricePerNumber !== null && (
-              <p className="text-xs text-white/70">
-                Total:{" "}
-                <span className="font-bold" style={{ color: "hsl(var(--hero-gold))" }}>
-                  R$ {(totalCents / 100).toFixed(2).replace(".", ",")}
-                </span>
-              </p>
-            )}
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={clear}
-              className="border-white/20 bg-transparent text-white hover:bg-white/10 hover:text-white"
-            >
-              Limpar
-            </Button>
-            <Button
-              size="sm"
-              onClick={goToCheckout}
-              className="font-bold"
-              style={{
-                backgroundColor: "hsl(var(--hero-gold))",
-                color: "hsl(var(--hero-bg))",
-              }}
-            >
-              Ir para pagamento
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Fixed payment footer — always in DOM, visible only when selection exists AND inline is off-screen */}
-      <div
-        aria-hidden={!(selected.length > 0 && !isInlineVisible)}
-        className={cn(
-          "fixed bottom-0 left-0 right-0 border-t z-50 transition-opacity duration-200",
-          selected.length > 0 && !isInlineVisible
-            ? "opacity-100 pointer-events-auto"
-            : "opacity-0 pointer-events-none",
+          "fixed bottom-0 left-0 right-0 z-50 border-t",
+          "transition-all duration-200 ease-out",
+          selected.length > 0
+            ? "opacity-100 translate-y-0 pointer-events-auto"
+            : "opacity-0 translate-y-full pointer-events-none",
         )}
         style={{
-          backgroundColor: "hsl(var(--hero-bg) / 0.95)",
+          backgroundColor: "hsl(var(--hero-bg) / 0.96)",
           borderColor: "hsl(var(--hero-gold) / 0.4)",
-          backdropFilter: "blur(8px)",
+          backdropFilter: "blur(10px)",
+          boxShadow: "0 -8px 24px rgba(0,0,0,0.35)",
         }}
       >
         <div className="container py-3 sm:py-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
           <div className="flex-1 min-w-0 text-white">
-            <p className="text-sm font-medium">
+            <p className="text-sm font-semibold">
               {selected.length}{" "}
               {selected.length === 1 ? "número selecionado" : "números selecionados"}
+              {pricePerNumber !== null && (
+                <>
+                  {" · "}
+                  <span className="font-bold" style={{ color: "hsl(var(--hero-gold))" }}>
+                    R$ {(totalCents / 100).toFixed(2).replace(".", ",")}
+                  </span>
+                </>
+              )}
             </p>
-            {pricePerNumber !== null && (
-              <p className="text-xs text-white/70">
-                Total:{" "}
-                <span className="font-bold" style={{ color: "hsl(var(--hero-gold))" }}>
-                  R$ {(totalCents / 100).toFixed(2).replace(".", ",")}
-                </span>
-              </p>
-            )}
+            <p className="mt-0.5 text-xs text-white/70 truncate font-mono">
+              {[...selected]
+                .sort((a, b) => a - b)
+                .map((n) => n.toString().padStart(3, "0"))
+                .join(", ")}
+            </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 shrink-0">
             <Button
               variant="outline"
               size="sm"
@@ -352,13 +286,13 @@ export const RaffleGrid = ({ pricePerNumber }: Props) => {
             <Button
               size="sm"
               onClick={goToCheckout}
-              className="font-bold"
+              className="font-bold flex-1 sm:flex-initial min-w-[180px]"
               style={{
                 backgroundColor: "hsl(var(--hero-gold))",
                 color: "hsl(var(--hero-bg))",
               }}
             >
-              Ir para pagamento
+              Finalizar pagamento
             </Button>
           </div>
         </div>
