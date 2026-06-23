@@ -16,6 +16,7 @@ interface Sponsorship {
   kind: "cash" | "permuta";
   status: "confirmed" | "pending";
   notes: string | null;
+  owner_contact: string | null;
   created_at: string;
 }
 
