@@ -107,6 +107,23 @@ export function SponsorshipsPanel() {
 
   return (
     <div className="space-y-4">
+      <Card className="overflow-hidden p-4">
+        <div className="mb-3">
+          <h3 className="font-semibold">Benefícios do Patrocinador</h3>
+          <p className="text-xs text-muted-foreground">
+            Use esta visualização ao apresentar a proposta para empresas parceiras.
+          </p>
+        </div>
+        <a href={beneficiosImg.url} target="_blank" rel="noopener noreferrer" className="block">
+          <img
+            src={beneficiosImg.url}
+            alt="Benefícios oferecidos aos patrocinadores"
+            className="w-full h-auto rounded-md border border-border"
+            loading="lazy"
+          />
+        </a>
+      </Card>
+
       <div className="grid gap-3 sm:grid-cols-3">
         <Card className="p-4">
           <p className="text-xs uppercase tracking-wide text-muted-foreground">Confirmado (dinheiro)</p>
