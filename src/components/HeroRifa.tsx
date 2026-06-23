@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Shield, CheckCircle, Heart, Calendar, Users, Map, Trophy } from "lucide-react";
+import { Shield, CheckCircle, Heart, Calendar, Users, Map, Trophy, Zap } from "lucide-react";
+import { PixIcon } from "@/components/PixIcon";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TransparentLogo } from "@/components/TransparentLogo";
@@ -260,6 +261,59 @@ export const HeroRifa = ({
 
         {/* Prizes */}
         <div className="w-full">
+          {/* Featured Pix prize highlight */}
+          <div className="relative mb-8 overflow-hidden rounded-3xl border-2 p-6 sm:p-8"
+            style={{
+              borderColor: "hsl(var(--hero-gold))",
+              background:
+                "radial-gradient(circle at 20% 20%, rgba(50,188,173,0.25), transparent 60%), radial-gradient(circle at 80% 80%, hsl(var(--hero-gold) / 0.18), transparent 60%), hsl(var(--hero-bg) / 0.6)",
+              boxShadow: "0 0 40px hsl(var(--hero-gold) / 0.35)",
+            }}
+          >
+            {/* shimmer accent */}
+            <div className="pointer-events-none absolute -top-1/2 -right-1/2 h-[200%] w-[200%] opacity-30"
+              style={{
+                background:
+                  "conic-gradient(from 0deg, transparent 0deg, rgba(50,188,173,0.4) 30deg, transparent 60deg)",
+                animation: "spin 12s linear infinite",
+              }}
+              aria-hidden
+            />
+            <div className="relative flex flex-col items-center gap-5 text-center sm:flex-row sm:text-left">
+              <div className="relative shrink-0">
+                <div
+                  className="absolute inset-0 rounded-full blur-2xl"
+                  style={{ background: "rgba(50,188,173,0.55)" }}
+                  aria-hidden
+                />
+                <div
+                  className="relative flex h-28 w-28 items-center justify-center rounded-3xl bg-white shadow-2xl sm:h-32 sm:w-32"
+                  style={{ boxShadow: "0 0 30px rgba(50,188,173,0.6)" }}
+                >
+                  <PixIcon className="h-20 w-20 sm:h-24 sm:w-24 animate-pulse" />
+                </div>
+              </div>
+              <div className="flex-1">
+                <span
+                  className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-extrabold uppercase tracking-[0.2em] shadow-md"
+                  style={{
+                    backgroundColor: "hsl(var(--hero-gold))",
+                    color: "hsl(var(--hero-bg))",
+                  }}
+                >
+                  <Zap className="h-3.5 w-3.5" /> Prêmio principal
+                </span>
+                <h3 className="mt-3 text-3xl font-extrabold uppercase tracking-wider text-white sm:text-4xl">
+                  Prêmio em <span style={{ color: "#32BCAD" }}>PIX</span>
+                </h3>
+                <p className="mt-2 text-sm text-white/80 sm:text-base">
+                  Você concorre a uma premiação em dinheiro via Pix —
+                  rápido, seguro e direto na sua conta.
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div className="mb-6 flex items-center justify-center gap-2 text-center">
             <Trophy className="h-6 w-6" style={{ color: "hsl(var(--hero-gold))" }} />
             <h2
