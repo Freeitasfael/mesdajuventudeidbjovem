@@ -228,6 +228,8 @@ const Rifa = () => {
       <footer className="border-t border-white/10 py-8 text-center text-xs text-white/60">
         Sistema de rifa automatizado · Pagamento seguro via PIX · IDB Jovem Oficial
       </footer>
+
+      <RaffleStickyFooter pricePerNumber={pricePerNumber} />
     </main>
   );
 };
