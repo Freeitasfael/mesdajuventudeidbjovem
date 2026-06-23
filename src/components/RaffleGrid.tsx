@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -105,6 +105,9 @@ export const RaffleGrid = ({ pricePerNumber }: Props) => {
     return acc;
   }, [numbers]);
 
+  // O(1) lookup do estado de seleção — antes era O(n) por botão = O(n²) por render
+  const selectedSet = useMemo(() => new Set(selected), [selected]);
+
   // Drop selected numbers that are no longer available
   useEffect(() => {
     if (numbers.length === 0 || selected.length === 0) return;
@@ -125,18 +128,26 @@ export const RaffleGrid = ({ pricePerNumber }: Props) => {
     navigate("/checkout");
   };
 
-  const handleNumberClick = (n: RaffleNumber) => {
-    if (n.status === "available") {
-      toggle(n.number);
-      return;
-    }
-    // Show popup for reserved/paid numbers
-    setBlockedPopup({
-      number: n.number,
-      status: n.status,
-      isInSelection: selected.includes(n.number),
-    });
-  };
+  const showBlockedPopup = useCallback(
+    (n: RaffleNumber) =>
+      setBlockedPopup({
+        number: n.number,
+        status: n.status,
+        isInSelection: selectedSet.has(n.number),
+      }),
+    [selectedSet],
+  );
+
+  const handleNumberClick = useCallback(
+    (n: RaffleNumber) => {
+      if (n.status === "available") {
+        toggle(n.number);
+        return;
+      }
+      showBlockedPopup(n);
+    },
+    [toggle, showBlockedPopup],
+  );
 
   const removeBlockedFromSelection = () => {
     if (blockedPopup) {
@@ -234,43 +245,14 @@ export const RaffleGrid = ({ pricePerNumber }: Props) => {
         </div>
       ) : (
         <div className="grid grid-cols-6 sm:grid-cols-10 md:grid-cols-12 lg:grid-cols-16 gap-1.5">
-          {numbers.map((n) => {
-            const isSelected = selected.includes(n.number);
-            return (
-              <button
-                key={n.number}
-                onClick={() => handleNumberClick(n)}
-                className={cn(
-                  "aspect-square rounded-lg text-[11px] sm:text-xs font-bold tabular-nums tracking-tight",
-                  "transition-all duration-150 select-none shadow-sm",
-                  "flex items-center justify-center relative",
-                  n.status === "available" &&
-                    !isSelected &&
-                    "bg-number-available text-number-available-foreground hover:bg-number-available-hover hover:scale-110 hover:shadow-md active:scale-95 cursor-pointer",
-                  n.status === "available" &&
-                    isSelected &&
-                    "scale-110 shadow-gold-glow cursor-pointer ring-2 ring-offset-2 ring-offset-transparent",
-                  n.status === "reserved" &&
-                    "bg-number-reserved text-number-reserved-foreground opacity-90",
-                  n.status === "paid" &&
-                    "bg-number-paid text-number-paid-foreground opacity-90",
-                )}
-                style={
-                  n.status === "available" && isSelected
-                    ? {
-                        backgroundColor: "hsl(var(--hero-gold))",
-                        color: "hsl(var(--hero-bg))",
-                        boxShadow: "var(--shadow-gold-glow)",
-                      }
-                    : undefined
-                }
-                aria-label={`Número ${n.number} - ${n.status}`}
-                aria-pressed={isSelected}
-              >
-                {n.number.toString().padStart(3, "0")}
-              </button>
-            );
-          })}
+          {numbers.map((n) => (
+            <NumberButton
+              key={n.number}
+              n={n}
+              isSelected={selectedSet.has(n.number)}
+              onClick={handleNumberClick}
+            />
+          ))}
         </div>
       )}
 
@@ -392,3 +374,53 @@ const LegendDot = ({ className, label }: { className: string; label: string }) =
     <span className="text-white/75">{label}</span>
   </div>
 );
+
+// Botão memoizado — só re-renderiza quando o próprio número muda de estado
+// ou de seleção, evitando re-render dos 1000+ botões a cada toggle.
+type NumberButtonProps = {
+  n: RaffleNumber;
+  isSelected: boolean;
+  onClick: (n: RaffleNumber) => void;
+};
+
+const NumberButton = memo(
+  ({ n, isSelected, onClick }: NumberButtonProps) => (
+    <button
+      onClick={() => onClick(n)}
+      className={cn(
+        "aspect-square rounded-lg text-[11px] sm:text-xs font-bold tabular-nums tracking-tight",
+        "transition-all duration-150 select-none shadow-sm",
+        "flex items-center justify-center relative",
+        n.status === "available" &&
+          !isSelected &&
+          "bg-number-available text-number-available-foreground hover:bg-number-available-hover hover:scale-110 hover:shadow-md active:scale-95 cursor-pointer",
+        n.status === "available" &&
+          isSelected &&
+          "scale-110 shadow-gold-glow cursor-pointer ring-2 ring-offset-2 ring-offset-transparent",
+        n.status === "reserved" &&
+          "bg-number-reserved text-number-reserved-foreground opacity-90",
+        n.status === "paid" &&
+          "bg-number-paid text-number-paid-foreground opacity-90",
+      )}
+      style={
+        n.status === "available" && isSelected
+          ? {
+              backgroundColor: "hsl(var(--hero-gold))",
+              color: "hsl(var(--hero-bg))",
+              boxShadow: "var(--shadow-gold-glow)",
+            }
+          : undefined
+      }
+      aria-label={`Número ${n.number} - ${n.status}`}
+      aria-pressed={isSelected}
+    >
+      {n.number.toString().padStart(3, "0")}
+    </button>
+  ),
+  (prev, next) =>
+    prev.n.number === next.n.number &&
+    prev.n.status === next.n.status &&
+    prev.isSelected === next.isSelected &&
+    prev.onClick === next.onClick,
+);
+NumberButton.displayName = "NumberButton";
