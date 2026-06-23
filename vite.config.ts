@@ -11,6 +11,16 @@ export default defineConfig(({ mode }) => ({
     hmr: {
       overlay: false,
     },
+    proxy: {
+      // Lovable CDN assets — em produção/preview são servidos pela edge,
+      // mas no dev (vite) o caminho cai no fallback SPA e retorna HTML,
+      // quebrando <img>. Proxy direto para o CDN resolve isso.
+      "/__l5e": {
+        target: "https://cdn.lovable.dev",
+        changeOrigin: true,
+        secure: true,
+      },
+    },
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {
