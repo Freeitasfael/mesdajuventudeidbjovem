@@ -109,6 +109,27 @@ const Admin = () => {
   const [revalidatingId, setRevalidatingId] = useState<string | null>(null);
   const [realtimeOk, setRealtimeOk] = useState(false);
 
+  // Ranking de vendedores (apenas para o painel Vendedores)
+  const [sellerRanking, setSellerRanking] = useState<Array<{
+    seller_id: string;
+    seller_name: string;
+    ref_code: string;
+    total_numbers: number;
+    total_cents: number;
+    total_orders: number;
+  }>>([]);
+
+  // Pagamentos da Camiseta (sub-aba Pagamentos > Camiseta)
+  const [shirtPayments, setShirtPayments] = useState<Array<{
+    id: string;
+    created_at: string;
+    buyer_name: string;
+    total_cents: number;
+    status: string;
+    mp_payment_id: string | null;
+    payment_method: string | null;
+  }>>([]);
+
   // Order detail dialog
   const [detailOrder, setDetailOrder] = useState<OrderRow | null>(null);
   const [detailNumbers, setDetailNumbers] = useState<number[]>([]);
