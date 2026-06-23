@@ -245,43 +245,14 @@ export const RaffleGrid = ({ pricePerNumber }: Props) => {
         </div>
       ) : (
         <div className="grid grid-cols-6 sm:grid-cols-10 md:grid-cols-12 lg:grid-cols-16 gap-1.5">
-          {numbers.map((n) => {
-            const isSelected = selected.includes(n.number);
-            return (
-              <button
-                key={n.number}
-                onClick={() => handleNumberClick(n)}
-                className={cn(
-                  "aspect-square rounded-lg text-[11px] sm:text-xs font-bold tabular-nums tracking-tight",
-                  "transition-all duration-150 select-none shadow-sm",
-                  "flex items-center justify-center relative",
-                  n.status === "available" &&
-                    !isSelected &&
-                    "bg-number-available text-number-available-foreground hover:bg-number-available-hover hover:scale-110 hover:shadow-md active:scale-95 cursor-pointer",
-                  n.status === "available" &&
-                    isSelected &&
-                    "scale-110 shadow-gold-glow cursor-pointer ring-2 ring-offset-2 ring-offset-transparent",
-                  n.status === "reserved" &&
-                    "bg-number-reserved text-number-reserved-foreground opacity-90",
-                  n.status === "paid" &&
-                    "bg-number-paid text-number-paid-foreground opacity-90",
-                )}
-                style={
-                  n.status === "available" && isSelected
-                    ? {
-                        backgroundColor: "hsl(var(--hero-gold))",
-                        color: "hsl(var(--hero-bg))",
-                        boxShadow: "var(--shadow-gold-glow)",
-                      }
-                    : undefined
-                }
-                aria-label={`Número ${n.number} - ${n.status}`}
-                aria-pressed={isSelected}
-              >
-                {n.number.toString().padStart(3, "0")}
-              </button>
-            );
-          })}
+          {numbers.map((n) => (
+            <NumberButton
+              key={n.number}
+              n={n}
+              isSelected={selectedSet.has(n.number)}
+              onClick={handleNumberClick}
+            />
+          ))}
         </div>
       )}
 
