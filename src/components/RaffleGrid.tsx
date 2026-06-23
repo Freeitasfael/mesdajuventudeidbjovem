@@ -105,6 +105,9 @@ export const RaffleGrid = ({ pricePerNumber }: Props) => {
     return acc;
   }, [numbers]);
 
+  // O(1) lookup do estado de seleção — antes era O(n) por botão = O(n²) por render
+  const selectedSet = useMemo(() => new Set(selected), [selected]);
+
   // Drop selected numbers that are no longer available
   useEffect(() => {
     if (numbers.length === 0 || selected.length === 0) return;
@@ -125,18 +128,26 @@ export const RaffleGrid = ({ pricePerNumber }: Props) => {
     navigate("/checkout");
   };
 
-  const handleNumberClick = (n: RaffleNumber) => {
-    if (n.status === "available") {
-      toggle(n.number);
-      return;
-    }
-    // Show popup for reserved/paid numbers
-    setBlockedPopup({
-      number: n.number,
-      status: n.status,
-      isInSelection: selected.includes(n.number),
-    });
-  };
+  const showBlockedPopup = useCallback(
+    (n: RaffleNumber) =>
+      setBlockedPopup({
+        number: n.number,
+        status: n.status,
+        isInSelection: selectedSet.has(n.number),
+      }),
+    [selectedSet],
+  );
+
+  const handleNumberClick = useCallback(
+    (n: RaffleNumber) => {
+      if (n.status === "available") {
+        toggle(n.number);
+        return;
+      }
+      showBlockedPopup(n);
+    },
+    [toggle, showBlockedPopup],
+  );
 
   const removeBlockedFromSelection = () => {
     if (blockedPopup) {
