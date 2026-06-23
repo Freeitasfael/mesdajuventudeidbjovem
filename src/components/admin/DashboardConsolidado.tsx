@@ -16,6 +16,10 @@ const COST_STORAGE_KEY = "dashboard_costs_v1";
 
 const fmtBRL = (c: number) => `R$ ${(c / 100).toFixed(2).replace(".", ",")}`;
 
+// Taxa de transação (Mercado Pago PIX = 0,99%) descontada dos valores arrecadados.
+const TX_FEE_RATE = 0.0099;
+const applyFee = (cents: number) => Math.round(cents * (1 - TX_FEE_RATE));
+
 export function DashboardConsolidado() {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
@@ -55,18 +59,22 @@ export function DashboardConsolidado() {
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [from, to]);
 
   const metrics = useMemo(() => {
-    const rifaTotal = rifa.reduce((a, o) => a + o.total_cents, 0);
+    const rifaGross = rifa.reduce((a, o) => a + o.total_cents, 0);
+    const rifaTotal = applyFee(rifaGross);
     const rifaCount = rifa.length;
-    const entTotal = entrada.reduce((a, o) => a + o.total_cents, 0);
+    const entGross = entrada.reduce((a, o) => a + o.total_cents, 0);
+    const entTotal = applyFee(entGross);
     const entCount = entrada.length;
     const pulseira = entrada.filter((e) => e.product === "pulseira");
     const kit = entrada.filter((e) => e.product === "kit");
-    const pulTotal = pulseira.reduce((a, o) => a + o.total_cents, 0);
-    const kitTotal = kit.reduce((a, o) => a + o.total_cents, 0);
+    const pulTotal = applyFee(pulseira.reduce((a, o) => a + o.total_cents, 0));
+    const kitTotal = applyFee(kit.reduce((a, o) => a + o.total_cents, 0));
     // Soma de unidades (cada pedido pode ter quantity > 1)
     const pulUnits = pulseira.reduce((a, o) => a + (o.quantity || 1), 0);
     const kitUnits = kit.reduce((a, o) => a + (o.quantity || 1), 0);
     const total = rifaTotal + entTotal;
+    const totalGross = rifaGross + entGross;
+    const feeCents = totalGross - total;
     const totalCount = rifaCount + entCount;
     const ticket = totalCount > 0 ? Math.round(total / totalCount) : 0;
 
@@ -81,7 +89,7 @@ export function DashboardConsolidado() {
     const margin = entTotal > 0 ? Math.round((entradaProfit / entTotal) * 100) : 0;
 
     return {
-      total, totalCount, ticket,
+      total, totalGross, feeCents, totalCount, ticket,
       rifaTotal, rifaCount,
       entTotal, entCount,
       pulTotal, pulCount: pulseira.length, pulUnits,
@@ -111,7 +119,7 @@ export function DashboardConsolidado() {
           </div>
         </div>
         <p className="text-xs text-muted-foreground mt-3">
-          Considera apenas pedidos pagos. Sem filtro = histórico completo.
+          Considera apenas pedidos pagos, já descontada a taxa de transação PIX de 0,99%. Sem filtro = histórico completo.
         </p>
       </Card>
 
@@ -119,7 +127,7 @@ export function DashboardConsolidado() {
       <div>
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Visão geral</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard label="Total arrecadado" value={fmtBRL(metrics.total)} highlight />
+          <StatCard label="Total arrecadado (líquido)" value={fmtBRL(metrics.total)} highlight />
           <StatCard label="Total de pedidos" value={String(metrics.totalCount)} />
           <StatCard label="Ticket médio" value={fmtBRL(metrics.ticket)} />
           <StatCard
@@ -130,6 +138,9 @@ export function DashboardConsolidado() {
             }
           />
         </div>
+        <p className="text-xs text-muted-foreground mt-2">
+          Bruto: {fmtBRL(metrics.totalGross)} · Taxa descontada (0,99%): {fmtBRL(metrics.feeCents)}
+        </p>
       </div>
 
       {/* Rifa */}

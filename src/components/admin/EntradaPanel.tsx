@@ -36,6 +36,10 @@ interface StockRow {
 const fmtBRL = (c: number) => `R$ ${(c / 100).toFixed(2).replace(".", ",")}`;
 const fmtDate = (s: string) => new Date(s).toLocaleString("pt-BR");
 
+// Taxa de transação Mercado Pago PIX (0,99%) — descontada do total arrecadado.
+const TX_FEE_RATE = 0.0099;
+const applyFee = (cents: number) => Math.round(cents * (1 - TX_FEE_RATE));
+
 const STATUS_LABEL: Record<string, string> = {
   paid: "Pago",
   pending: "Pendente",
@@ -210,9 +214,10 @@ export function EntradaPanel() {
     });
   }, [orders, statusFilter, productFilter, dateFrom, dateTo, search]);
 
-  const totalReceived = filteredOrders
+  const totalReceivedGross = filteredOrders
     .filter((o) => o.status === "paid")
     .reduce((acc, o) => acc + o.total_cents, 0);
+  const totalReceived = applyFee(totalReceivedGross);
 
   const exportCsv = () => {
     if (filteredOrders.length === 0) {
@@ -296,7 +301,7 @@ export function EntradaPanel() {
 
         <div className="flex items-center justify-between flex-wrap gap-2">
           <p className="text-sm text-muted-foreground">
-            {filteredOrders.length} de {orders.length} pedidos · {fmtBRL(totalReceived)} recebido
+            {filteredOrders.length} de {orders.length} pedidos · {fmtBRL(totalReceived)} líquido <span className="text-xs">(bruto {fmtBRL(totalReceivedGross)} – taxa 0,99%)</span>
           </p>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={exportCsv} disabled={filteredOrders.length === 0}>
