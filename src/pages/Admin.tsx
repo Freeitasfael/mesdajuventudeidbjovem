@@ -1094,7 +1094,7 @@ const Admin = () => {
                         <div>
                           <p className="text-xs uppercase text-muted-foreground">Comprador</p>
                           <p className="font-medium">{buyer?.name ?? "—"}</p>
-                          <p className="text-xs text-muted-foreground">{buyer?.phone ?? "—"}</p>
+                          <div className="text-xs text-muted-foreground">{buyer?.phone ? <WhatsAppLink phone={buyer.phone} /> : "—"}</div>
                         </div>
                         <div>
                           <p className="text-xs uppercase text-muted-foreground">Total</p>
