@@ -683,16 +683,28 @@ const Admin = () => {
           <div className="-mx-2 overflow-x-auto px-2 sm:mx-0 sm:px-0">
             <TabsList className="inline-flex w-max min-w-full sm:w-auto sm:min-w-0">
               <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-              <TabsTrigger value="orders">Pedidos</TabsTrigger>
+              <TabsTrigger value="orders">Camisetas</TabsTrigger>
               <TabsTrigger value="payments">Pagamentos</TabsTrigger>
               <TabsTrigger value="sellers">Vendedores</TabsTrigger>
+              <TabsTrigger value="entrada">Entrada</TabsTrigger>
+              <TabsTrigger value="expenses">Gastos</TabsTrigger>
+              <TabsTrigger value="sponsors">Patrocínios</TabsTrigger>
               <TabsTrigger value="settings">Configurações</TabsTrigger>
               <TabsTrigger value="hero">Hero</TabsTrigger>
-              <TabsTrigger value="entrada">Entrada</TabsTrigger>
               <TabsTrigger value="vsl">VSL</TabsTrigger>
               <TabsTrigger value="admins">Admins</TabsTrigger>
             </TabsList>
           </div>
+
+          {/* GASTOS */}
+          <TabsContent value="expenses" className="mt-6">
+            <ExpensesPanel />
+          </TabsContent>
+
+          {/* PATROCÍNIOS */}
+          <TabsContent value="sponsors" className="mt-6">
+            <SponsorshipsPanel />
+          </TabsContent>
 
           {/* ENTRADA — transações, estoque e preços do /entrada */}
           <TabsContent value="entrada" className="mt-6">
