@@ -21,6 +21,7 @@ const Rifa = () => {
   const [stats, setStats] = useState<HeroStats | null>(null);
   const [heroLoading, setHeroLoading] = useState(true);
   const [sellerName, setSellerName] = useState<string | null>(null);
+  const { selected } = useSelection();
 
   // Capture ?ref=CODE and persist; lookup seller name
   useEffect(() => {
