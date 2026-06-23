@@ -1119,7 +1119,7 @@ const Admin = () => {
                               Código: {seller.ref_code}
                             </p>
                             {seller.phone && (
-                              <p className="text-xs text-muted-foreground">Tel: {seller.phone}</p>
+                              <div className="text-xs text-muted-foreground inline-flex items-center gap-1">Tel: <WhatsAppLink phone={seller.phone} /></div>
                             )}
                             {detailOrder.referral_label && (
                               <p className="mt-1 text-xs text-muted-foreground">
