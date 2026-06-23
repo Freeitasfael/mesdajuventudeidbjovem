@@ -1,5 +1,4 @@
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -19,8 +18,7 @@ interface Props {
 }
 
 export const RaffleGrid = ({ pricePerNumber }: Props) => {
-  const navigate = useNavigate();
-  const { selected, toggle, clear } = useSelection();
+  const { selected, toggle } = useSelection();
   const [numbers, setNumbers] = useState<RaffleNumber[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -98,13 +96,6 @@ export const RaffleGrid = ({ pricePerNumber }: Props) => {
     }
   }, [numbers, selected]);
 
-  const totalCents = pricePerNumber ? pricePerNumber * selected.length : 0;
-
-  const goToCheckout = () => {
-    if (selected.length === 0) return;
-    navigate("/checkout");
-  };
-
   const showBlockedPopup = useCallback(
     (n: RaffleNumber) =>
       setBlockedPopup({
@@ -151,7 +142,7 @@ export const RaffleGrid = ({ pricePerNumber }: Props) => {
   }
 
   return (
-    <div className="space-y-6 pb-32 sm:pb-24">
+    <div className="space-y-6">
       {/* Blocked number popup — fixed top */}
       {blockedPopup && (
         <div className="fixed top-0 left-0 right-0 z-[60] animate-fade-in-down">
@@ -232,9 +223,6 @@ export const RaffleGrid = ({ pricePerNumber }: Props) => {
           ))}
         </div>
       )}
-
-      {/* Spacer so grid doesn't hide behind the sticky footer (rendered at page level) */}
-      {selected.length > 0 && <div aria-hidden className="h-32 sm:h-28" />}
     </div>
   );
 };
