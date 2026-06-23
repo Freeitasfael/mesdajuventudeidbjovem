@@ -36,6 +36,14 @@ interface StockRow {
 const fmtBRL = (c: number) => `R$ ${(c / 100).toFixed(2).replace(".", ",")}`;
 const fmtDate = (s: string) => new Date(s).toLocaleString("pt-BR");
 
+const STATUS_LABEL: Record<string, string> = {
+  paid: "Pago",
+  pending: "Pendente",
+  expired: "Expirado",
+  cancelled: "Cancelado",
+  refunded: "Reembolso",
+};
+
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
     paid: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
@@ -46,7 +54,7 @@ function StatusBadge({ status }: { status: string }) {
   };
   return (
     <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${map[status] ?? "bg-muted"}`}>
-      {status}
+      {STATUS_LABEL[status] ?? status}
     </span>
   );
 }
