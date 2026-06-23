@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Play, Loader2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Play, Pause, Volume2, VolumeX, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 type Props = {
@@ -12,10 +12,10 @@ type Props = {
 };
 
 /**
- * VSLPlayer — player com thumbnail e carregamento sob demanda.
- * - Mostra apenas uma imagem + botão de play até o clique do usuário.
- * - Ao clicar, monta o <video> com autoplay muted playsinline e controls.
- * - preload="metadata" para não baixar o vídeo inteiro antecipadamente.
+ * VSLPlayer — player minimalista com thumbnail e carregamento sob demanda.
+ * - Mostra apenas a imagem + botão de play animado até o clique do usuário.
+ * - Ao clicar, monta o <video> com autoplay muted playsinline (sem controles nativos).
+ * - Controles customizados: play/pause e mute/unmute apenas.
  */
 export const VSLPlayer = ({ src, poster, className = "" }: Props) => {
   const [resolvedSrc, setResolvedSrc] = useState<string | null>(src ?? null);
@@ -23,6 +23,10 @@ export const VSLPlayer = ({ src, poster, className = "" }: Props) => {
   const [loadingMeta, setLoadingMeta] = useState(!src);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [started, setStarted] = useState(false);
+  const [thumbHidden, setThumbHidden] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   // Resolve URL do vídeo + thumbnail
   useEffect(() => {
@@ -94,29 +98,63 @@ export const VSLPlayer = ({ src, poster, className = "" }: Props) => {
 
   const displayThumb = thumbUrl ?? poster ?? null;
 
+  const handleStart = () => {
+    setStarted(true);
+    // fade-out da thumbnail
+    window.setTimeout(() => setThumbHidden(true), 350);
+  };
+
+  const togglePlay = () => {
+    const v = videoRef.current;
+    if (!v) return;
+    if (v.paused) {
+      void v.play();
+    } else {
+      v.pause();
+    }
+  };
+
+  const toggleMute = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const v = videoRef.current;
+    if (!v) return;
+    v.muted = !v.muted;
+    setIsMuted(v.muted);
+  };
+
   return (
     <div
-      className={`relative w-full overflow-hidden rounded-3xl border shadow-gold-glow ${className}`}
+      className={`group relative w-full overflow-hidden rounded-3xl border shadow-gold-glow ${className}`}
       style={{
         borderColor: "hsl(var(--hero-gold) / 0.35)",
         backgroundColor: "rgba(0,0,0,0.6)",
         aspectRatio: "16 / 9",
       }}
     >
-      {started && resolvedSrc ? (
+      {started && resolvedSrc && (
         <video
+          ref={videoRef}
           src={resolvedSrc}
           poster={displayThumb ?? undefined}
           autoPlay
           muted
           playsInline
-          controls
           preload="metadata"
+          onPlay={() => setIsPlaying(true)}
+          onPause={() => setIsPlaying(false)}
+          onClick={togglePlay}
           onError={() => setErrorMsg("Falha ao reproduzir o vídeo.")}
-          className="h-full w-full object-cover"
+          className="h-full w-full cursor-pointer object-cover"
         />
-      ) : (
-        <>
+      )}
+
+      {/* Thumbnail + botão de play (com fade-out ao iniciar) */}
+      {!thumbHidden && (
+        <div
+          className={`absolute inset-0 transition-opacity duration-500 ${
+            started ? "pointer-events-none opacity-0" : "opacity-100"
+          }`}
+        >
           {displayThumb ? (
             <img
               src={displayThumb}
@@ -150,21 +188,73 @@ export const VSLPlayer = ({ src, poster, className = "" }: Props) => {
           {resolvedSrc && (
             <button
               type="button"
-              onClick={() => setStarted(true)}
+              onClick={handleStart}
               aria-label="Reproduzir vídeo"
-              className="absolute inset-0 m-auto flex h-20 w-20 items-center justify-center rounded-full transition-all duration-300 hover:scale-105 sm:h-24 sm:w-24"
+              className="absolute left-1/2 top-1/2 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full transition-transform duration-300 hover:scale-110 sm:h-24 sm:w-24"
               style={{
                 backgroundColor: "hsl(var(--hero-gold))",
                 color: "hsl(var(--hero-bg))",
                 boxShadow:
                   "0 0 40px hsl(var(--hero-gold) / 0.55), 0 0 80px hsl(var(--hero-gold) / 0.25)",
+                animation: "vsl-pulse 2s ease-in-out infinite",
               }}
             >
               <Play className="ml-1 h-9 w-9 fill-current sm:h-10 sm:w-10" />
             </button>
           )}
-        </>
+        </div>
       )}
+
+      {/* Controles customizados (após iniciar) */}
+      {started && resolvedSrc && (
+        <div className="pointer-events-none absolute inset-0 flex items-end justify-between p-3 sm:p-4">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              togglePlay();
+            }}
+            aria-label={isPlaying ? "Pausar" : "Reproduzir"}
+            className="pointer-events-auto flex h-10 w-10 items-center justify-center rounded-full backdrop-blur-md transition-all duration-200 hover:scale-105 sm:h-11 sm:w-11"
+            style={{
+              backgroundColor: "hsl(var(--hero-bg) / 0.55)",
+              color: "hsl(var(--hero-gold))",
+              border: "1px solid hsl(var(--hero-gold) / 0.4)",
+            }}
+          >
+            {isPlaying ? (
+              <Pause className="h-5 w-5 fill-current" />
+            ) : (
+              <Play className="ml-0.5 h-5 w-5 fill-current" />
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={toggleMute}
+            aria-label={isMuted ? "Ativar som" : "Silenciar"}
+            className="pointer-events-auto flex h-10 w-10 items-center justify-center rounded-full backdrop-blur-md transition-all duration-200 hover:scale-105 sm:h-11 sm:w-11"
+            style={{
+              backgroundColor: "hsl(var(--hero-bg) / 0.55)",
+              color: "hsl(var(--hero-gold))",
+              border: "1px solid hsl(var(--hero-gold) / 0.4)",
+            }}
+          >
+            {isMuted ? (
+              <VolumeX className="h-5 w-5" />
+            ) : (
+              <Volume2 className="h-5 w-5" />
+            )}
+          </button>
+        </div>
+      )}
+
+      <style>{`
+        @keyframes vsl-pulse {
+          0%, 100% { transform: translate(-50%, -50%) scale(1); }
+          50% { transform: translate(-50%, -50%) scale(1.08); }
+        }
+      `}</style>
     </div>
   );
 };
