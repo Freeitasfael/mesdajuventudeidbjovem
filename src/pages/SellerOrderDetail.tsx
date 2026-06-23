@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SiteHeader } from "@/components/SiteHeader";
 import { toast } from "sonner";
+import { WhatsAppLink } from "@/components/WhatsAppLink";
 import {
   ArrowLeft,
   CheckCircle2,
