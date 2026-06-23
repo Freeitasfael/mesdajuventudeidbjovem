@@ -697,6 +697,16 @@ const Admin = () => {
             </TabsList>
           </div>
 
+          {/* CAMISETA — venda de produtos físicos (em breve) */}
+          <TabsContent value="camiseta" className="mt-6">
+            <Card className="p-8 text-center space-y-2">
+              <h2 className="text-xl font-semibold">Camiseta</h2>
+              <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                Módulo de venda de camisetas (produto físico). Em breve será disponibilizado aqui o cadastro de produtos, estoque e pedidos avulsos de camisetas.
+              </p>
+            </Card>
+          </TabsContent>
+
           {/* GASTOS */}
           <TabsContent value="expenses" className="mt-6">
             <ExpensesPanel />
