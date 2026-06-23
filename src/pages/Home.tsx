@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { SiteHeader } from "@/components/SiteHeader";
 import { VSLPlayer } from "@/components/VSLPlayer";
+import { SiteFooter } from "@/components/SiteFooter";
 import heroBg from "@/assets/hero-rifa-bg.jpg";
 import logoIdb from "@/assets/idb-jovem-logo.png";
 
