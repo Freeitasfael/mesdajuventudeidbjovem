@@ -189,19 +189,11 @@ export default function Home() {
       >
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="mx-auto max-w-2xl text-center">
-            <p
-              className="text-xs font-extrabold uppercase tracking-[0.3em]"
-              style={{ color: "hsl(var(--hero-gold))" }}
-            >
-              Escolha como participar
-            </p>
-            <h2 className="mt-3 text-fluid-3xl font-extrabold tracking-tight">
-              Três caminhos.{" "}
-              <span style={{ color: "hsl(var(--hero-gold))" }}>
-                Um só movimento.
-              </span>
+            <h2 className="text-fluid-3xl font-extrabold tracking-tight">
+              Escolha como{" "}
+              <span style={{ color: "hsl(var(--hero-gold))" }}>participar</span>
             </h2>
-            <p className="mt-4 text-fluid-base text-white/75">
+            <p className="mt-5 text-fluid-lg text-white/85">
               Inscreva-se, apoie pela rifa ou vista a mensagem. Toda forma de
               participar fortalece o Mês da Juventude.
             </p>
