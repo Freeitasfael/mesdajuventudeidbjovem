@@ -389,14 +389,16 @@ const NumberButton = memo(
       onClick={() => onClick(n)}
       className={cn(
         "aspect-square rounded-lg text-[11px] sm:text-xs font-bold tabular-nums tracking-tight",
-        "transition-all duration-150 select-none shadow-sm",
+        "select-none shadow-sm will-change-transform",
         "flex items-center justify-center relative",
+        "transition-[transform,background-color,box-shadow] duration-200 ease-out",
+        "active:scale-95 active:duration-100",
         n.status === "available" &&
           !isSelected &&
-          "bg-number-available text-number-available-foreground border border-number-available-border hover:bg-number-available-hover hover:scale-110 hover:shadow-md active:scale-95 cursor-pointer",
+          "bg-number-available text-number-available-foreground border border-number-available-border hover:bg-number-available-hover hover:scale-105 hover:shadow-md cursor-pointer",
         n.status === "available" &&
           isSelected &&
-          "scale-110 shadow-gold-glow cursor-pointer ring-2 ring-offset-2 ring-offset-transparent",
+          "scale-105 cursor-pointer animate-scale-in",
         n.status === "reserved" &&
           "bg-number-reserved text-number-reserved-foreground cursor-not-allowed opacity-90",
         n.status === "paid" &&
@@ -407,7 +409,7 @@ const NumberButton = memo(
           ? {
               backgroundColor: "hsl(var(--hero-gold))",
               color: "hsl(var(--hero-bg))",
-              boxShadow: "var(--shadow-gold-glow)",
+              boxShadow: "0 0 12px rgba(212, 175, 55, 0.6)",
             }
           : undefined
       }
