@@ -107,21 +107,83 @@ export function SponsorshipsPanel() {
 
   return (
     <div className="space-y-4">
-      <Card className="overflow-hidden p-4">
-        <div className="mb-3">
-          <h3 className="font-semibold">Benefícios do Patrocinador</h3>
-          <p className="text-xs text-muted-foreground">
-            Use esta visualização ao apresentar a proposta para empresas parceiras.
-          </p>
+      <Card className="p-5 space-y-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h3 className="font-semibold">Cotas de Patrocínio</h3>
+            <p className="text-xs text-muted-foreground">
+              Material pronto para apresentar a proposta às empresas parceiras.
+            </p>
+          </div>
+          <Button asChild size="sm" variant="default">
+            <a href={cotasPdf.url} target="_blank" rel="noopener noreferrer" download="cotas-patrocinio.pdf">
+              <Download className="mr-1 h-4 w-4" /> Baixar PDF
+            </a>
+          </Button>
         </div>
-        <a href={beneficiosImg.url} target="_blank" rel="noopener noreferrer" className="block">
-          <img
-            src={beneficiosImg.url}
-            alt="Benefícios oferecidos aos patrocinadores"
-            className="w-full h-auto rounded-md border border-border"
-            loading="lazy"
-          />
-        </a>
+
+        <div className="grid gap-3 md:grid-cols-3">
+          <div className="rounded-lg border border-border p-4 space-y-2">
+            <div className="flex items-center justify-between">
+              <h4 className="font-semibold text-sm uppercase tracking-wide">Cota Apoio</h4>
+              <span className="text-base font-bold text-emerald-600 dark:text-emerald-400">R$ 200</span>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Indicada para empresas que desejam apoiar o evento com presença institucional básica.
+            </p>
+            <ul className="space-y-1.5 text-sm">
+              <li className="flex gap-2">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                <span>Divulgação da logomarca exclusivamente no cartaz principal do evento</span>
+              </li>
+            </ul>
+          </div>
+
+          <div className="rounded-lg border border-border p-4 space-y-2">
+            <div className="flex items-center justify-between">
+              <h4 className="font-semibold text-sm uppercase tracking-wide">Cota Standard</h4>
+              <span className="text-base font-bold text-emerald-600 dark:text-emerald-400">R$ 500</span>
+            </div>
+            <ul className="space-y-1.5 text-sm">
+              <li className="flex gap-2">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                <span>Divulgação da logomarca em todos os cartazes oficiais do evento</span>
+              </li>
+              <li className="flex gap-2">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                <span>Inserção da marca nos vídeos de divulgação (antes, durante e/ou após o evento)</span>
+              </li>
+              <li className="flex gap-2">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                <span>Citação como patrocinador oficial</span>
+              </li>
+            </ul>
+          </div>
+
+          <div className="rounded-lg border-2 border-amber-500/60 bg-amber-500/5 p-4 space-y-2 relative">
+            <span className="absolute -top-2 right-3 inline-flex items-center gap-1 rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+              <Star className="h-3 w-3" /> Destaque
+            </span>
+            <div className="flex items-center justify-between">
+              <h4 className="font-semibold text-sm uppercase tracking-wide">Cota Premium</h4>
+              <span className="text-base font-bold text-amber-600 dark:text-amber-400">R$ 800</span>
+            </div>
+            <ul className="space-y-1.5 text-sm">
+              <li className="flex gap-2">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                <span>Todos os benefícios da Cota Standard</span>
+              </li>
+              <li className="flex gap-2">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                <span>Estande no local do evento, possibilitando interação direta com os participantes</span>
+              </li>
+              <li className="flex gap-2">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                <span>Divulgação adicional por meio de faixas e/ou cartazes físicos no espaço do evento</span>
+              </li>
+            </ul>
+          </div>
+        </div>
       </Card>
 
       <div className="grid gap-3 sm:grid-cols-3">
