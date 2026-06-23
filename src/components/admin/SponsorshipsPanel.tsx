@@ -38,7 +38,7 @@ export function SponsorshipsPanel() {
     setLoading(true);
     const { data, error } = await supabase
       .from("sponsorships")
-      .select("id, sponsor_name, amount_cents, kind, status, notes, created_at")
+      .select("id, sponsor_name, amount_cents, kind, status, notes, owner_contact, created_at")
       .order("created_at", { ascending: false })
       .limit(1000);
     if (error) toast.error("Erro ao carregar: " + error.message);
