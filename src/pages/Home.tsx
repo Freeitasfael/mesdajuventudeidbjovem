@@ -489,7 +489,7 @@ export default function Home() {
             </p>
             <div className="mt-5 flex items-center gap-3">
               {[
-                { href: "https://instagram.com", label: "Instagram", Icon: Instagram },
+                { href: "https://instagram.com/idbjovemminas", label: "Instagram @idbjovemminas", Icon: Instagram },
                 { href: "https://youtube.com", label: "YouTube", Icon: Youtube },
                 { href: "https://wa.me/", label: "WhatsApp", Icon: MessageCircle },
               ].map(({ href, label, Icon }) => (

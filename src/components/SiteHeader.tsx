@@ -19,7 +19,11 @@ import {
   Menu,
   UserPlus,
   Shirt,
+  Instagram,
 } from "lucide-react";
+
+const INSTAGRAM_URL = "https://instagram.com/idbjovemminas";
+const INSTAGRAM_HANDLE = "@idbjovemminas";
 
 interface NavItem {
   to: string;
@@ -154,6 +158,23 @@ export const SiteHeader = ({ variant = "light", breadcrumbs }: Props) => {
         <nav className="hidden items-center gap-1 lg:flex">{renderLinks()}</nav>
 
         <div className="flex items-center gap-2">
+          <a
+            href={INSTAGRAM_URL}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={`Instagram ${INSTAGRAM_HANDLE}`}
+            title={INSTAGRAM_HANDLE}
+            className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-xs font-semibold transition hover:scale-[1.03] sm:px-3 sm:text-sm ${
+              isDark
+                ? "border-white/25 bg-white/5 text-white hover:bg-white/10"
+                : "border-border bg-background text-foreground hover:bg-muted"
+            }`}
+            style={{ color: "hsl(var(--hero-gold))", borderColor: "hsl(var(--hero-gold) / 0.4)" }}
+          >
+            <Instagram className="h-4 w-4" />
+            <span className="hidden sm:inline">{INSTAGRAM_HANDLE}</span>
+          </a>
+
           <Button
             asChild
             size="sm"
@@ -184,6 +205,19 @@ export const SiteHeader = ({ variant = "light", breadcrumbs }: Props) => {
             </SheetTrigger>
             <SheetContent side="right" className="w-[85vw] max-w-[320px] bg-card text-foreground p-5 sm:p-6">
               <div className="mt-8 flex flex-col gap-1">{renderLinks(undefined, true)}</div>
+              <a
+                href={INSTAGRAM_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-4 inline-flex items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold"
+                style={{
+                  color: "hsl(var(--hero-gold))",
+                  borderColor: "hsl(var(--hero-gold) / 0.4)",
+                }}
+              >
+                <Instagram className="h-4 w-4" />
+                {INSTAGRAM_HANDLE}
+              </a>
             </SheetContent>
           </Sheet>
         </div>
