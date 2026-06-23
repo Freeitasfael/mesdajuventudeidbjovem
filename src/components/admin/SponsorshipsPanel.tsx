@@ -69,6 +69,7 @@ export function SponsorshipsPanel() {
     setKind("cash");
     setStatus("pending");
     setNotes("");
+    setOwnerContact("");
   };
 
   const handleSave = async () => {
