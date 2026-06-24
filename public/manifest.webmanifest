@@ -1,0 +1,25 @@
+{
+  "name": "Rifa IDB Jovem — Mês da Juventude",
+  "short_name": "IDB Jovem",
+  "description": "Participe da Rifa IDB Jovem e ajude a custear o Mês da Juventude.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#000000",
+  "theme_color": "#c9a84c",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
