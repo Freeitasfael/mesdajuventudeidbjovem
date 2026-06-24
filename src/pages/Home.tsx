@@ -394,7 +394,7 @@ export default function Home() {
               {[
                 { icon: Calendar, value: "16 ANOS", label: "de história" },
                 { icon: Users, value: "+50 MIL", label: "jovens impactados" },
-                { icon: Map, value: "EM TODO", label: "o Brasil" },
+                { icon: MapIcon, value: "EM TODO", label: "o Brasil" },
               ].map(({ icon: Icon, value, label }) => (
                 <div
                   key={label}
