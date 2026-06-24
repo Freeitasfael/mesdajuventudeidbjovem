@@ -24,6 +24,36 @@ import { SiteFooter } from "@/components/SiteFooter";
 import heroBg from "@/assets/hero-rifa-bg.jpg";
 import logoIdb from "@/assets/idb-jovem-logo.png";
 import { RecapGallery } from "@/components/RecapGallery";
+import { supabase } from "@/integrations/supabase/client";
+
+const ABOUT_DEFAULTS = {
+  heading: "O maior movimento jovem da Igreja de Deus no Brasil",
+  body: `O **Mês da Juventude** acontece em todo o país, reunindo jovens da Igreja de Deus no Brasil para viver esse tempo de forma única em cada lugar.
+
+Cada estado se movimenta do seu jeito, com ações, encontros e momentos que levam uma mensagem simples e real: **Jesus transforma.**
+
+E em **Minas Gerais** isso ganha ainda mais força. Neste ano, a IDB Jovem Minas Gerais está preparando uma grande mobilização em um final de semana especial — um encontro que vai reunir jovens de várias cidades para viver algo marcante juntos.
+
+Mais do que um evento, é um tempo de **conexão, fé e propósito.**
+
+Há 16 anos esse movimento vem impactando gerações dentro da nossa igreja, levando uma mensagem que continua transformando vidas.`,
+  kicker: "Edição atual",
+  caption: "Jesus Transforma — Tour Nacional",
+};
+
+type StoredImage = { bucket: string; path: string } | string | null;
+
+/** Render simples de **negrito** sem dependência externa. */
+function renderBold(text: string): React.ReactNode[] {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return <strong key={i}>{part.slice(2, -2)}</strong>;
+    }
+    return <span key={i}>{part}</span>;
+  });
+}
+
 
 type PathCard = {
   to: string;
