@@ -787,6 +787,13 @@ const Admin = () => {
             <RecapPanel />
           </TabsContent>
 
+          {/* SOBRE O EVENTO — texto, foto e legenda */}
+          <TabsContent value="about" className="mt-6">
+            <AboutPanel />
+          </TabsContent>
+
+
+
           {/* ADMINS */}
           <TabsContent value="admins" className="mt-6">
             <AdminsPanel />
