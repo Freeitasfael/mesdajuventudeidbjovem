@@ -172,32 +172,36 @@ export const VSLPlayer = ({ src, poster, className = "" }: Props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [src]);
 
-  // Tenta autoplay mudo assim que o vídeo estiver montado
+  // Tenta autoplay mudo assim que o vídeo estiver montado (apenas em condições favoráveis)
   useEffect(() => {
     if (!resolvedSrc) return;
     if (prefersReducedMotion()) return;
+    if (deferAutoplay) {
+      // Mobile/3G/saveData: não baixa o vídeo até o usuário tocar no play.
+      setAutoplayBlocked(true);
+      setVideoLoading(false);
+      return;
+    }
     const v = videoRef.current;
     if (!v) return;
 
     let cancelled = false;
-    const tryPlay = () => {
-      const p = v.play();
-      if (p && typeof p.then === "function") {
-        p.then(() => {
-          if (cancelled) return;
-          setAutoplayBlocked(false);
-        }).catch(() => {
-          if (cancelled) return;
-          setAutoplayBlocked(true);
-          setVideoLoading(false);
-        });
-      }
-    };
-    tryPlay();
+    const p = v.play();
+    if (p && typeof p.then === "function") {
+      p.then(() => {
+        if (cancelled) return;
+        setAutoplayBlocked(false);
+      }).catch(() => {
+        if (cancelled) return;
+        setAutoplayBlocked(true);
+        setVideoLoading(false);
+      });
+    }
     return () => {
       cancelled = true;
     };
-  }, [resolvedSrc]);
+  }, [resolvedSrc, deferAutoplay]);
+
 
   const displayThumb = thumbUrl ?? poster ?? null;
 
