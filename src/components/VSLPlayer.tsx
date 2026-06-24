@@ -91,7 +91,9 @@ export const VSLPlayer = ({ src, poster, className = "" }: Props) => {
   const [isMuted, setIsMuted] = useState(true);
   const [videoLoading, setVideoLoading] = useState(true);
   const [autoplayBlocked, setAutoplayBlocked] = useState(false);
+  const [deferAutoplay] = useState(() => shouldDeferAutoplay());
   const videoRef = useRef<HTMLVideoElement | null>(null);
+
 
   // Resolve URL do vídeo + thumbnail
   useEffect(() => {
