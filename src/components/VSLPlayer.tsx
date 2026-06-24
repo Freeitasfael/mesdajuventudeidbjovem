@@ -45,8 +45,13 @@ const writeCache = (meta: CachedMeta) => {
   }
 };
 
+const prefersReducedMotion = () => {
+  if (typeof window === "undefined" || !window.matchMedia) return false;
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+};
+
 /**
- * VSLPlayer — player minimalista com thumbnail e carregamento sob demanda.
+ * VSLPlayer — autoplay mudo ao carregar, com fallback para clique manual.
  */
 export const VSLPlayer = ({ src, poster, className = "" }: Props) => {
   const cached = !src ? readCache() : null;
@@ -63,7 +68,8 @@ export const VSLPlayer = ({ src, poster, className = "" }: Props) => {
   const [thumbHidden, setThumbHidden] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
-  const [videoLoading, setVideoLoading] = useState(false);
+  const [videoLoading, setVideoLoading] = useState(true);
+  const [autoplayBlocked, setAutoplayBlocked] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   // Resolve URL do vídeo + thumbnail
@@ -143,13 +149,46 @@ export const VSLPlayer = ({ src, poster, className = "" }: Props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [src]);
 
+  // Tenta autoplay mudo assim que o vídeo estiver montado
+  useEffect(() => {
+    if (!resolvedSrc) return;
+    if (prefersReducedMotion()) return;
+    const v = videoRef.current;
+    if (!v) return;
+
+    let cancelled = false;
+    const tryPlay = () => {
+      const p = v.play();
+      if (p && typeof p.then === "function") {
+        p.then(() => {
+          if (cancelled) return;
+          setAutoplayBlocked(false);
+        }).catch(() => {
+          if (cancelled) return;
+          setAutoplayBlocked(true);
+          setVideoLoading(false);
+        });
+      }
+    };
+    tryPlay();
+    return () => {
+      cancelled = true;
+    };
+  }, [resolvedSrc]);
+
   const displayThumb = thumbUrl ?? poster ?? null;
 
   const handleStart = () => {
-    setStarted(true);
+    const v = videoRef.current;
+    if (!v) return;
     setVideoLoading(true);
-    // fade-out da thumbnail
-    window.setTimeout(() => setThumbHidden(true), 350);
+    const p = v.play();
+    if (p && typeof p.then === "function") {
+      p.then(() => setAutoplayBlocked(false)).catch(() => {
+        setErrorMsg("Falha ao reproduzir o vídeo.");
+        setVideoLoading(false);
+      });
+    }
   };
 
   const togglePlay = () => {
@@ -170,6 +209,23 @@ export const VSLPlayer = ({ src, poster, className = "" }: Props) => {
     setIsMuted(v.muted);
   };
 
+  const enableSound = () => {
+    const v = videoRef.current;
+    if (!v) return;
+    v.muted = false;
+    setIsMuted(false);
+    if (v.paused) void v.play();
+  };
+
+  const handlePlaying = () => {
+    setIsPlaying(true);
+    setVideoLoading(false);
+    if (!started) {
+      setStarted(true);
+      window.setTimeout(() => setThumbHidden(true), 350);
+    }
+  };
+
   return (
     <div
       className={`group relative w-full overflow-hidden rounded-3xl border shadow-gold-glow ${className}`}
@@ -179,7 +235,7 @@ export const VSLPlayer = ({ src, poster, className = "" }: Props) => {
         aspectRatio: "16 / 9",
       }}
     >
-      {started && resolvedSrc && (
+      {resolvedSrc && (
         <video
           ref={videoRef}
           src={resolvedSrc}
@@ -189,10 +245,10 @@ export const VSLPlayer = ({ src, poster, className = "" }: Props) => {
           playsInline
           preload="auto"
           onPlay={() => setIsPlaying(true)}
+          onPlaying={handlePlaying}
           onPause={() => setIsPlaying(false)}
           onWaiting={() => setVideoLoading(true)}
           onCanPlay={() => setVideoLoading(false)}
-          onPlaying={() => setVideoLoading(false)}
           onClick={togglePlay}
           onError={() => {
             setErrorMsg("Falha ao reproduzir o vídeo.");
@@ -202,8 +258,8 @@ export const VSLPlayer = ({ src, poster, className = "" }: Props) => {
         />
       )}
 
-      {/* Spinner enquanto o vídeo carrega após clique */}
-      {started && videoLoading && (
+      {/* Spinner enquanto o vídeo carrega */}
+      {resolvedSrc && videoLoading && !autoplayBlocked && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
           <Loader2
             className="h-10 w-10 animate-spin"
@@ -212,7 +268,7 @@ export const VSLPlayer = ({ src, poster, className = "" }: Props) => {
         </div>
       )}
 
-      {/* Thumbnail + botão de play (com fade-out ao iniciar) */}
+      {/* Thumbnail + botão de play (fica visível até começar a tocar; fallback para autoplay bloqueado) */}
       {!thumbHidden && (
         <div
           className={`absolute inset-0 transition-opacity duration-500 ${
@@ -251,7 +307,7 @@ export const VSLPlayer = ({ src, poster, className = "" }: Props) => {
             }}
           />
 
-          {resolvedSrc && (
+          {resolvedSrc && (autoplayBlocked || !started) && (
             <button
               type="button"
               onClick={handleStart}
@@ -269,6 +325,26 @@ export const VSLPlayer = ({ src, poster, className = "" }: Props) => {
             </button>
           )}
         </div>
+      )}
+
+      {/* Banner "Toque para ativar o som" enquanto mudo após autoplay */}
+      {started && isPlaying && isMuted && (
+        <button
+          type="button"
+          onClick={enableSound}
+          aria-label="Ativar o som do vídeo"
+          className="absolute left-1/2 top-4 -translate-x-1/2 rounded-full px-4 py-2 text-xs font-medium backdrop-blur-md transition-transform duration-200 hover:scale-105 sm:text-sm"
+          style={{
+            backgroundColor: "hsl(var(--hero-bg) / 0.7)",
+            color: "hsl(var(--hero-gold))",
+            border: "1px solid hsl(var(--hero-gold) / 0.5)",
+          }}
+        >
+          <span className="inline-flex items-center gap-2">
+            <Volume2 className="h-4 w-4" />
+            Toque para ativar o som
+          </span>
+        </button>
       )}
 
       {/* Controles customizados (após iniciar) */}
