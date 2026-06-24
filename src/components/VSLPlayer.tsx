@@ -267,10 +267,9 @@ export const VSLPlayer = ({ src, poster, className = "" }: Props) => {
           ref={videoRef}
           src={resolvedSrc}
           poster={displayThumb ?? undefined}
-          autoPlay
           muted
           playsInline
-          preload="auto"
+          preload={deferAutoplay ? "none" : "auto"}
           onPlay={() => setIsPlaying(true)}
           onPlaying={handlePlaying}
           onPause={() => setIsPlaying(false)}
@@ -284,6 +283,7 @@ export const VSLPlayer = ({ src, poster, className = "" }: Props) => {
           className="h-full w-full cursor-pointer object-cover"
         />
       )}
+
 
       {/* Spinner enquanto o vídeo carrega */}
       {resolvedSrc && videoLoading && !autoplayBlocked && (
