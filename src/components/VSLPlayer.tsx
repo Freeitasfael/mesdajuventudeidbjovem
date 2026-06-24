@@ -50,6 +50,27 @@ const prefersReducedMotion = () => {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 };
 
+/** Detecta cenário onde autoplay seria custoso (mobile + 3G/economia de dados). */
+const shouldDeferAutoplay = () => {
+  if (typeof window === "undefined") return false;
+  const nav = navigator as Navigator & {
+    connection?: {
+      saveData?: boolean;
+      effectiveType?: string;
+    };
+  };
+  const conn = nav.connection;
+  if (conn?.saveData) return true;
+  if (conn?.effectiveType && /(^|-)(2g|3g)$/i.test(conn.effectiveType)) return true;
+  // Em telas pequenas, defer o autoplay para evitar download pesado em 4G fraco.
+  if (window.matchMedia && window.matchMedia("(max-width: 640px)").matches) {
+    return true;
+  }
+  return false;
+};
+
+
+
 /**
  * VSLPlayer — autoplay mudo ao carregar, com fallback para clique manual.
  */
@@ -70,7 +91,9 @@ export const VSLPlayer = ({ src, poster, className = "" }: Props) => {
   const [isMuted, setIsMuted] = useState(true);
   const [videoLoading, setVideoLoading] = useState(true);
   const [autoplayBlocked, setAutoplayBlocked] = useState(false);
+  const [deferAutoplay] = useState(() => shouldDeferAutoplay());
   const videoRef = useRef<HTMLVideoElement | null>(null);
+
 
   // Resolve URL do vídeo + thumbnail
   useEffect(() => {
@@ -149,32 +172,36 @@ export const VSLPlayer = ({ src, poster, className = "" }: Props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [src]);
 
-  // Tenta autoplay mudo assim que o vídeo estiver montado
+  // Tenta autoplay mudo assim que o vídeo estiver montado (apenas em condições favoráveis)
   useEffect(() => {
     if (!resolvedSrc) return;
     if (prefersReducedMotion()) return;
+    if (deferAutoplay) {
+      // Mobile/3G/saveData: não baixa o vídeo até o usuário tocar no play.
+      setAutoplayBlocked(true);
+      setVideoLoading(false);
+      return;
+    }
     const v = videoRef.current;
     if (!v) return;
 
     let cancelled = false;
-    const tryPlay = () => {
-      const p = v.play();
-      if (p && typeof p.then === "function") {
-        p.then(() => {
-          if (cancelled) return;
-          setAutoplayBlocked(false);
-        }).catch(() => {
-          if (cancelled) return;
-          setAutoplayBlocked(true);
-          setVideoLoading(false);
-        });
-      }
-    };
-    tryPlay();
+    const p = v.play();
+    if (p && typeof p.then === "function") {
+      p.then(() => {
+        if (cancelled) return;
+        setAutoplayBlocked(false);
+      }).catch(() => {
+        if (cancelled) return;
+        setAutoplayBlocked(true);
+        setVideoLoading(false);
+      });
+    }
     return () => {
       cancelled = true;
     };
-  }, [resolvedSrc]);
+  }, [resolvedSrc, deferAutoplay]);
+
 
   const displayThumb = thumbUrl ?? poster ?? null;
 
@@ -240,10 +267,9 @@ export const VSLPlayer = ({ src, poster, className = "" }: Props) => {
           ref={videoRef}
           src={resolvedSrc}
           poster={displayThumb ?? undefined}
-          autoPlay
           muted
           playsInline
-          preload="auto"
+          preload={deferAutoplay ? "none" : "auto"}
           onPlay={() => setIsPlaying(true)}
           onPlaying={handlePlaying}
           onPause={() => setIsPlaying(false)}
@@ -257,6 +283,7 @@ export const VSLPlayer = ({ src, poster, className = "" }: Props) => {
           className="h-full w-full cursor-pointer object-cover"
         />
       )}
+
 
       {/* Spinner enquanto o vídeo carrega */}
       {resolvedSrc && videoLoading && !autoplayBlocked && (
