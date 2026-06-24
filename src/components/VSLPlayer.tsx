@@ -271,7 +271,6 @@ export const VSLPlayer = ({ src, poster, className = "" }: Props) => {
           poster={displayThumb ?? undefined}
           autoPlay
           muted
-          defaultMuted
           playsInline
           preload={deferAutoplay ? "metadata" : "auto"}
           onPlay={() => setIsPlaying(true)}
