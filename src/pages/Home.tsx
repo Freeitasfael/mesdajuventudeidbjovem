@@ -101,6 +101,59 @@ export default function Home() {
   const scrollTo = (id: string) =>
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
 
+  const [about, setAbout] = useState(ABOUT_DEFAULTS);
+  const [aboutImg, setAboutImg] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const { data, error } = await supabase
+        .from("app_settings")
+        .select("key,value")
+        .in("key", [
+          "about_heading",
+          "about_body",
+          "about_image_url",
+          "about_caption_kicker",
+          "about_caption_title",
+        ]);
+      if (error || !active) return;
+      const map = new Map((data ?? []).map((r) => [r.key, r.value as unknown]));
+      setAbout({
+        heading:
+          (map.get("about_heading") as string) || ABOUT_DEFAULTS.heading,
+        body: (map.get("about_body") as string) || ABOUT_DEFAULTS.body,
+        kicker:
+          (map.get("about_caption_kicker") as string) || ABOUT_DEFAULTS.kicker,
+        caption:
+          (map.get("about_caption_title") as string) ||
+          ABOUT_DEFAULTS.caption,
+      });
+      const img = (map.get("about_image_url") ?? null) as StoredImage;
+      if (img) {
+        if (typeof img === "string") {
+          setAboutImg(img);
+        } else if (img.bucket && img.path) {
+          const { data: signed } = await supabase.storage
+            .from(img.bucket)
+            .createSignedUrl(img.path, 60 * 60 * 6);
+          if (!active) return;
+          if (signed?.signedUrl) setAboutImg(signed.signedUrl);
+          else {
+            const pub = supabase.storage
+              .from(img.bucket)
+              .getPublicUrl(img.path);
+            setAboutImg(pub?.data?.publicUrl ?? null);
+          }
+        }
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+
   return (
     <div
       className="min-h-screen text-white"
