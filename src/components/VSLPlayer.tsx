@@ -50,19 +50,6 @@ const prefersReducedMotion = () => {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 };
 
-/** Evita apenas quando o usuário ativou economia de dados no navegador. */
-const shouldRespectDataSaver = () => {
-  if (typeof window === "undefined") return false;
-  const nav = navigator as Navigator & {
-    connection?: {
-      saveData?: boolean;
-    };
-  };
-  return Boolean(nav.connection?.saveData);
-};
-
-
-
 /**
  * VSLPlayer — autoplay mudo ao carregar, com fallback para clique manual.
  */
@@ -83,7 +70,6 @@ export const VSLPlayer = ({ src, poster, className = "" }: Props) => {
   const [isMuted, setIsMuted] = useState(true);
   const [videoLoading, setVideoLoading] = useState(true);
   const [autoplayBlocked, setAutoplayBlocked] = useState(false);
-  const [deferAutoplay] = useState(() => shouldRespectDataSaver());
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const autoplayTriedRef = useRef(false);
 
@@ -168,7 +154,7 @@ export const VSLPlayer = ({ src, poster, className = "" }: Props) => {
   const tryAutoplay = () => {
     const v = videoRef.current;
     if (!v || !resolvedSrc || autoplayTriedRef.current) return;
-    if (prefersReducedMotion() || deferAutoplay) {
+    if (prefersReducedMotion()) {
       setAutoplayBlocked(true);
       setVideoLoading(false);
       return;
@@ -199,7 +185,7 @@ export const VSLPlayer = ({ src, poster, className = "" }: Props) => {
     const id = window.requestAnimationFrame(() => tryAutoplay());
     return () => window.cancelAnimationFrame(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [resolvedSrc, deferAutoplay]);
+  }, [resolvedSrc]);
 
 
   const displayThumb = thumbUrl ?? poster ?? null;
@@ -272,7 +258,7 @@ export const VSLPlayer = ({ src, poster, className = "" }: Props) => {
           autoPlay
           muted
           playsInline
-          preload={deferAutoplay ? "metadata" : "auto"}
+          preload="auto"
           onPlay={() => setIsPlaying(true)}
           onPlaying={handlePlaying}
           onPause={() => setIsPlaying(false)}
