@@ -34,3 +34,19 @@ window.addEventListener("load", () =>
 );
 
 createRoot(document.getElementById("root")!).render(<App />);
+
+// Service Worker (PWA) — só em produção, evita interferir no preview do Lovable
+if ("serviceWorker" in navigator && import.meta.env.PROD) {
+  const host = window.location.hostname;
+  const isLovablePreview =
+    host.startsWith("id-preview--") ||
+    host.startsWith("preview--") ||
+    host.endsWith(".lovableproject.com") ||
+    host.endsWith(".lovableproject-dev.com");
+  if (!isLovablePreview) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("/sw.js").catch(() => {});
+    });
+  }
+}
+
