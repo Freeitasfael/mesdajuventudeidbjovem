@@ -260,7 +260,7 @@ export function VSLPanel() {
             <input
               ref={videoInput}
               type="file"
-              accept="video/mp4,video/webm,video/quicktime"
+              accept="video/mp4,video/webm"
               className="hidden"
               onChange={onVideoFile}
             />
