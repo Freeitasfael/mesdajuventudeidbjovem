@@ -18,7 +18,7 @@ type CachedMeta = {
   expiresAt: number;
 };
 
-const CACHE_KEY = "vsl:home:v1";
+const CACHE_KEY = "vsl:home:v2";
 // Mantemos URLs assinadas por 6h no Storage; aqui invalidamos antes (4h) por segurança.
 const CACHE_TTL_MS = 4 * 60 * 60 * 1000;
 
@@ -50,27 +50,6 @@ const prefersReducedMotion = () => {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 };
 
-/** Detecta cenário onde autoplay seria custoso (mobile + 3G/economia de dados). */
-const shouldDeferAutoplay = () => {
-  if (typeof window === "undefined") return false;
-  const nav = navigator as Navigator & {
-    connection?: {
-      saveData?: boolean;
-      effectiveType?: string;
-    };
-  };
-  const conn = nav.connection;
-  if (conn?.saveData) return true;
-  if (conn?.effectiveType && /(^|-)(2g|3g)$/i.test(conn.effectiveType)) return true;
-  // Em telas pequenas, defer o autoplay para evitar download pesado em 4G fraco.
-  if (window.matchMedia && window.matchMedia("(max-width: 640px)").matches) {
-    return true;
-  }
-  return false;
-};
-
-
-
 /**
  * VSLPlayer — autoplay mudo ao carregar, com fallback para clique manual.
  */
@@ -91,8 +70,8 @@ export const VSLPlayer = ({ src, poster, className = "" }: Props) => {
   const [isMuted, setIsMuted] = useState(true);
   const [videoLoading, setVideoLoading] = useState(true);
   const [autoplayBlocked, setAutoplayBlocked] = useState(false);
-  const [deferAutoplay] = useState(() => shouldDeferAutoplay());
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const autoplayTriedRef = useRef(false);
 
 
   // Resolve URL do vídeo + thumbnail
@@ -172,35 +151,41 @@ export const VSLPlayer = ({ src, poster, className = "" }: Props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [src]);
 
-  // Tenta autoplay mudo assim que o vídeo estiver montado (apenas em condições favoráveis)
-  useEffect(() => {
-    if (!resolvedSrc) return;
-    if (prefersReducedMotion()) return;
-    if (deferAutoplay) {
-      // Mobile/3G/saveData: não baixa o vídeo até o usuário tocar no play.
+  const tryAutoplay = () => {
+    const v = videoRef.current;
+    if (!v || !resolvedSrc || autoplayTriedRef.current) return;
+    if (prefersReducedMotion()) {
       setAutoplayBlocked(true);
       setVideoLoading(false);
       return;
     }
-    const v = videoRef.current;
-    if (!v) return;
 
-    let cancelled = false;
+    autoplayTriedRef.current = true;
+    v.muted = true;
+    v.defaultMuted = true;
+    v.playsInline = true;
+    setIsMuted(true);
+
     const p = v.play();
     if (p && typeof p.then === "function") {
       p.then(() => {
-        if (cancelled) return;
         setAutoplayBlocked(false);
       }).catch(() => {
-        if (cancelled) return;
+        autoplayTriedRef.current = false;
         setAutoplayBlocked(true);
         setVideoLoading(false);
       });
     }
-    return () => {
-      cancelled = true;
-    };
-  }, [resolvedSrc, deferAutoplay]);
+  };
+
+  // Tenta autoplay mudo assim que o vídeo estiver montado.
+  useEffect(() => {
+    if (!resolvedSrc) return;
+    autoplayTriedRef.current = false;
+    const id = window.requestAnimationFrame(() => tryAutoplay());
+    return () => window.cancelAnimationFrame(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resolvedSrc]);
 
 
   const displayThumb = thumbUrl ?? poster ?? null;
@@ -209,6 +194,9 @@ export const VSLPlayer = ({ src, poster, className = "" }: Props) => {
     const v = videoRef.current;
     if (!v) return;
     setVideoLoading(true);
+    v.muted = true;
+    v.defaultMuted = true;
+    v.playsInline = true;
     const p = v.play();
     if (p && typeof p.then === "function") {
       p.then(() => setAutoplayBlocked(false)).catch(() => {
@@ -267,14 +255,20 @@ export const VSLPlayer = ({ src, poster, className = "" }: Props) => {
           ref={videoRef}
           src={resolvedSrc}
           poster={displayThumb ?? undefined}
+          autoPlay
           muted
           playsInline
-          preload={deferAutoplay ? "none" : "auto"}
+          preload="auto"
           onPlay={() => setIsPlaying(true)}
           onPlaying={handlePlaying}
           onPause={() => setIsPlaying(false)}
           onWaiting={() => setVideoLoading(true)}
-          onCanPlay={() => setVideoLoading(false)}
+          onLoadedMetadata={tryAutoplay}
+          onLoadedData={tryAutoplay}
+          onCanPlay={() => {
+            setVideoLoading(false);
+            tryAutoplay();
+          }}
           onClick={togglePlay}
           onError={() => {
             setErrorMsg("Falha ao reproduzir o vídeo.");

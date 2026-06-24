@@ -18,7 +18,7 @@ const VIDEO_BUCKET = "vsl-videos";
 const THUMB_BUCKET = "hero-media";
 const MAX_VIDEO = 1024 * 1024 * 1024; // 1 GB
 const MAX_THUMB = 5 * 1024 * 1024; // 5 MB
-const ALLOWED_VIDEO = ["video/mp4", "video/webm", "video/quicktime"];
+const ALLOWED_VIDEO = ["video/mp4", "video/webm"];
 const ALLOWED_THUMB = ["image/jpeg", "image/png", "image/webp"];
 
 type StoredValue =
@@ -90,7 +90,7 @@ export function VSLPanel() {
     if (!file) return;
 
     if (!ALLOWED_VIDEO.includes(file.type)) {
-      toast.error("Formato inválido. Use MP4, WebM ou MOV.");
+      toast.error("Formato inválido. Use MP4 ou WebM compatível com navegador.");
       return;
     }
     if (file.size > MAX_VIDEO) {
@@ -260,7 +260,7 @@ export function VSLPanel() {
             <input
               ref={videoInput}
               type="file"
-              accept="video/mp4,video/webm,video/quicktime"
+              accept="video/mp4,video/webm"
               className="hidden"
               onChange={onVideoFile}
             />
