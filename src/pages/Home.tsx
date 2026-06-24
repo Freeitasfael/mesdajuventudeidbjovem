@@ -1,4 +1,6 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+
 import {
   Ticket,
   Shirt,
@@ -13,7 +15,8 @@ import {
   Sparkles,
   Calendar,
   Users,
-  Map,
+  Map as MapIcon,
+
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -22,6 +25,36 @@ import { SiteFooter } from "@/components/SiteFooter";
 import heroBg from "@/assets/hero-rifa-bg.jpg";
 import logoIdb from "@/assets/idb-jovem-logo.png";
 import { RecapGallery } from "@/components/RecapGallery";
+import { supabase } from "@/integrations/supabase/client";
+
+const ABOUT_DEFAULTS = {
+  heading: "O maior movimento jovem da Igreja de Deus no Brasil",
+  body: `O **Mês da Juventude** acontece em todo o país, reunindo jovens da Igreja de Deus no Brasil para viver esse tempo de forma única em cada lugar.
+
+Cada estado se movimenta do seu jeito, com ações, encontros e momentos que levam uma mensagem simples e real: **Jesus transforma.**
+
+E em **Minas Gerais** isso ganha ainda mais força. Neste ano, a IDB Jovem Minas Gerais está preparando uma grande mobilização em um final de semana especial — um encontro que vai reunir jovens de várias cidades para viver algo marcante juntos.
+
+Mais do que um evento, é um tempo de **conexão, fé e propósito.**
+
+Há 16 anos esse movimento vem impactando gerações dentro da nossa igreja, levando uma mensagem que continua transformando vidas.`,
+  kicker: "Edição atual",
+  caption: "Jesus Transforma — Tour Nacional",
+};
+
+type StoredImage = { bucket: string; path: string } | string | null;
+
+/** Render simples de **negrito** sem dependência externa. */
+function renderBold(text: string): React.ReactNode[] {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return <strong key={i}>{part.slice(2, -2)}</strong>;
+    }
+    return <span key={i}>{part}</span>;
+  });
+}
+
 
 type PathCard = {
   to: string;
@@ -68,6 +101,62 @@ const PATHS: PathCard[] = [
 export default function Home() {
   const scrollTo = (id: string) =>
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+
+  const [about, setAbout] = useState(ABOUT_DEFAULTS);
+  const [aboutImg, setAboutImg] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const { data, error } = await supabase
+        .from("app_settings")
+        .select("key,value")
+        .in("key", [
+          "about_heading",
+          "about_body",
+          "about_image_url",
+          "about_caption_kicker",
+          "about_caption_title",
+        ]);
+      if (error || !active) return;
+      const map = new Map<string, unknown>(
+        (data ?? []).map((r) => [r.key as string, r.value as unknown] as const),
+      );
+
+      setAbout({
+        heading:
+          (map.get("about_heading") as string) || ABOUT_DEFAULTS.heading,
+        body: (map.get("about_body") as string) || ABOUT_DEFAULTS.body,
+        kicker:
+          (map.get("about_caption_kicker") as string) || ABOUT_DEFAULTS.kicker,
+        caption:
+          (map.get("about_caption_title") as string) ||
+          ABOUT_DEFAULTS.caption,
+      });
+      const img = (map.get("about_image_url") ?? null) as StoredImage;
+      if (img) {
+        if (typeof img === "string") {
+          setAboutImg(img);
+        } else if (img.bucket && img.path) {
+          const { data: signed } = await supabase.storage
+            .from(img.bucket)
+            .createSignedUrl(img.path, 60 * 60 * 6);
+          if (!active) return;
+          if (signed?.signedUrl) setAboutImg(signed.signedUrl);
+          else {
+            const pub = supabase.storage
+              .from(img.bucket)
+              .getPublicUrl(img.path);
+            setAboutImg(pub?.data?.publicUrl ?? null);
+          }
+        }
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
+
 
   return (
     <div
@@ -268,32 +357,22 @@ export default function Home() {
               Sobre o evento
             </p>
             <h2 className="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl md:text-5xl">
-              O maior movimento jovem da Igreja de Deus no Brasil
+              {about.heading}
             </h2>
-            <p className="mt-5 text-white/80 sm:text-lg">
-              O <strong>Mês da Juventude</strong> acontece em todo o país, reunindo
-              jovens da Igreja de Deus no Brasil para viver esse tempo de forma
-              única em cada lugar.
-            </p>
-            <p className="mt-4 text-white/75">
-              Cada estado se movimenta do seu jeito, com ações, encontros e
-              momentos que levam uma mensagem simples e real:{" "}
-              <strong>Jesus transforma.</strong>
-            </p>
-            <p className="mt-4 text-white/75">
-              E em <strong>Minas Gerais</strong> isso ganha ainda mais força.
-              Neste ano, a IDB Jovem Minas Gerais está preparando uma grande
-              mobilização em um final de semana especial — um encontro que vai
-              reunir jovens de várias cidades para viver algo marcante juntos.
-            </p>
-            <p className="mt-4 text-white/75">
-              Mais do que um evento, é um tempo de{" "}
-              <strong>conexão, fé e propósito.</strong>
-            </p>
-            <p className="mt-4 text-white/75">
-              Há 16 anos esse movimento vem impactando gerações dentro da nossa
-              igreja, levando uma mensagem que continua transformando vidas.
-            </p>
+            {about.body
+              .split(/\n\s*\n/)
+              .map((para, i) => (
+                <p
+                  key={i}
+                  className={
+                    i === 0
+                      ? "mt-5 text-white/80 sm:text-lg"
+                      : "mt-4 text-white/75"
+                  }
+                >
+                  {renderBold(para)}
+                </p>
+              ))}
             <p
               className="mt-5 text-lg font-extrabold uppercase tracking-[0.2em]"
               style={{ color: "hsl(var(--hero-gold))" }}
@@ -301,11 +380,12 @@ export default function Home() {
               Jesus transforma.
             </p>
 
+
             <div className="mt-8 grid grid-cols-3 gap-3">
               {[
                 { icon: Calendar, value: "16 ANOS", label: "de história" },
                 { icon: Users, value: "+50 MIL", label: "jovens impactados" },
-                { icon: Map, value: "EM TODO", label: "o Brasil" },
+                { icon: MapIcon, value: "EM TODO", label: "o Brasil" },
               ].map(({ icon: Icon, value, label }) => (
                 <div
                   key={label}
@@ -335,8 +415,8 @@ export default function Home() {
             }}
           >
             <img
-              src={heroBg}
-              alt="Mês da Juventude"
+              src={aboutImg ?? heroBg}
+              alt={about.caption || "Mês da Juventude"}
               loading="lazy"
               decoding="async"
               className="h-full w-full object-cover"
@@ -349,16 +429,21 @@ export default function Home() {
               }}
             />
             <div className="absolute bottom-0 left-0 right-0 p-6">
-              <p
-                className="text-xs font-extrabold uppercase tracking-[0.3em]"
-                style={{ color: "hsl(var(--hero-gold))" }}
-              >
-                Edição atual
-              </p>
-              <p className="mt-2 text-2xl font-extrabold text-white">
-                Jesus Transforma — Tour Nacional
-              </p>
+              {about.kicker && (
+                <p
+                  className="text-xs font-extrabold uppercase tracking-[0.3em]"
+                  style={{ color: "hsl(var(--hero-gold))" }}
+                >
+                  {about.kicker}
+                </p>
+              )}
+              {about.caption && (
+                <p className="mt-2 text-2xl font-extrabold text-white">
+                  {about.caption}
+                </p>
+              )}
             </div>
+
           </div>
         </div>
       </section>
