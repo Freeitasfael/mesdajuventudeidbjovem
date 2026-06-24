@@ -9,6 +9,7 @@ import { WhatsAppFab } from "@/components/WhatsAppFab";
 import heroBg from "@/assets/hero-rifa-bg.jpg";
 import logoIdb from "@/assets/idb-jovem-logo.png";
 import modeloImg from "@/assets/modelo-camiseta-pulseira.png.asset.json";
+import camisetaCostasImg from "@/assets/camiseta-costas-jesus-never-changes.jpeg.asset.json";
 
 
 export default function Entrada() {
