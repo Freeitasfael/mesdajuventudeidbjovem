@@ -15,7 +15,8 @@ import {
   Sparkles,
   Calendar,
   Users,
-  Map,
+  Map as MapIcon,
+
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SiteHeader } from "@/components/SiteHeader";
