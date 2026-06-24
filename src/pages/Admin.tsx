@@ -20,6 +20,8 @@ import { DashboardConsolidado } from "@/components/admin/DashboardConsolidado";
 import { ExpensesPanel } from "@/components/admin/ExpensesPanel";
 import { SponsorshipsPanel } from "@/components/admin/SponsorshipsPanel";
 import { RecapPanel } from "@/components/admin/RecapPanel";
+import { AboutPanel } from "@/components/admin/AboutPanel";
+
 import { WhatsAppLink } from "@/components/WhatsAppLink";
 
 const ALLOWED_MIME = new Set([
