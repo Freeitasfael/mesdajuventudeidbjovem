@@ -11,21 +11,59 @@ type Props = {
   className?: string;
 };
 
+type CachedMeta = {
+  videoUrl: string | null;
+  thumbUrl: string | null;
+  /** Epoch ms até quando o cache é considerado válido (URL assinada ainda fresca). */
+  expiresAt: number;
+};
+
+const CACHE_KEY = "vsl:home:v1";
+// Mantemos URLs assinadas por 6h no Storage; aqui invalidamos antes (4h) por segurança.
+const CACHE_TTL_MS = 4 * 60 * 60 * 1000;
+
+const readCache = (): CachedMeta | null => {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.sessionStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as CachedMeta;
+    if (!parsed || typeof parsed.expiresAt !== "number") return null;
+    if (Date.now() > parsed.expiresAt) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+};
+
+const writeCache = (meta: CachedMeta) => {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.setItem(CACHE_KEY, JSON.stringify(meta));
+  } catch {
+    /* noop */
+  }
+};
+
 /**
  * VSLPlayer — player minimalista com thumbnail e carregamento sob demanda.
- * - Mostra apenas a imagem + botão de play animado até o clique do usuário.
- * - Ao clicar, monta o <video> com autoplay muted playsinline (sem controles nativos).
- * - Controles customizados: play/pause e mute/unmute apenas.
  */
 export const VSLPlayer = ({ src, poster, className = "" }: Props) => {
-  const [resolvedSrc, setResolvedSrc] = useState<string | null>(src ?? null);
-  const [thumbUrl, setThumbUrl] = useState<string | null>(null);
-  const [loadingMeta, setLoadingMeta] = useState(!src);
+  const cached = !src ? readCache() : null;
+
+  const [resolvedSrc, setResolvedSrc] = useState<string | null>(
+    src ?? cached?.videoUrl ?? null,
+  );
+  const [thumbUrl, setThumbUrl] = useState<string | null>(
+    cached?.thumbUrl ?? null,
+  );
+  const [loadingMeta, setLoadingMeta] = useState(!src && !cached);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [started, setStarted] = useState(false);
   const [thumbHidden, setThumbHidden] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
+  const [videoLoading, setVideoLoading] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   // Resolve URL do vídeo + thumbnail
@@ -55,7 +93,6 @@ export const VSLPlayer = ({ src, poster, className = "" }: Props) => {
 
     (async () => {
       try {
-        setLoadingMeta(true);
         const keys = ["home_vsl_thumbnail_url"];
         if (!src) keys.push("home_vsl_video_url");
 
@@ -70,12 +107,13 @@ export const VSLPlayer = ({ src, poster, className = "" }: Props) => {
           (data ?? []).map((r) => [r.key, r.value as unknown]),
         );
 
+        let nextVideo: string | null = src ?? null;
         if (!src) {
-          const videoUrl = await resolveVideoValue(
+          nextVideo = await resolveVideoValue(
             map.get("home_vsl_video_url") as never,
           );
           if (!active) return;
-          setResolvedSrc(videoUrl);
+          setResolvedSrc(nextVideo);
         }
 
         const thumb = await resolveVideoValue(
@@ -83,9 +121,17 @@ export const VSLPlayer = ({ src, poster, className = "" }: Props) => {
         );
         if (!active) return;
         setThumbUrl(thumb);
+
+        if (!src) {
+          writeCache({
+            videoUrl: nextVideo,
+            thumbUrl: thumb,
+            expiresAt: Date.now() + CACHE_TTL_MS,
+          });
+        }
       } catch (err) {
         console.error("[VSLPlayer] resolve", err);
-        if (active) setErrorMsg("Não foi possível carregar o vídeo.");
+        if (active && !cached) setErrorMsg("Não foi possível carregar o vídeo.");
       } finally {
         if (active) setLoadingMeta(false);
       }
@@ -94,12 +140,14 @@ export const VSLPlayer = ({ src, poster, className = "" }: Props) => {
     return () => {
       active = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [src]);
 
   const displayThumb = thumbUrl ?? poster ?? null;
 
   const handleStart = () => {
     setStarted(true);
+    setVideoLoading(true);
     // fade-out da thumbnail
     window.setTimeout(() => setThumbHidden(true), 350);
   };
@@ -139,13 +187,29 @@ export const VSLPlayer = ({ src, poster, className = "" }: Props) => {
           autoPlay
           muted
           playsInline
-          preload="metadata"
+          preload="auto"
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}
+          onWaiting={() => setVideoLoading(true)}
+          onCanPlay={() => setVideoLoading(false)}
+          onPlaying={() => setVideoLoading(false)}
           onClick={togglePlay}
-          onError={() => setErrorMsg("Falha ao reproduzir o vídeo.")}
+          onError={() => {
+            setErrorMsg("Falha ao reproduzir o vídeo.");
+            setVideoLoading(false);
+          }}
           className="h-full w-full cursor-pointer object-cover"
         />
+      )}
+
+      {/* Spinner enquanto o vídeo carrega após clique */}
+      {started && videoLoading && (
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+          <Loader2
+            className="h-10 w-10 animate-spin"
+            style={{ color: "hsl(var(--hero-gold))" }}
+          />
+        </div>
       )}
 
       {/* Thumbnail + botão de play (com fade-out ao iniciar) */}
@@ -159,8 +223,10 @@ export const VSLPlayer = ({ src, poster, className = "" }: Props) => {
             <img
               src={displayThumb}
               alt="Prévia do vídeo"
-              loading="lazy"
+              loading="eager"
+              fetchPriority="high"
               decoding="async"
+              onError={() => setThumbUrl(null)}
               className="h-full w-full object-cover"
             />
           ) : (
@@ -170,9 +236,9 @@ export const VSLPlayer = ({ src, poster, className = "" }: Props) => {
             >
               {loadingMeta ? (
                 <Loader2 className="h-6 w-6 animate-spin" />
-              ) : (
-                <span>{errorMsg ?? "Vídeo indisponível."}</span>
-              )}
+              ) : errorMsg && !resolvedSrc ? (
+                <span>{errorMsg}</span>
+              ) : null}
             </div>
           )}
 
