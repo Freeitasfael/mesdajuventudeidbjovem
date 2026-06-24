@@ -18,7 +18,7 @@ type CachedMeta = {
   expiresAt: number;
 };
 
-const CACHE_KEY = "vsl:home:v1";
+const CACHE_KEY = "vsl:home:v2";
 // Mantemos URLs assinadas por 6h no Storage; aqui invalidamos antes (4h) por segurança.
 const CACHE_TTL_MS = 4 * 60 * 60 * 1000;
 
