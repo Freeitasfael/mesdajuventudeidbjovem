@@ -118,7 +118,10 @@ export default function Home() {
           "about_caption_title",
         ]);
       if (error || !active) return;
-      const map = new Map((data ?? []).map((r) => [r.key, r.value as unknown]));
+      const map = new Map<string, unknown>(
+        (data ?? []).map((r) => [r.key as string, r.value as unknown] as const),
+      );
+
       setAbout({
         heading:
           (map.get("about_heading") as string) || ABOUT_DEFAULTS.heading,
