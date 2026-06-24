@@ -415,8 +415,8 @@ export default function Home() {
             }}
           >
             <img
-              src={heroBg}
-              alt="Mês da Juventude"
+              src={aboutImg ?? heroBg}
+              alt={about.caption || "Mês da Juventude"}
               loading="lazy"
               decoding="async"
               className="h-full w-full object-cover"
@@ -429,16 +429,21 @@ export default function Home() {
               }}
             />
             <div className="absolute bottom-0 left-0 right-0 p-6">
-              <p
-                className="text-xs font-extrabold uppercase tracking-[0.3em]"
-                style={{ color: "hsl(var(--hero-gold))" }}
-              >
-                Edição atual
-              </p>
-              <p className="mt-2 text-2xl font-extrabold text-white">
-                Jesus Transforma — Tour Nacional
-              </p>
+              {about.kicker && (
+                <p
+                  className="text-xs font-extrabold uppercase tracking-[0.3em]"
+                  style={{ color: "hsl(var(--hero-gold))" }}
+                >
+                  {about.kicker}
+                </p>
+              )}
+              {about.caption && (
+                <p className="mt-2 text-2xl font-extrabold text-white">
+                  {about.caption}
+                </p>
+              )}
             </div>
+
           </div>
         </div>
       </section>
