@@ -755,7 +755,9 @@ const Admin = () => {
               <TabsTrigger value="hero">Hero</TabsTrigger>
               <TabsTrigger value="vsl">VSL</TabsTrigger>
               <TabsTrigger value="recap">Novidades</TabsTrigger>
+              <TabsTrigger value="about">Sobre</TabsTrigger>
               <TabsTrigger value="admins">Admins</TabsTrigger>
+
             </TabsList>
           </div>
 
