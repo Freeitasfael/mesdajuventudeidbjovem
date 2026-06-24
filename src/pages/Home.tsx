@@ -357,38 +357,29 @@ export default function Home() {
               Sobre o evento
             </p>
             <h2 className="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl md:text-5xl">
-              O maior movimento jovem da Igreja de Deus no Brasil
+              {about.heading}
             </h2>
-            <p className="mt-5 text-white/80 sm:text-lg">
-              O <strong>Mês da Juventude</strong> acontece em todo o país, reunindo
-              jovens da Igreja de Deus no Brasil para viver esse tempo de forma
-              única em cada lugar.
-            </p>
-            <p className="mt-4 text-white/75">
-              Cada estado se movimenta do seu jeito, com ações, encontros e
-              momentos que levam uma mensagem simples e real:{" "}
-              <strong>Jesus transforma.</strong>
-            </p>
-            <p className="mt-4 text-white/75">
-              E em <strong>Minas Gerais</strong> isso ganha ainda mais força.
-              Neste ano, a IDB Jovem Minas Gerais está preparando uma grande
-              mobilização em um final de semana especial — um encontro que vai
-              reunir jovens de várias cidades para viver algo marcante juntos.
-            </p>
-            <p className="mt-4 text-white/75">
-              Mais do que um evento, é um tempo de{" "}
-              <strong>conexão, fé e propósito.</strong>
-            </p>
-            <p className="mt-4 text-white/75">
-              Há 16 anos esse movimento vem impactando gerações dentro da nossa
-              igreja, levando uma mensagem que continua transformando vidas.
-            </p>
+            {about.body
+              .split(/\n\s*\n/)
+              .map((para, i) => (
+                <p
+                  key={i}
+                  className={
+                    i === 0
+                      ? "mt-5 text-white/80 sm:text-lg"
+                      : "mt-4 text-white/75"
+                  }
+                >
+                  {renderBold(para)}
+                </p>
+              ))}
             <p
               className="mt-5 text-lg font-extrabold uppercase tracking-[0.2em]"
               style={{ color: "hsl(var(--hero-gold))" }}
             >
               Jesus transforma.
             </p>
+
 
             <div className="mt-8 grid grid-cols-3 gap-3">
               {[
