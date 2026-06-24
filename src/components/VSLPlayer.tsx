@@ -50,6 +50,27 @@ const prefersReducedMotion = () => {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 };
 
+/** Detecta cenário onde autoplay seria custoso (mobile + 3G/economia de dados). */
+const shouldDeferAutoplay = () => {
+  if (typeof window === "undefined") return false;
+  const nav = navigator as Navigator & {
+    connection?: {
+      saveData?: boolean;
+      effectiveType?: string;
+    };
+  };
+  const conn = nav.connection;
+  if (conn?.saveData) return true;
+  if (conn?.effectiveType && /(^|-)(2g|3g)$/i.test(conn.effectiveType)) return true;
+  // Em telas pequenas, defer o autoplay para evitar download pesado em 4G fraco.
+  if (window.matchMedia && window.matchMedia("(max-width: 640px)").matches) {
+    return true;
+  }
+  return false;
+};
+
+
+
 /**
  * VSLPlayer — autoplay mudo ao carregar, com fallback para clique manual.
  */
