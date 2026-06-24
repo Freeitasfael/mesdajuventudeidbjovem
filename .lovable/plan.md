@@ -1,28 +1,42 @@
+# VSL da Home: autoplay ao carregar + correção do play
+
 ## Problema
+Hoje o vídeo só começa após o clique no botão grande (`handleStart` define `started=true`). Em alguns dispositivos o clique parece "não funcionar" porque o `<video>` só é montado nesse momento, precisa baixar metadados/buffer e a thumbnail demora a sumir — dando sensação de travamento.
 
-A VSL na Home demora a aparecer e a iniciar. Causas no `src/components/VSLPlayer.tsx`:
+## Objetivo
+- Iniciar o vídeo automaticamente (mudo, conforme exigência dos navegadores) assim que a Home abrir.
+- Manter um overlay discreto "Toque para ativar o som" enquanto estiver mudo, que serve também de fallback caso o navegador bloqueie o autoplay.
+- Não mexer em lógica de negócio, rotas, Admin ou nas configurações de `app_settings`.
 
-1. A thumbnail só renderiza depois do round-trip a `app_settings` no Supabase (sem cache).
-2. A `<img>` da thumbnail usa `loading="lazy"` + `decoding="async"`, atrasando ainda mais a primeira pintura.
-3. Após clicar em Play, o `<video>` usa `preload="metadata"` e não mostra nenhum spinner — fica preto até o buffer estar pronto.
-4. URLs assinadas do Storage são geradas a cada navegação (mesmo com TTL de 6h), sem cache em `sessionStorage`.
-5. Não há `<link rel="preconnect">` para o domínio do Supabase Storage, então o primeiro request paga TLS/DNS toda vez.
+## Mudanças em `src/components/VSLPlayer.tsx`
 
-## Mudanças (apenas no player e no `index.html`, sem mexer em lógica de negócio)
+1. **Montar o `<video>` desde o início**, sem depender do estado `started`. Assim o browser começa a baixar antes do usuário tentar interagir.
+   - Renderizar o `<video>` assim que `resolvedSrc` estiver disponível.
+   - Manter `autoPlay`, `muted`, `playsInline`, `preload="auto"`.
 
-### 1. `src/components/VSLPlayer.tsx`
-- Cachear o resultado de `app_settings` + URLs resolvidas em `sessionStorage` (chave `vsl:home:v1`), com leitura síncrona no `useState` inicial para pintar a thumbnail imediatamente em navegações subsequentes.
-- Trocar `loading="lazy"` por `loading="eager"` + `fetchPriority="high"` na `<img>` da thumbnail (é LCP da Home).
-- Estado novo `videoLoading`: ativado em `handleStart`, desativado em `onCanPlay`/`onPlaying`. Enquanto verdadeiro, mostrar `Loader2` central sobre o `<video>` para feedback imediato.
-- Trocar `preload="metadata"` por `preload="auto"` no `<video>` que só é montado após o clique (não custa banda antes do click).
-- Tratar `onError` do `<img>` para cair no estado de fallback sem travar.
+2. **Disparar `play()` explicitamente** em um `useEffect` quando `resolvedSrc` mudar, tratando a Promise:
+   - Sucesso → `setStarted(true)`, esconde thumbnail (fade-out atual).
+   - Falha (autoplay bloqueado) → mantém thumbnail + botão de play visível para o usuário iniciar manualmente (fluxo atual de `handleStart`, que agora apenas chama `videoRef.current.play()` em vez de montar o vídeo).
 
-### 2. `index.html`
-- Adicionar `<link rel="preconnect" href="https://vxvrjhbymztzpbekfgwz.supabase.co" crossorigin>` e `<link rel="dns-prefetch" href="https://vxvrjhbymztzpbekfgwz.supabase.co">` no `<head>` para que o primeiro request à API/Storage não pague handshake.
+3. **Spinner** continua aparecendo via `onWaiting`/`onCanPlay`, agora também durante o boot inicial (`videoLoading` começa `true` enquanto não houver `canplay`).
 
-### Fora de escopo
-- Não alterar `app_settings`, schema, edge functions, rotas ou outras páginas.
-- Não trocar a fonte do vídeo nem mover o asset para CDN externa (pode ser feito depois se ainda estiver lento).
+4. **Thumbnail/preview** continua sendo exibida por cima do `<video>` até o `onPlaying` disparar; nesse momento aplica o fade-out atual (`thumbHidden`). Garante que não há "tela preta" antes do primeiro frame.
 
-## Verificação
-- Build local + abrir a Home no Playwright headless, capturar screenshot mostrando thumbnail visível sem flash de loader, e inspecionar `performance.getEntriesByType('resource')` para confirmar preconnect e cache hit em segunda visita.
+5. **Botão de "ativar som"**: como autoplay exige `muted`, adicionar um pequeno banner clicável no topo/centro inferior ("Toque para ativar o som 🔊") enquanto `isMuted === true` e o vídeo estiver tocando. Ao clicar: `v.muted = false` e remove o banner. Some sozinho quando o usuário usa o controle de mute existente.
+
+6. **Acessibilidade/UX**:
+   - `aria-label` no banner de som.
+   - Não autoplay se `prefers-reduced-motion: reduce` — nesse caso mantém o fluxo atual de clicar no play (sem regressão).
+
+## Itens técnicos / detalhes
+
+- O `<video>` ficará sempre montado quando `resolvedSrc` existir; `started` passa a representar "já começou a tocar pelo menos uma vez" e controla apenas o fade da thumbnail e a exibição dos controles inferiores (sem mudanças nos controles).
+- `handleStart` vira fallback: chama `videoRef.current?.play()` (Promise) — em caso de erro, mostra `errorMsg`.
+- Cache `sessionStorage` (`vsl:home:v1`) e resolução de URL ficam exatamente como estão.
+- Nenhuma alteração em `Home.tsx`, `app_settings`, edge functions, schema ou `index.html`.
+
+## Critério de aceite
+- Ao abrir `/`, o vídeo começa a tocar mudo em até ~1s após o thumbnail aparecer (depende da rede).
+- Banner "ativar som" aparece e funciona; controle de mute existente continua funcionando.
+- Em navegadores que bloqueiam autoplay, o botão grande de play continua funcionando sem bug.
+- Sem regressão em mobile (iOS Safari/Android Chrome) graças a `playsInline` + `muted`.
