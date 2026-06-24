@@ -9,6 +9,7 @@ import { WhatsAppFab } from "@/components/WhatsAppFab";
 import heroBg from "@/assets/hero-rifa-bg.jpg";
 import logoIdb from "@/assets/idb-jovem-logo.png";
 import modeloImg from "@/assets/modelo-camiseta-pulseira.png.asset.json";
+import camisetaCostasImg from "@/assets/camiseta-costas-jesus-never-changes.jpeg.asset.json";
 
 
 export default function Entrada() {
@@ -245,41 +246,62 @@ export default function Entrada() {
               </p>
             </div>
 
-            {/* Coluna direita — Imagem do modelo */}
+            {/* Coluna direita — Imagens da camiseta */}
             <div className="order-1 lg:order-2 relative flex justify-center lg:justify-end">
               <div
-                className="relative w-full max-w-[360px] lg:max-w-[420px] aspect-[441/753] rounded-3xl overflow-hidden border"
-                style={{
-                  borderColor: "hsl(var(--hero-gold) / 0.2)",
-                  backgroundColor: "hsl(var(--hero-bg-deep))",
-                }}
+                className="grid grid-cols-2 gap-3 w-full max-w-[420px] sm:max-w-[500px] md:max-w-[560px]"
               >
-                <img
-                  src={modeloImg.url}
-                  alt="Modelo vestindo a camiseta oficial do evento Mês da Juventude"
-                  loading="lazy"
-                  decoding="async"
-                  className="absolute inset-0 w-full h-full object-cover object-top"
-                />
+                {/* Foto frente */}
+                <div
+                  className="relative aspect-[441/753] rounded-2xl overflow-hidden border"
+                  style={{
+                    borderColor: "hsl(var(--hero-gold) / 0.2)",
+                    backgroundColor: "hsl(var(--hero-bg-deep))",
+                  }}
+                >
+                  <img
+                    src={modeloImg.url}
+                    alt="Modelo vestindo a camiseta oficial do evento Mês da Juventude"
+                    loading="lazy"
+                    decoding="async"
+                    className="absolute inset-0 w-full h-full object-cover object-top"
+                  />
+                  {/* Gradiente inferior sutil */}
+                  <div
+                    aria-hidden
+                    className="absolute inset-x-0 bottom-0 h-20 pointer-events-none"
+                    style={{
+                      background:
+                        "linear-gradient(to top, hsl(0 0% 0% / 0.75), transparent)",
+                    }}
+                  />
+                </div>
 
-                {/* Gradiente de integração (direita -> esquerda escuro) */}
+                {/* Foto costas */}
                 <div
-                  aria-hidden
-                  className="absolute inset-0 pointer-events-none"
+                  className="relative aspect-[441/753] rounded-2xl overflow-hidden border"
                   style={{
-                    background:
-                      "linear-gradient(to left, transparent 45%, hsl(0 0% 0% / 0.5) 88%, hsl(0 0% 0% / 0.9) 100%)",
+                    borderColor: "hsl(var(--hero-gold) / 0.2)",
+                    backgroundColor: "hsl(var(--hero-bg-deep))",
                   }}
-                />
-                {/* Gradiente inferior sutil */}
-                <div
-                  aria-hidden
-                  className="absolute inset-x-0 bottom-0 h-28 pointer-events-none"
-                  style={{
-                    background:
-                      "linear-gradient(to top, hsl(0 0% 0% / 0.75), transparent)",
-                  }}
-                />
+                >
+                  <img
+                    src={camisetaCostasImg.url}
+                    alt="Costas da camiseta oficial com estampa Jesus never changes"
+                    loading="lazy"
+                    decoding="async"
+                    className="absolute inset-0 w-full h-full object-cover object-center"
+                  />
+                  {/* Gradiente inferior sutil */}
+                  <div
+                    aria-hidden
+                    className="absolute inset-x-0 bottom-0 h-20 pointer-events-none"
+                    style={{
+                      background:
+                        "linear-gradient(to top, hsl(0 0% 0% / 0.75), transparent)",
+                    }}
+                  />
+                </div>
               </div>
             </div>
           </div>
