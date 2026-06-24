@@ -269,6 +269,16 @@ export const VSLPlayer = ({ src, poster, className = "" }: Props) => {
             setVideoLoading(false);
             tryAutoplay();
           }}
+          onEnded={() => {
+            const v = videoRef.current;
+            if (v) {
+              try { v.pause(); v.currentTime = 0; } catch { /* noop */ }
+            }
+            setIsPlaying(false);
+            setStarted(false);
+            setThumbHidden(false);
+            autoplayTriedRef.current = true; // não re-autoplay ao reaparecer
+          }}
           onClick={togglePlay}
           onError={() => {
             setErrorMsg("Falha ao reproduzir o vídeo.");
