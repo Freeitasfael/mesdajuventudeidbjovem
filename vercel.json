@@ -1,5 +1,6 @@
 {
   "rewrites": [
-    { "source": "/(.*)", "destination": "/" }
+    { "source": "/__l5e/:path*", "destination": "https://idbjovem-site.lovable.app/__l5e/:path*" },
+    { "source": "/((?!__l5e/).*)", "destination": "/" }
   ]
 }
