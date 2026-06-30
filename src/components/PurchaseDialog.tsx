@@ -47,6 +47,8 @@ interface PaymentData {
   total_cents: number;
 }
 
+type ShirtItem = { id: string; model: Model; size: string };
+
 export function PurchaseDialog({ open, onOpenChange, initialOption = "kit" }: Props) {
   const [step, setStep] = useState<"form" | "card" | "payment" | "done">("form");
   const [cardError, setCardError] = useState<string | null>(null);
@@ -56,9 +58,10 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "kit" }: Pr
   const [telefone, setTelefone] = useState("");
   const [email, setEmail] = useState("");
   const [option, setOption] = useState<Option>(initialOption);
-  const [model, setModel] = useState<Model>("adulto");
-  const [tamanho, setTamanho] = useState("");
-  const [qtd, setQtd] = useState(1);
+  // Lista de camisetas — cada item é UMA camiseta (qtd implícita = 1)
+  const [shirtItems, setShirtItems] = useState<ShirtItem[]>([
+    { id: crypto.randomUUID(), model: "adulto", size: "" },
+  ]);
   const [method, setMethod] = useState<Method>("pix");
   const [hasReferral, setHasReferral] = useState(false);
   const [refInput, setRefInput] = useState("");
@@ -74,24 +77,26 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "kit" }: Pr
   const [stock, setStock] = useState<Record<string, number>>({});
   const [prices, setPrices] = useState<Record<Option, number>>(DEFAULT_PRICES);
   const pollRef = useRef<number | null>(null);
+
+  const qtd = shirtItems.length;
+  const previewItem = shirtItems[0] ?? { model: "adulto" as Model, size: "" };
+  const previewKey = `${option}-${previewItem.model}-${previewItem.size || "x"}-${qtd}`;
   const [previewLoading, setPreviewLoading] = useState(false);
-  const previewKey = `${option}-${option === "kit" ? model : "x"}-${option === "kit" ? tamanho || "x" : "x"}`;
   useEffect(() => {
     setPreviewLoading(true);
     const t = window.setTimeout(() => setPreviewLoading(false), 100);
     return () => window.clearTimeout(t);
   }, [previewKey]);
-  const previewData = option === "kit"
-    ? {
-        img: modeloImg,
-        title: "Camisa Oficial",
-        desc: `Camisa ${MODEL_LABEL[model]}${tamanho ? ` · ${model === "infantil" ? `${tamanho} anos` : `tam. ${tamanho}`}` : ""} oficial do Mês da Juventude.`,
-      }
-    : {
-        img: pulseiraCloseImg,
-        title: "Camisa Oficial",
-        desc: "Camisa oficial do evento Mês da Juventude.",
-      };
+  const previewData = {
+    img: modeloImg,
+    title: qtd > 1 ? `Camisa Oficial × ${qtd}` : "Camisa Oficial",
+    desc:
+      qtd > 1
+        ? shirtItems
+            .map((it) => `${MODEL_LABEL[it.model]}${it.size ? ` ${it.model === "infantil" ? `${it.size}a` : it.size}` : ""}`)
+            .join(" · ")
+        : `Camisa ${MODEL_LABEL[previewItem.model]}${previewItem.size ? ` · ${previewItem.model === "infantil" ? `${previewItem.size} anos` : `tam. ${previewItem.size}`}` : ""} oficial do Mês da Juventude.`,
+  };
 
   const total = useMemo(() => prices[option] * qtd, [option, qtd, prices]);
   const pulseiraStock = stock["pulseira"] ?? 0;
