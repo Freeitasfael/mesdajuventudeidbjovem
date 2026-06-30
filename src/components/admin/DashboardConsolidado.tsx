@@ -166,7 +166,7 @@ export function DashboardConsolidado() {
           </div>
         </div>
         <p className="text-xs text-muted-foreground mt-3">
-          Considera apenas pedidos pagos (taxa PIX 0,99% descontada) e patrocínios confirmados. Sem filtro = histórico completo.
+          Considera apenas pedidos pagos (taxa do Mercado Pago descontada conforme o método: PIX 0,99% · Cartão 4,99%) e patrocínios confirmados. Sem filtro = histórico completo.
         </p>
       </Card>
 
