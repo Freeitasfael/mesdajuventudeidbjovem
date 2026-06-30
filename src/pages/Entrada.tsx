@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Check, Instagram, MapPin, ArrowRight, Shield, Heart, Ticket } from "lucide-react";
 import { PurchaseDialog } from "@/components/PurchaseDialog";
@@ -14,11 +14,37 @@ import camisetaCostasImg from "@/assets/camiseta-costas-jesus-never-changes.jpeg
 
 export default function Entrada() {
   const [open, setOpen] = useState(false);
+  const [frenteLoaded, setFrenteLoaded] = useState(false);
+  const [costasLoaded, setCostasLoaded] = useState(false);
+
+  // Pré-carregamento das imagens da camiseta (reduz flicker na 1ª visita)
+  useEffect(() => {
+    const urls = [modeloImg.url, camisetaCostasImg.url];
+    const links: HTMLLinkElement[] = urls.map((href) => {
+      const link = document.createElement("link");
+      link.rel = "preload";
+      link.as = "image";
+      link.href = href;
+      link.fetchPriority = "high" as any;
+      document.head.appendChild(link);
+      return link;
+    });
+    // Dispara também o decode via Image() — popula o cache do navegador
+    urls.forEach((href) => {
+      const img = new Image();
+      img.decoding = "async";
+      img.src = href;
+    });
+    return () => {
+      links.forEach((l) => l.parentNode?.removeChild(l));
+    };
+  }, []);
 
   const buy = () => setOpen(true);
 
   const scrollTo = (id: string) =>
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+
 
   return (
     <div
