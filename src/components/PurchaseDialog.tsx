@@ -520,6 +520,7 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "kit" }: Pr
                 </span>
               </div>
               <CardForm
+                key={cardFormKey}
                 account="entrada"
                 amount={total}
                 variant="dark"
@@ -527,6 +528,7 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "kit" }: Pr
                 errorMessage={cardError}
                 onTokenized={handleCardTokenized}
               />
+
               <Button type="button" variant="ghost" onClick={() => setStep("form")}
                 className="w-full text-white/80 hover:text-white hover:bg-white/5">
                 Voltar
