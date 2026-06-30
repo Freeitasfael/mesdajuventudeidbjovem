@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Check, Instagram, MapPin, ArrowRight, Shield, Heart, Ticket } from "lucide-react";
 import { PurchaseDialog } from "@/components/PurchaseDialog";
@@ -14,11 +14,37 @@ import camisetaCostasImg from "@/assets/camiseta-costas-jesus-never-changes.jpeg
 
 export default function Entrada() {
   const [open, setOpen] = useState(false);
+  const [frenteLoaded, setFrenteLoaded] = useState(false);
+  const [costasLoaded, setCostasLoaded] = useState(false);
+
+  // Pré-carregamento das imagens da camiseta (reduz flicker na 1ª visita)
+  useEffect(() => {
+    const urls = [modeloImg.url, camisetaCostasImg.url];
+    const links: HTMLLinkElement[] = urls.map((href) => {
+      const link = document.createElement("link");
+      link.rel = "preload";
+      link.as = "image";
+      link.href = href;
+      link.fetchPriority = "high" as any;
+      document.head.appendChild(link);
+      return link;
+    });
+    // Dispara também o decode via Image() — popula o cache do navegador
+    urls.forEach((href) => {
+      const img = new Image();
+      img.decoding = "async";
+      img.src = href;
+    });
+    return () => {
+      links.forEach((l) => l.parentNode?.removeChild(l));
+    };
+  }, []);
 
   const buy = () => setOpen(true);
 
   const scrollTo = (id: string) =>
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+
 
   return (
     <div
@@ -294,13 +320,24 @@ export default function Entrada() {
                           "20px 24px 60px -20px rgba(0,0,0,0.65), 0 0 0 1px hsl(var(--hero-gold) / 0.12)",
                       }}
                     >
+                      {/* Skeleton premium enquanto a imagem carrega */}
+                      {!frenteLoaded && (
+                        <div
+                          aria-hidden
+                          className="premium-skeleton absolute inset-0 z-[1]"
+                        />
+                      )}
                       <img
                         src={modeloImg.url}
                         alt="Modelo vestindo a camiseta oficial Estações"
-                        loading="lazy"
+                        loading="eager"
                         decoding="async"
-                        className="absolute inset-0 w-full h-full object-cover object-top transform-gpu [backface-visibility:hidden] motion-safe:transition-transform motion-safe:duration-[1200ms] motion-safe:ease-out motion-safe:will-change-transform motion-safe:group-hover:scale-[1.04]"
+                        fetchPriority="high"
+                        onLoad={() => setFrenteLoaded(true)}
+                        style={{ opacity: frenteLoaded ? 1 : 0 }}
+                        className="absolute inset-0 w-full h-full object-cover object-top transform-gpu [backface-visibility:hidden] transition-opacity duration-500 ease-out motion-safe:transition-[opacity,transform] motion-safe:duration-[1200ms] motion-safe:ease-out motion-safe:will-change-transform motion-safe:group-hover:scale-[1.04]"
                       />
+
                       {/* Moldura dourada interna */}
                       <div
                         aria-hidden
@@ -366,13 +403,23 @@ export default function Entrada() {
                           "20px 24px 60px -20px rgba(0,0,0,0.65), 0 0 0 1px hsl(var(--hero-gold) / 0.12)",
                       }}
                     >
+                      {!costasLoaded && (
+                        <div
+                          aria-hidden
+                          className="premium-skeleton absolute inset-0 z-[1]"
+                        />
+                      )}
                       <img
                         src={camisetaCostasImg.url}
                         alt="Costas da camiseta oficial com estampa Jesus never changes"
-                        loading="lazy"
+                        loading="eager"
                         decoding="async"
-                        className="absolute inset-0 w-full h-full object-cover object-center transform-gpu [backface-visibility:hidden] motion-safe:transition-transform motion-safe:duration-[1200ms] motion-safe:ease-out motion-safe:will-change-transform motion-safe:group-hover:scale-[1.04]"
+                        fetchPriority="high"
+                        onLoad={() => setCostasLoaded(true)}
+                        style={{ opacity: costasLoaded ? 1 : 0 }}
+                        className="absolute inset-0 w-full h-full object-cover object-center transform-gpu [backface-visibility:hidden] transition-opacity duration-500 ease-out motion-safe:transition-[opacity,transform] motion-safe:duration-[1200ms] motion-safe:ease-out motion-safe:will-change-transform motion-safe:group-hover:scale-[1.04]"
                       />
+
                       <div
                         aria-hidden
                         className="absolute inset-2 border pointer-events-none"
