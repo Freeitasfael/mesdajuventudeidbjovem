@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Copy, Check, Loader2, CreditCard, QrCode, CheckCircle2, XCircle } from "lucide-react";
+import { Copy, Check, Loader2, CreditCard, QrCode, CheckCircle2, XCircle, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { CardForm, type CardTokenPayload } from "@/components/CardForm";
