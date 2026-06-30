@@ -134,8 +134,8 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "kit" }: Pr
     } catch { /* ignore */ }
   }, [open]);
 
-  // Reset tamanho quando mudar modelo
-  useEffect(() => { setTamanho(""); }, [model]);
+  // (sem reset por modelo — cada item gerencia o próprio modelo/tamanho)
+
 
   // Valida ref_code com debounce
   useEffect(() => {
