@@ -214,10 +214,11 @@ export function EntradaPanel() {
     });
   }, [orders, statusFilter, productFilter, dateFrom, dateTo, search]);
 
-  const totalReceivedGross = filteredOrders
-    .filter((o) => o.status === "paid")
-    .reduce((acc, o) => acc + o.total_cents, 0);
-  const totalReceived = applyFee(totalReceivedGross);
+  const paidFiltered = filteredOrders.filter((o) => o.status === "paid");
+  const totalAgg = netFromOrders(paidFiltered);
+  const totalReceivedGross = totalAgg.gross;
+  const totalReceived = totalAgg.net;
+  const totalReceivedFee = totalAgg.fee;
 
   // KPIs individuais da Camiseta
   const shirtKpis = (() => {
