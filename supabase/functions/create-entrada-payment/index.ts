@@ -10,6 +10,12 @@ const corsHeaders = {
 
 const DEFAULT_PRICES_CENTS = { pulseira: 1500, kit: 6000 } as const;
 
+const ItemSchema = z.object({
+  model: z.enum(["adulto", "baby", "infantil"]),
+  size: z.string().trim().min(1).max(10),
+  quantity: z.number().int().min(1).max(99),
+});
+
 const BodySchema = z.object({
   buyer_name: z.string().trim().min(2).max(120),
   buyer_phone: z.string().trim().min(8).max(20),
@@ -18,6 +24,7 @@ const BodySchema = z.object({
   model: z.enum(["adulto", "baby", "infantil"]).optional().default("adulto"),
   size: z.string().trim().max(10).optional().nullable(),
   quantity: z.number().int().min(1).max(99),
+  items: z.array(ItemSchema).min(1).max(20).optional().nullable(),
   method: z.enum(["pix", "card"]).optional().default("pix"),
   ref_code: z.string().trim().min(1).max(64).optional().nullable(),
   return_url: z.string().url().optional().nullable(),
