@@ -39,8 +39,8 @@ export function DashboardConsolidado() {
 
   const load = async () => {
     setLoading(true);
-    let camisetasQ = supabase.from("orders").select("total_cents, created_at, status").eq("status", "paid").limit(5000);
-    let entQ = supabase.from("entrada_orders").select("total_cents, created_at, status, product, quantity").eq("status", "paid").limit(5000);
+    let camisetasQ = supabase.from("orders").select("total_cents, created_at, status, payment_method").eq("status", "paid").limit(5000);
+    let entQ = supabase.from("entrada_orders").select("total_cents, created_at, status, product, quantity, payment_method").eq("status", "paid").limit(5000);
     let expQ = supabase.from("expenses").select("amount_cents, expense_date, category").limit(5000);
     const sponsorsQ = supabase.from("sponsorships").select("amount_cents, kind, status, created_at").limit(5000);
 
