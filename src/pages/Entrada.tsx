@@ -403,13 +403,23 @@ export default function Entrada() {
                           "20px 24px 60px -20px rgba(0,0,0,0.65), 0 0 0 1px hsl(var(--hero-gold) / 0.12)",
                       }}
                     >
+                      {!costasLoaded && (
+                        <div
+                          aria-hidden
+                          className="premium-skeleton absolute inset-0 z-[1]"
+                        />
+                      )}
                       <img
                         src={camisetaCostasImg.url}
                         alt="Costas da camiseta oficial com estampa Jesus never changes"
-                        loading="lazy"
+                        loading="eager"
                         decoding="async"
-                        className="absolute inset-0 w-full h-full object-cover object-center transform-gpu [backface-visibility:hidden] motion-safe:transition-transform motion-safe:duration-[1200ms] motion-safe:ease-out motion-safe:will-change-transform motion-safe:group-hover:scale-[1.04]"
+                        fetchPriority="high"
+                        onLoad={() => setCostasLoaded(true)}
+                        style={{ opacity: costasLoaded ? 1 : 0 }}
+                        className="absolute inset-0 w-full h-full object-cover object-center transform-gpu [backface-visibility:hidden] transition-opacity duration-500 ease-out motion-safe:transition-[opacity,transform] motion-safe:duration-[1200ms] motion-safe:ease-out motion-safe:will-change-transform motion-safe:group-hover:scale-[1.04]"
                       />
+
                       <div
                         aria-hidden
                         className="absolute inset-2 border pointer-events-none"
