@@ -13,6 +13,7 @@ import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { HeroRifa } from "@/components/HeroRifa";
 import { buildCsv, downloadCsv } from "@/lib/csv";
+import { netFromOrders } from "@/lib/fees";
 import { EntradaPanel } from "@/components/admin/EntradaPanel";
 import { VSLPanel } from "@/components/admin/VSLPanel";
 import { AdminsPanel } from "@/components/admin/AdminsPanel";
@@ -75,6 +76,7 @@ interface OrderRow {
   buyer_id: string;
   seller_id: string | null;
   referral_label: string | null;
+  payment_method: string | null;
 }
 
 interface PaymentRow {
@@ -216,26 +218,41 @@ const Admin = () => {
     });
   }, [orders, orderStatusFilter, orderDateFrom, orderDateTo]);
 
-  // KPIs da Rifa (aba "Rifa")
+  // KPIs da Rifa (aba "Rifa") — líquido considera taxa MP por método (PIX 0,99% · Cartão 4,99%)
   const rifaKpis = useMemo(() => {
     const paid = orders.filter((o) => o.status === "paid");
     const pending = orders.filter((o) => o.status === "pending");
-    const revPaid = paid.reduce((a, o) => a + o.total_cents, 0);
+    const paidAgg = netFromOrders(paid);
+    const revPaid = paidAgg.gross;
+    const revPaidNet = paidAgg.net;
+    const revPaidFee = paidAgg.fee;
     const revPending = pending.reduce((a, o) => a + o.total_cents, 0);
     const ticket = paid.length > 0 ? Math.round(revPaid / paid.length) : 0;
     const totalCreated = orders.length;
     const conv = totalCreated > 0 ? (paid.length / totalCreated) * 100 : 0;
-    return { revPaid, revPending, paidCount: paid.length, pendingCount: pending.length, ticket, conv };
+    return { revPaid, revPaidNet, revPaidFee, revPending, paidCount: paid.length, pendingCount: pending.length, ticket, conv };
   }, [orders]);
 
-  // KPIs do Pagamentos
+  // KPIs do Pagamentos — usa payment_method do pedido vinculado para calcular taxa correta
   const paymentKpis = useMemo(() => {
-    const approved = payments.filter((p) => p.status === "approved" || p.status === "paid");
-    const pending = payments.filter((p) => p.status === "pending");
-    const revPaid = approved.reduce((a, p) => a + p.amount_cents, 0);
-    const revPending = pending.reduce((a, p) => a + p.amount_cents, 0);
-    return { revPaid, revPending, approvedCount: approved.length, pendingCount: pending.length };
-  }, [payments]);
+    const orderById = new Map(orders.map((o) => [o.id, o] as const));
+    const withMethod = payments.map((p) => ({
+      total_cents: p.amount_cents,
+      payment_method: orderById.get(p.order_id)?.payment_method ?? null,
+      status: p.status,
+    }));
+    const approved = withMethod.filter((p) => p.status === "approved" || p.status === "paid");
+    const pending = withMethod.filter((p) => p.status === "pending");
+    const approvedAgg = netFromOrders(approved);
+    return {
+      revPaid: approvedAgg.gross,
+      revPaidNet: approvedAgg.net,
+      revPaidFee: approvedAgg.fee,
+      revPending: pending.reduce((a, p) => a + p.total_cents, 0),
+      approvedCount: approved.length,
+      pendingCount: pending.length,
+    };
+  }, [payments, orders]);
 
   const exportOrdersCsv = () => {
     if (filteredOrders.length === 0) {
@@ -838,11 +855,14 @@ const Admin = () => {
 
             {/* Resumo financeiro consolidado */}
             <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-              <StatCard label="Recebido (Rifa)" value={fmtBRL(paymentKpis.revPaid)} />
-              <StatCard label="Pendente (Rifa)" value={fmtBRL(paymentKpis.revPending)} />
+              <StatCard label="Recebido (bruto)" value={fmtBRL(paymentKpis.revPaid)} />
+              <StatCard label="Líquido (taxa MP)" value={fmtBRL(paymentKpis.revPaidNet)} />
+              <StatCard label="Pendente" value={fmtBRL(paymentKpis.revPending)} />
               <StatCard label="Aprovados" value={String(paymentKpis.approvedCount)} />
-              <StatCard label="Aguardando" value={String(paymentKpis.pendingCount)} />
             </div>
+            <p className="text-[11px] text-muted-foreground -mt-2">
+              Taxa Mercado Pago aplicada por pedido: PIX 0,99% · Cartão 4,99%. Líquido = bruto − {fmtBRL(paymentKpis.revPaidFee)} de taxas.
+            </p>
 
             <Tabs defaultValue="rifa">
               <TabsList>
@@ -953,7 +973,8 @@ const Admin = () => {
                 Resumo da Rifa
               </h2>
               <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-                <StatCard label="Receita paga" value={fmtBRL(rifaKpis.revPaid)} />
+                <StatCard label="Receita paga (bruta)" value={fmtBRL(rifaKpis.revPaid)} />
+                <StatCard label="Líquido (taxa MP)" value={fmtBRL(rifaKpis.revPaidNet)} />
                 <StatCard label="Receita pendente" value={fmtBRL(rifaKpis.revPending)} />
                 <StatCard label="Pedidos pagos" value={String(rifaKpis.paidCount)} />
                 <StatCard label="Números vendidos" value={String(stats?.numbers_paid ?? 0)} />
@@ -962,6 +983,9 @@ const Admin = () => {
                 <StatCard label="Pendentes" value={String(rifaKpis.pendingCount)} />
                 <StatCard label="Disponíveis" value={String(stats?.numbers_available ?? 0)} />
               </div>
+              <p className="text-[11px] text-muted-foreground mt-2">
+                Líquido = bruto − taxa Mercado Pago (PIX 0,99% · Cartão 4,99%) aplicada por pedido conforme o método.
+              </p>
             </div>
 
 

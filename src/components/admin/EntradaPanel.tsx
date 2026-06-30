@@ -37,9 +37,8 @@ interface StockRow {
 const fmtBRL = (c: number) => `R$ ${(c / 100).toFixed(2).replace(".", ",")}`;
 const fmtDate = (s: string) => new Date(s).toLocaleString("pt-BR");
 
-// Taxa de transação Mercado Pago PIX (0,99%) — descontada do total arrecadado.
-const TX_FEE_RATE = 0.0099;
-const applyFee = (cents: number) => Math.round(cents * (1 - TX_FEE_RATE));
+// Taxa de transação Mercado Pago aplicada por método (PIX 0,99% · Cartão 4,99%).
+import { netFromOrders } from "@/lib/fees";
 
 const STATUS_LABEL: Record<string, string> = {
   paid: "Pago",
@@ -215,21 +214,24 @@ export function EntradaPanel() {
     });
   }, [orders, statusFilter, productFilter, dateFrom, dateTo, search]);
 
-  const totalReceivedGross = filteredOrders
-    .filter((o) => o.status === "paid")
-    .reduce((acc, o) => acc + o.total_cents, 0);
-  const totalReceived = applyFee(totalReceivedGross);
+  const paidFiltered = filteredOrders.filter((o) => o.status === "paid");
+  const totalAgg = netFromOrders(paidFiltered);
+  const totalReceivedGross = totalAgg.gross;
+  const totalReceived = totalAgg.net;
+  const totalReceivedFee = totalAgg.fee;
 
   // KPIs individuais da Camiseta
   const shirtKpis = (() => {
     const paid = orders.filter((o) => o.status === "paid");
     const pending = orders.filter((o) => o.status === "pending");
-    const revPaid = paid.reduce((a, o) => a + o.total_cents, 0);
+    const paidAgg = netFromOrders(paid);
+    const revPaid = paidAgg.gross;
+    const revPaidNet = paidAgg.net;
     const revPending = pending.reduce((a, o) => a + o.total_cents, 0);
     const itemsSold = paid.reduce((a, o) => a + (o.quantity || 0), 0);
     const ticket = paid.length > 0 ? Math.round(revPaid / paid.length) : 0;
     const conv = orders.length > 0 ? (paid.length / orders.length) * 100 : 0;
-    return { revPaid, revPending, paidCount: paid.length, pendingCount: pending.length, itemsSold, ticket, conv };
+    return { revPaid, revPaidNet, revPending, paidCount: paid.length, pendingCount: pending.length, itemsSold, ticket, conv };
   })();
 
   const exportCsv = () => {
@@ -281,7 +283,7 @@ export function EntradaPanel() {
             <KpiCard label="Ticket médio" value={fmtBRL(shirtKpis.ticket)} />
             <KpiCard label="Conversão" value={`${shirtKpis.conv.toFixed(1)}%`} />
             <KpiCard label="Pendentes" value={String(shirtKpis.pendingCount)} />
-            <KpiCard label="Líquido (−0,99%)" value={fmtBRL(applyFee(shirtKpis.revPaid))} />
+            <KpiCard label="Líquido (taxa MP)" value={fmtBRL(shirtKpis.revPaidNet)} />
           </div>
         </div>
 
@@ -331,7 +333,7 @@ export function EntradaPanel() {
 
         <div className="flex items-center justify-between flex-wrap gap-2">
           <p className="text-sm text-muted-foreground">
-            {filteredOrders.length} de {orders.length} pedidos · {fmtBRL(totalReceived)} líquido <span className="text-xs">(bruto {fmtBRL(totalReceivedGross)} – taxa 0,99%)</span>
+            {filteredOrders.length} de {orders.length} pedidos · {fmtBRL(totalReceived)} líquido <span className="text-xs">(bruto {fmtBRL(totalReceivedGross)} – taxa MP {fmtBRL(totalReceivedFee)})</span>
           </p>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={exportCsv} disabled={filteredOrders.length === 0}>

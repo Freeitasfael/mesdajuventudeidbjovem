@@ -5,9 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, AlertTriangle, TrendingUp, TrendingDown } from "lucide-react";
+import { netFromOrders } from "@/lib/fees";
 
-interface OrderLite { total_cents: number; created_at: string; status: string; }
-interface EntradaLite { total_cents: number; created_at: string; status: string; product: string; quantity: number; }
+interface OrderLite { total_cents: number; created_at: string; status: string; payment_method: string | null; }
+interface EntradaLite { total_cents: number; created_at: string; status: string; product: string; quantity: number; payment_method: string | null; }
 interface ExpenseLite { amount_cents: number; expense_date: string; category: string; }
 interface SponsorLite { amount_cents: number; kind: "cash" | "permuta"; status: "confirmed" | "pending"; created_at: string; }
 
@@ -17,10 +18,6 @@ const DEFAULT_COST_PULSEIRA = 1.05;
 const COST_STORAGE_KEY = "dashboard_costs_v1";
 
 const fmtBRL = (c: number) => `R$ ${(c / 100).toFixed(2).replace(".", ",")}`;
-
-// Taxa de transação (Mercado Pago PIX = 0,99%) descontada dos valores arrecadados.
-const TX_FEE_RATE = 0.0099;
-const applyFee = (cents: number) => Math.round(cents * (1 - TX_FEE_RATE));
 
 export function DashboardConsolidado() {
   const [from, setFrom] = useState("");
@@ -42,8 +39,8 @@ export function DashboardConsolidado() {
 
   const load = async () => {
     setLoading(true);
-    let camisetasQ = supabase.from("orders").select("total_cents, created_at, status").eq("status", "paid").limit(5000);
-    let entQ = supabase.from("entrada_orders").select("total_cents, created_at, status, product, quantity").eq("status", "paid").limit(5000);
+    let camisetasQ = supabase.from("orders").select("total_cents, created_at, status, payment_method").eq("status", "paid").limit(5000);
+    let entQ = supabase.from("entrada_orders").select("total_cents, created_at, status, product, quantity, payment_method").eq("status", "paid").limit(5000);
     let expQ = supabase.from("expenses").select("amount_cents, expense_date, category").limit(5000);
     const sponsorsQ = supabase.from("sponsorships").select("amount_cents, kind, status, created_at").limit(5000);
 
@@ -70,16 +67,18 @@ export function DashboardConsolidado() {
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [from, to]);
 
   const metrics = useMemo(() => {
-    const camisetasGross = camisetasOrders.reduce((a, o) => a + o.total_cents, 0);
-    const camisetasTotal = applyFee(camisetasGross);
+    const camisetasAgg = netFromOrders(camisetasOrders);
+    const camisetasGross = camisetasAgg.gross;
+    const camisetasTotal = camisetasAgg.net;
     const camisetasCount = camisetasOrders.length;
-    const entGross = entrada.reduce((a, o) => a + o.total_cents, 0);
-    const entTotal = applyFee(entGross);
+    const entAgg = netFromOrders(entrada);
+    const entGross = entAgg.gross;
+    const entTotal = entAgg.net;
     const entCount = entrada.length;
     const pulseira = entrada.filter((e) => e.product === "pulseira");
     const kit = entrada.filter((e) => e.product === "kit");
-    const pulTotal = applyFee(pulseira.reduce((a, o) => a + o.total_cents, 0));
-    const kitTotal = applyFee(kit.reduce((a, o) => a + o.total_cents, 0));
+    const pulTotal = netFromOrders(pulseira).net;
+    const kitTotal = netFromOrders(kit).net;
     const pulUnits = pulseira.reduce((a, o) => a + (o.quantity || 1), 0);
     const kitUnits = kit.reduce((a, o) => a + (o.quantity || 1), 0);
 
@@ -104,7 +103,7 @@ export function DashboardConsolidado() {
     // Receita Total = Camisetas + Entrada + Patrocínios confirmados
     const totalRevenue = camisetasTotal + entTotal + sponsorsConfirmedTotal;
     const totalGross = camisetasGross + entGross;
-    const feeCents = totalGross - (camisetasTotal + entTotal);
+    const totalFee = camisetasAgg.fee + entAgg.fee;
 
     // Lucro líquido & margem
     const netProfit = totalRevenue - totalExpenses;
@@ -120,7 +119,7 @@ export function DashboardConsolidado() {
       kitTotal, kitCount: kit.length, kitUnits,
       sponsorsConfirmedCash, sponsorsConfirmedPermuta, sponsorsConfirmedTotal, sponsorsCount,
       expensesTotal, fabricationCost, totalExpenses,
-      totalRevenue, totalGross, feeCents,
+      totalRevenue, totalGross, feeCents: totalFee,
       netProfit, margin, totalCount, ticket,
     };
   }, [camisetasOrders, entrada, expenses, sponsors, costCamiseta, costPulseira]);
@@ -167,7 +166,7 @@ export function DashboardConsolidado() {
           </div>
         </div>
         <p className="text-xs text-muted-foreground mt-3">
-          Considera apenas pedidos pagos (taxa PIX 0,99% descontada) e patrocínios confirmados. Sem filtro = histórico completo.
+          Considera apenas pedidos pagos (taxa do Mercado Pago descontada conforme o método: PIX 0,99% · Cartão 4,99%) e patrocínios confirmados. Sem filtro = histórico completo.
         </p>
       </Card>
 
