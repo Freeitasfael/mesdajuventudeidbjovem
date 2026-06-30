@@ -67,16 +67,18 @@ export function DashboardConsolidado() {
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [from, to]);
 
   const metrics = useMemo(() => {
-    const camisetasGross = camisetasOrders.reduce((a, o) => a + o.total_cents, 0);
-    const camisetasTotal = applyFee(camisetasGross);
+    const camisetasAgg = netFromOrders(camisetasOrders);
+    const camisetasGross = camisetasAgg.gross;
+    const camisetasTotal = camisetasAgg.net;
     const camisetasCount = camisetasOrders.length;
-    const entGross = entrada.reduce((a, o) => a + o.total_cents, 0);
-    const entTotal = applyFee(entGross);
+    const entAgg = netFromOrders(entrada);
+    const entGross = entAgg.gross;
+    const entTotal = entAgg.net;
     const entCount = entrada.length;
     const pulseira = entrada.filter((e) => e.product === "pulseira");
     const kit = entrada.filter((e) => e.product === "kit");
-    const pulTotal = applyFee(pulseira.reduce((a, o) => a + o.total_cents, 0));
-    const kitTotal = applyFee(kit.reduce((a, o) => a + o.total_cents, 0));
+    const pulTotal = netFromOrders(pulseira).net;
+    const kitTotal = netFromOrders(kit).net;
     const pulUnits = pulseira.reduce((a, o) => a + (o.quantity || 1), 0);
     const kitUnits = kit.reduce((a, o) => a + (o.quantity || 1), 0);
 
@@ -101,7 +103,7 @@ export function DashboardConsolidado() {
     // Receita Total = Camisetas + Entrada + Patrocínios confirmados
     const totalRevenue = camisetasTotal + entTotal + sponsorsConfirmedTotal;
     const totalGross = camisetasGross + entGross;
-    const feeCents = totalGross - (camisetasTotal + entTotal);
+    const totalFee = camisetasAgg.fee + entAgg.fee;
 
     // Lucro líquido & margem
     const netProfit = totalRevenue - totalExpenses;
