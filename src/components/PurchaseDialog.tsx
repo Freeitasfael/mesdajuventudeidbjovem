@@ -233,7 +233,7 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "kit" }: Pr
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(emailClean)) {
       toast.error("Informe um e-mail válido"); return;
     }
-    if (option === "kit" && !tamanho) { toast.error("Selecione o tamanho da camiseta"); return; }
+    if (option === "kit" && shirtItems.some((it) => !it.size)) { toast.error("Selecione o tamanho de cada camiseta"); return; }
     if (hasReferral && refInput.trim() && (!refResult || !refResult.ok)) {
       toast.error("Código de revendedor inválido. Corrija ou desmarque a opção."); return;
     }
