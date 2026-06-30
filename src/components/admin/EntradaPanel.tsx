@@ -37,9 +37,8 @@ interface StockRow {
 const fmtBRL = (c: number) => `R$ ${(c / 100).toFixed(2).replace(".", ",")}`;
 const fmtDate = (s: string) => new Date(s).toLocaleString("pt-BR");
 
-// Taxa de transação Mercado Pago PIX (0,99%) — descontada do total arrecadado.
-const TX_FEE_RATE = 0.0099;
-const applyFee = (cents: number) => Math.round(cents * (1 - TX_FEE_RATE));
+// Taxa de transação Mercado Pago aplicada por método (PIX 0,99% · Cartão 4,99%).
+import { netFromOrders } from "@/lib/fees";
 
 const STATUS_LABEL: Record<string, string> = {
   paid: "Pago",
