@@ -75,6 +75,7 @@ interface OrderRow {
   buyer_id: string;
   seller_id: string | null;
   referral_label: string | null;
+  payment_method: string | null;
 }
 
 interface PaymentRow {
