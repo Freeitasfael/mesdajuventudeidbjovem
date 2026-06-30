@@ -433,7 +433,7 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "kit" }: Pr
                     }}
                     className="mt-0.5 h-4 w-4 rounded border-white/30"
                   />
-                  <span>Você recebeu indicação de um revendedor?</span>
+                  <span>Você recebeu do seu líder o código de identificação?</span>
                 </label>
                 {hasReferral && (
                   <div className="space-y-2">
