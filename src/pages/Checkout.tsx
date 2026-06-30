@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { SiteHeader } from "@/components/SiteHeader";
 import { toast } from "sonner";
 import { Clock, Search, CheckCircle2, XCircle, Loader2 } from "lucide-react";
+import { ChurchCodesHelp } from "@/components/ChurchCodesHelp";
 
 const Schema = z.object({
   name: z
