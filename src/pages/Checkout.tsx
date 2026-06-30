@@ -311,7 +311,7 @@ const Checkout = () => {
                 className="mt-0.5 h-4 w-4 rounded border-border"
               />
               <span>
-                Você recebeu indicação de alguém para comprar?
+                Você recebeu do seu líder o código de identificação?
               </span>
             </label>
 
