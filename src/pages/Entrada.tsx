@@ -320,13 +320,24 @@ export default function Entrada() {
                           "20px 24px 60px -20px rgba(0,0,0,0.65), 0 0 0 1px hsl(var(--hero-gold) / 0.12)",
                       }}
                     >
+                      {/* Skeleton premium enquanto a imagem carrega */}
+                      {!frenteLoaded && (
+                        <div
+                          aria-hidden
+                          className="premium-skeleton absolute inset-0 z-[1]"
+                        />
+                      )}
                       <img
                         src={modeloImg.url}
                         alt="Modelo vestindo a camiseta oficial Estações"
-                        loading="lazy"
+                        loading="eager"
                         decoding="async"
-                        className="absolute inset-0 w-full h-full object-cover object-top transform-gpu [backface-visibility:hidden] motion-safe:transition-transform motion-safe:duration-[1200ms] motion-safe:ease-out motion-safe:will-change-transform motion-safe:group-hover:scale-[1.04]"
+                        fetchPriority="high"
+                        onLoad={() => setFrenteLoaded(true)}
+                        style={{ opacity: frenteLoaded ? 1 : 0 }}
+                        className="absolute inset-0 w-full h-full object-cover object-top transform-gpu [backface-visibility:hidden] transition-opacity duration-500 ease-out motion-safe:transition-[opacity,transform] motion-safe:duration-[1200ms] motion-safe:ease-out motion-safe:will-change-transform motion-safe:group-hover:scale-[1.04]"
                       />
+
                       {/* Moldura dourada interna */}
                       <div
                         aria-hidden
