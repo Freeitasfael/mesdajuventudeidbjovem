@@ -119,7 +119,7 @@ export function DashboardConsolidado() {
       kitTotal, kitCount: kit.length, kitUnits,
       sponsorsConfirmedCash, sponsorsConfirmedPermuta, sponsorsConfirmedTotal, sponsorsCount,
       expensesTotal, fabricationCost, totalExpenses,
-      totalRevenue, totalGross, feeCents,
+      totalRevenue, totalGross, feeCents: totalFee,
       netProfit, margin, totalCount, ticket,
     };
   }, [camisetasOrders, entrada, expenses, sponsors, costCamiseta, costPulseira]);
