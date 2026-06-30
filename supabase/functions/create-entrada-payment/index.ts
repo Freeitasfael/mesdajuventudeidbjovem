@@ -175,7 +175,10 @@ Deno.serve(async (req) => {
     }
 
     const webhookUrl = `${SUPABASE_URL}/functions/v1/entrada-webhook`;
-    const description = `Mês da Juventude - ${product === "kit" ? `Kit ${model}${size ? ` ${size}` : ""}` : "Pulseira de acesso"} (x${quantity})`;
+    const itemsLabel = normalizedItems
+      ? normalizedItems.map((it) => `${it.model} ${it.size} x${it.quantity}`).join(", ")
+      : (product === "kit" ? `Kit ${model}${size ? ` ${size}` : ""}` : "Pulseira de acesso");
+    const description = `Mês da Juventude - ${itemsLabel} (total x${totalQty})`;
 
     if (method === "card") {
       // Inline (token-based) card charge
