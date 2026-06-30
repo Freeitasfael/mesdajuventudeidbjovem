@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { CardForm, type CardTokenPayload } from "@/components/CardForm";
 import pulseiraCloseImg from "@/assets/pulseira-close.png.asset.json";
 import modeloImg from "@/assets/modelo-camiseta-pulseira.png.asset.json";
+import { ChurchCodesHelp } from "@/components/ChurchCodesHelp";
 
 type Option = "pulseira" | "kit";
 type Model = "adulto" | "baby" | "infantil";
