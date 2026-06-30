@@ -297,16 +297,17 @@ export default function Entrada() {
                 {/* Cantos dourados decorativos */}
                 <div
                   aria-hidden
-                  className="absolute -top-2 -right-2 w-20 h-20 border-t border-r pointer-events-none z-0"
+                  className="absolute -top-1 -right-1 w-10 h-10 sm:-top-2 sm:-right-2 sm:w-20 sm:h-20 border-t border-r pointer-events-none z-0"
                   style={{ borderColor: "hsl(var(--hero-gold) / 0.35)" }}
                 />
                 <div
                   aria-hidden
-                  className="absolute -bottom-2 -left-2 w-20 h-20 border-b border-l pointer-events-none z-0"
+                  className="absolute -bottom-1 -left-1 w-10 h-10 sm:-bottom-2 sm:-left-2 sm:w-20 sm:h-20 border-b border-l pointer-events-none z-0"
                   style={{ borderColor: "hsl(var(--hero-gold) / 0.35)" }}
                 />
 
-                <div className="relative z-10 grid grid-cols-2 gap-4 sm:gap-6 md:gap-8 items-start">
+                <div className="relative z-10 grid grid-cols-2 gap-3 sm:gap-6 md:gap-8 items-start">
+
                   {/* Frente */}
                   <figure
                     className="group relative animate-fade-in"
