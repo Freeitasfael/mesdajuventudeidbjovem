@@ -162,8 +162,9 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "kit" }: Pr
 
   const reset = () => {
     setStep("form");
-    setNome(""); setTelefone(""); setEmail(""); setOption(initialOption); setModel("adulto");
-    setTamanho(""); setQtd(1); setMethod("pix"); setHasReferral(false); setRefInput(""); setRefResult(null);
+    setNome(""); setTelefone(""); setEmail(""); setOption(initialOption);
+    setShirtItems([{ id: crypto.randomUUID(), model: "adulto", size: "" }]);
+    setMethod("pix"); setHasReferral(false); setRefInput(""); setRefResult(null);
     setPayment(null); setLoading(false);
     if (pollRef.current) { window.clearInterval(pollRef.current); pollRef.current = null; }
   };
