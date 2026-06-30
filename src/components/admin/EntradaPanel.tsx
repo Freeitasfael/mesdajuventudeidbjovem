@@ -283,7 +283,7 @@ export function EntradaPanel() {
             <KpiCard label="Ticket médio" value={fmtBRL(shirtKpis.ticket)} />
             <KpiCard label="Conversão" value={`${shirtKpis.conv.toFixed(1)}%`} />
             <KpiCard label="Pendentes" value={String(shirtKpis.pendingCount)} />
-            <KpiCard label="Líquido (−0,99%)" value={fmtBRL(applyFee(shirtKpis.revPaid))} />
+            <KpiCard label="Líquido (taxa MP)" value={fmtBRL(shirtKpis.revPaidNet)} />
           </div>
         </div>
 
