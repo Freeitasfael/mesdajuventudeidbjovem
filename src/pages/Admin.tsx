@@ -855,11 +855,14 @@ const Admin = () => {
 
             {/* Resumo financeiro consolidado */}
             <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-              <StatCard label="Recebido (Rifa)" value={fmtBRL(paymentKpis.revPaid)} />
-              <StatCard label="Pendente (Rifa)" value={fmtBRL(paymentKpis.revPending)} />
+              <StatCard label="Recebido (bruto)" value={fmtBRL(paymentKpis.revPaid)} />
+              <StatCard label="Líquido (taxa MP)" value={fmtBRL(paymentKpis.revPaidNet)} />
+              <StatCard label="Pendente" value={fmtBRL(paymentKpis.revPending)} />
               <StatCard label="Aprovados" value={String(paymentKpis.approvedCount)} />
-              <StatCard label="Aguardando" value={String(paymentKpis.pendingCount)} />
             </div>
+            <p className="text-[11px] text-muted-foreground -mt-2">
+              Taxa Mercado Pago aplicada por pedido: PIX 0,99% · Cartão 4,99%. Líquido = bruto − {fmtBRL(paymentKpis.revPaidFee)} de taxas.
+            </p>
 
             <Tabs defaultValue="rifa">
               <TabsList>
