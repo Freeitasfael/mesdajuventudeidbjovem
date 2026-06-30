@@ -297,19 +297,20 @@ export default function Entrada() {
                 {/* Cantos dourados decorativos */}
                 <div
                   aria-hidden
-                  className="absolute -top-2 -right-2 w-20 h-20 border-t border-r pointer-events-none z-0"
+                  className="absolute -top-1 -right-1 w-10 h-10 sm:-top-2 sm:-right-2 sm:w-20 sm:h-20 border-t border-r pointer-events-none z-0"
                   style={{ borderColor: "hsl(var(--hero-gold) / 0.35)" }}
                 />
                 <div
                   aria-hidden
-                  className="absolute -bottom-2 -left-2 w-20 h-20 border-b border-l pointer-events-none z-0"
+                  className="absolute -bottom-1 -left-1 w-10 h-10 sm:-bottom-2 sm:-left-2 sm:w-20 sm:h-20 border-b border-l pointer-events-none z-0"
                   style={{ borderColor: "hsl(var(--hero-gold) / 0.35)" }}
                 />
 
-                <div className="relative z-10 grid grid-cols-2 gap-4 sm:gap-6 md:gap-8 items-start">
+                <div className="relative z-10 grid grid-cols-2 gap-3 sm:gap-6 md:gap-8 items-start">
+
                   {/* Frente */}
                   <figure
-                    className="group relative animate-fade-in"
+                    className="group relative min-w-0 animate-fade-in"
                     style={{ animationDelay: "120ms", animationFillMode: "backwards" }}
                   >
                     <div
@@ -317,10 +318,9 @@ export default function Entrada() {
                       style={{
                         backgroundColor: "hsl(var(--hero-bg-deep))",
                         boxShadow:
-                          "20px 24px 60px -20px rgba(0,0,0,0.65), 0 0 0 1px hsl(var(--hero-gold) / 0.12)",
+                          "12px 14px 36px -16px rgba(0,0,0,0.6), 0 0 0 1px hsl(var(--hero-gold) / 0.12)",
                       }}
                     >
-                      {/* Skeleton premium enquanto a imagem carrega */}
                       {!frenteLoaded && (
                         <div
                           aria-hidden
@@ -335,13 +335,12 @@ export default function Entrada() {
                         fetchPriority="high"
                         onLoad={() => setFrenteLoaded(true)}
                         style={{ opacity: frenteLoaded ? 1 : 0 }}
-                        className="absolute inset-0 w-full h-full object-cover object-top transform-gpu [backface-visibility:hidden] transition-opacity duration-500 ease-out motion-safe:transition-[opacity,transform] motion-safe:duration-[1200ms] motion-safe:ease-out motion-safe:will-change-transform motion-safe:group-hover:scale-[1.04]"
+                        className="absolute inset-0 w-full h-full object-cover object-center transform-gpu [backface-visibility:hidden] transition-opacity duration-500 ease-out motion-safe:transition-[opacity,transform] motion-safe:duration-[1200ms] motion-safe:ease-out motion-safe:will-change-transform motion-safe:group-hover:scale-[1.04]"
                       />
-
                       {/* Moldura dourada interna */}
                       <div
                         aria-hidden
-                        className="absolute inset-2 border pointer-events-none"
+                        className="absolute inset-1 sm:inset-2 border pointer-events-none z-[2]"
                         style={{ borderColor: "hsl(var(--hero-gold) / 0.25)" }}
                       />
                       {/* Shimmer dourado */}
@@ -357,21 +356,33 @@ export default function Entrada() {
                       {/* Vinheta */}
                       <div
                         aria-hidden
-                        className="absolute inset-x-0 bottom-0 h-24 pointer-events-none"
+                        className="absolute inset-x-0 bottom-0 h-14 sm:h-24 pointer-events-none"
                         style={{
                           background:
                             "linear-gradient(to top, hsl(0 0% 0% / 0.7), transparent)",
                         }}
                       />
-                      {/* Label vertical */}
-                      <div className="absolute -left-1 top-1/2 -translate-y-1/2 -rotate-90 origin-center flex items-center gap-2 sm:gap-3">
+                      {/* Label vertical (oculto no mobile para não recortar) */}
+                      <div className="hidden sm:flex absolute -left-1 top-1/2 -translate-y-1/2 -rotate-90 origin-center items-center gap-3">
                         <div
-                          className="h-px w-5 sm:w-7"
+                          className="h-px w-7"
                           style={{ backgroundColor: "hsl(var(--hero-gold))" }}
                         />
                         <span
-                          className="text-[8px] sm:text-[9px] tracking-[0.4em] uppercase whitespace-nowrap"
+                          className="text-[9px] tracking-[0.4em] uppercase whitespace-nowrap"
                           style={{ color: "hsl(var(--hero-gold))" }}
+                        >
+                          Frente
+                        </span>
+                      </div>
+                      {/* Label horizontal no mobile */}
+                      <div className="sm:hidden absolute top-1.5 left-1.5 z-[3]">
+                        <span
+                          className="text-[8px] tracking-[0.3em] uppercase font-semibold px-1.5 py-0.5 rounded-sm"
+                          style={{
+                            color: "hsl(var(--hero-gold))",
+                            backgroundColor: "hsl(0 0% 0% / 0.45)",
+                          }}
                         >
                           Frente
                         </span>
@@ -390,9 +401,10 @@ export default function Entrada() {
                     </figcaption>
                   </figure>
 
+
                   {/* Costas — desencaixado para baixo */}
                   <figure
-                    className="group relative mt-10 md:mt-20 animate-fade-in"
+                    className="group relative min-w-0 mt-6 sm:mt-12 md:mt-20 animate-fade-in"
                     style={{ animationDelay: "260ms", animationFillMode: "backwards" }}
                   >
                     <div
@@ -400,7 +412,7 @@ export default function Entrada() {
                       style={{
                         backgroundColor: "hsl(var(--hero-bg-deep))",
                         boxShadow:
-                          "20px 24px 60px -20px rgba(0,0,0,0.65), 0 0 0 1px hsl(var(--hero-gold) / 0.12)",
+                          "12px 14px 36px -16px rgba(0,0,0,0.6), 0 0 0 1px hsl(var(--hero-gold) / 0.12)",
                       }}
                     >
                       {!costasLoaded && (
@@ -422,7 +434,7 @@ export default function Entrada() {
 
                       <div
                         aria-hidden
-                        className="absolute inset-2 border pointer-events-none"
+                        className="absolute inset-1 sm:inset-2 border pointer-events-none z-[2]"
                         style={{ borderColor: "hsl(var(--hero-gold) / 0.25)" }}
                       />
                       <div
@@ -436,25 +448,37 @@ export default function Entrada() {
 
                       <div
                         aria-hidden
-                        className="absolute inset-x-0 bottom-0 h-24 pointer-events-none"
+                        className="absolute inset-x-0 bottom-0 h-14 sm:h-24 pointer-events-none"
                         style={{
                           background:
                             "linear-gradient(to top, hsl(0 0% 0% / 0.7), transparent)",
                         }}
                       />
-                      <div className="absolute -right-1 top-1/2 -translate-y-1/2 rotate-90 origin-center flex items-center gap-2 sm:gap-3">
+                      <div className="hidden sm:flex absolute -right-1 top-1/2 -translate-y-1/2 rotate-90 origin-center items-center gap-3">
                         <div
-                          className="h-px w-5 sm:w-7"
+                          className="h-px w-7"
                           style={{ backgroundColor: "hsl(var(--hero-gold))" }}
                         />
                         <span
-                          className="text-[8px] sm:text-[9px] tracking-[0.4em] uppercase whitespace-nowrap"
+                          className="text-[9px] tracking-[0.4em] uppercase whitespace-nowrap"
                           style={{ color: "hsl(var(--hero-gold))" }}
                         >
                           Costas
                         </span>
                       </div>
+                      <div className="sm:hidden absolute top-1.5 right-1.5 z-[3]">
+                        <span
+                          className="text-[8px] tracking-[0.3em] uppercase font-semibold px-1.5 py-0.5 rounded-sm"
+                          style={{
+                            color: "hsl(var(--hero-gold))",
+                            backgroundColor: "hsl(0 0% 0% / 0.45)",
+                          }}
+                        >
+                          Costas
+                        </span>
+                      </div>
                     </div>
+
                     <figcaption className="mt-5 text-right hidden sm:flex flex-col items-end">
                       <p
                         className="text-white text-lg italic leading-snug"
