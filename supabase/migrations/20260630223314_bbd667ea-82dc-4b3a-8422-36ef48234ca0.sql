@@ -1,0 +1,1 @@
+GRANT EXECUTE ON FUNCTION public.validate_referral_code(text) TO anon, authenticated;
