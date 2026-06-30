@@ -325,7 +325,7 @@ Deno.serve(async (req) => {
       payment_method_id: "pix",
       notification_url: webhookUrl,
       external_reference: order.id,
-      metadata: { entrada_order_id: order.id, product, model, quantity },
+      metadata: { entrada_order_id: order.id, product, model: persistModel, quantity: totalQty, items: normalizedItems ?? null },
       payer: {
         email: effectiveEmail,
         first_name: buyer_name.split(" ")[0] ?? "Comprador",
