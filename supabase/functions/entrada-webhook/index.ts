@@ -131,12 +131,24 @@ Deno.serve(async (req) => {
       console.log(JSON.stringify({ fn: "entrada-webhook", level: "info", event: "order_paid", orderId, paymentId, amount_cents: order.total_cents }));
       try {
         await admin.rpc("decrement_entrada_stock", { _sku: "pulseira", _qty: order.quantity });
-        if (order.product === "kit" && order.size) {
-          const model = (order as { model?: string }).model || "adulto";
-          await admin.rpc("decrement_entrada_stock", {
-            _sku: `camiseta_${model}_${order.size}`,
-            _qty: order.quantity,
-          });
+        if (order.product === "kit") {
+          const items = (order as { items?: Array<{ model?: string; size?: string; quantity?: number }> | null }).items;
+          if (items && Array.isArray(items) && items.length > 0) {
+            for (const it of items) {
+              const m = it?.model || "adulto";
+              const s = it?.size;
+              const q = Number(it?.quantity || 0);
+              if (s && q > 0) {
+                await admin.rpc("decrement_entrada_stock", { _sku: `camiseta_${m}_${s}`, _qty: q });
+              }
+            }
+          } else if (order.size) {
+            const model = (order as { model?: string }).model || "adulto";
+            await admin.rpc("decrement_entrada_stock", {
+              _sku: `camiseta_${model}_${order.size}`,
+              _qty: order.quantity,
+            });
+          }
         }
       } catch (e) {
         console.log(JSON.stringify({ fn: "entrada-webhook", level: "error", event: "stock_decrement_failed", orderId, message: e instanceof Error ? e.message : String(e) }));
