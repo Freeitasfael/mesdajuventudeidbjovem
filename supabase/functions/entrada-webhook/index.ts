@@ -85,7 +85,7 @@ Deno.serve(async (req) => {
 
     const { data: order } = await admin
       .from("entrada_orders")
-      .select("id, status, product, model, size, quantity, total_cents")
+      .select("id, status, product, model, size, quantity, total_cents, items")
       .eq("id", orderId)
       .maybeSingle();
 
