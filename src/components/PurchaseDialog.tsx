@@ -578,10 +578,35 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "kit" }: Pr
               style={{ backgroundColor: "hsl(var(--hero-gold))" }}>
               <Check className="h-8 w-8" style={{ color: "hsl(var(--hero-bg))" }} />
             </div>
-            <DialogTitle className="text-2xl font-extrabold uppercase tracking-wide text-white">Pagamento confirmado!</DialogTitle>
-            <p className="text-white/70">
-              Recebemos seu pagamento. Em breve você receberá mais informações sobre a retirada da sua camiseta.
-            </p>
+            <DialogTitle className="text-2xl font-extrabold uppercase tracking-wide text-white">
+              {option === "kit" ? "Compra confirmada!" : "Pagamento confirmado!"}
+            </DialogTitle>
+            {option === "kit" ? (
+              <div className="space-y-3 text-white/80">
+                <p>
+                  Recebemos seu pagamento da <strong className="text-white">camiseta oficial</strong> com sucesso.
+                </p>
+                <div
+                  className="rounded-2xl border p-4 text-sm text-left"
+                  style={{
+                    borderColor: "hsl(var(--hero-gold) / 0.4)",
+                    backgroundColor: "hsl(var(--hero-gold) / 0.08)",
+                  }}
+                >
+                  <p className="font-semibold uppercase tracking-wider text-xs mb-1" style={{ color: "hsl(var(--hero-gold))" }}>
+                    Como funciona a entrega
+                  </p>
+                  <p className="text-white/85">
+                    A entrega da sua camiseta será realizada pelo <strong className="text-white">líder de jovens da sua igreja</strong>.
+                    Fique atento aos avisos da sua liderança local.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <p className="text-white/70">
+                Recebemos seu pagamento. Em breve você receberá mais informações.
+              </p>
+            )}
             <Button onClick={() => handleClose(false)} size="lg"
               className="w-full rounded-2xl font-extrabold uppercase tracking-wider shadow-gold-glow"
               style={{ backgroundColor: "hsl(var(--hero-gold))", color: "hsl(var(--hero-bg))" }}>
