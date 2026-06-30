@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { SiteHeader } from "@/components/SiteHeader";
 import { toast } from "sonner";
 import { Clock, Search, CheckCircle2, XCircle, Loader2 } from "lucide-react";
+import { ChurchCodesHelp } from "@/components/ChurchCodesHelp";
 
 const Schema = z.object({
   name: z
@@ -311,9 +312,16 @@ const Checkout = () => {
                 className="mt-0.5 h-4 w-4 rounded border-border"
               />
               <span>
-                Você recebeu do seu líder o código de identificação?
+                Você recebeu do seu líder o código de identificação da sua igreja?
               </span>
             </label>
+
+            <ChurchCodesHelp
+              onPick={(code) => {
+                setHasReferral(true);
+                setRefInput(code);
+              }}
+            />
 
             {hasReferral && (
               <div className="space-y-2">

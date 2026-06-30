@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { CardForm, type CardTokenPayload } from "@/components/CardForm";
 import pulseiraCloseImg from "@/assets/pulseira-close.png.asset.json";
 import modeloImg from "@/assets/modelo-camiseta-pulseira.png.asset.json";
+import { ChurchCodesHelp } from "@/components/ChurchCodesHelp";
 
 type Option = "pulseira" | "kit";
 type Model = "adulto" | "baby" | "infantil";
@@ -433,8 +434,14 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "kit" }: Pr
                     }}
                     className="mt-0.5 h-4 w-4 rounded border-white/30"
                   />
-                  <span>Você recebeu do seu líder o código de identificação?</span>
+                  <span>Você recebeu do seu líder o código de identificação da sua igreja?</span>
                 </label>
+                <ChurchCodesHelp
+                  onPick={(code) => {
+                    setHasReferral(true);
+                    setRefInput(code);
+                  }}
+                />
                 {hasReferral && (
                   <div className="space-y-2">
                     <Input
