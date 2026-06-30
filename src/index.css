@@ -261,6 +261,28 @@
     animation: gold-pulse 2.4s ease-in-out infinite;
   }
 
+  /* ===== Skeleton premium (shimmer dourado sobre fundo profundo) ===== */
+  @keyframes premium-shimmer {
+    0%   { background-position: -150% 0; }
+    100% { background-position: 250% 0; }
+  }
+  .premium-skeleton {
+    background-color: hsl(var(--hero-bg-deep));
+    background-image: linear-gradient(
+      115deg,
+      transparent 30%,
+      hsl(var(--hero-gold) / 0.12) 50%,
+      transparent 70%
+    );
+    background-size: 250% 100%;
+    background-repeat: no-repeat;
+    animation: premium-shimmer 1.8s ease-in-out infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .premium-skeleton { animation: none; }
+  }
+
+
   /* ===== Tipografia fluida — escala suave entre mobile e desktop ===== */
   .text-fluid-xs   { font-size: clamp(0.75rem, 0.70rem + 0.20vw, 0.85rem); }
   .text-fluid-sm   { font-size: clamp(0.875rem, 0.82rem + 0.25vw, 1rem); }
