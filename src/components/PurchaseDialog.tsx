@@ -381,51 +381,102 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "kit" }: Pr
                 <p className="text-xs text-white/55">Necessário para confirmar o pagamento e enviar o comprovante.</p>
               </div>
               {option === "kit" && (
-                <>
-                  <div className="space-y-2">
-                    <Label className="text-white/85">Modelo da camiseta</Label>
-                    <RadioGroup value={model} onValueChange={(v) => setModel(v as Model)} className="grid grid-cols-3 gap-2">
-                      {(Object.keys(MODEL_LABEL) as Model[]).map((m) => {
-                        const hasAny = SIZES_BY_MODEL[m].some((s) => (stock[`camiseta_${m}_${s}`] ?? 0) > 0);
-                        return (
-                          <label key={m} className={`flex items-center justify-center gap-2 rounded-lg border-2 p-2 cursor-pointer transition-all duration-200 ease-out bg-white/5 border-white/15 hover:border-[hsl(var(--hero-gold))] hover:scale-[1.01] has-[:checked]:border-[hsl(var(--hero-gold))] has-[:checked]:bg-[hsl(var(--hero-gold)/0.12)] has-[:checked]:shadow-[0_0_0_3px_hsl(var(--hero-gold)/0.18),0_0_24px_hsl(var(--hero-gold)/0.25)] ${!hasAny ? "opacity-50 pointer-events-none" : ""}`}>
-                            <RadioGroupItem value={m} disabled={!hasAny} className="border-white/40 text-[hsl(var(--hero-gold))]" />
-                            <span className="text-sm font-semibold text-white">{MODEL_LABEL[m]}</span>
-                          </label>
-                        );
-                      })}
-                    </RadioGroup>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-white/85">Camisetas ({shirtItems.length})</Label>
+                    <button
+                      type="button"
+                      onClick={() => setShirtItems((arr) => [...arr, { id: crypto.randomUUID(), model: "adulto", size: "" }])}
+                      className="inline-flex items-center gap-1 rounded-md border border-[hsl(var(--hero-gold)/0.5)] bg-[hsl(var(--hero-gold)/0.12)] px-3 py-1.5 text-xs font-semibold text-[hsl(var(--hero-gold))] hover:bg-[hsl(var(--hero-gold)/0.2)] transition-colors"
+                    >
+                      <Plus className="h-3.5 w-3.5" /> Adicionar camiseta
+                    </button>
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-white/85">
-                      {model === "infantil" ? "Idade" : "Tamanho"} da camiseta
-                    </Label>
-                    <Select value={tamanho} onValueChange={setTamanho}>
-                      <SelectTrigger className="bg-white/5 border-white/15 text-white focus:ring-[hsl(var(--hero-gold))]">
-                        <SelectValue placeholder={model === "infantil" ? "Selecione a idade" : "Selecione o tamanho"} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {sizes.map((t) => {
-                          const left = sizeStock(t);
-                          const display = model === "infantil" ? `${t} anos` : t;
-                          return (
-                            <SelectItem key={t} value={t} disabled={left <= 0}>
-                              {display} {left <= 0 ? "— esgotado" : ""}
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </>
+
+                  {shirtItems.map((item, idx) => {
+                    const itemSizes = SIZES_BY_MODEL[item.model];
+                    const updateItem = (patch: Partial<ShirtItem>) => {
+                      setShirtItems((arr) =>
+                        arr.map((it) =>
+                          it.id === item.id
+                            ? { ...it, ...patch, ...(patch.model ? { size: "" } : {}) }
+                            : it,
+                        ),
+                      );
+                    };
+                    const removeItem = () =>
+                      setShirtItems((arr) => (arr.length > 1 ? arr.filter((it) => it.id !== item.id) : arr));
+                    return (
+                      <div key={item.id} className="rounded-lg border border-white/15 bg-white/5 p-3 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-semibold uppercase tracking-wider text-white/60">
+                            Camiseta #{idx + 1}
+                          </span>
+                          {shirtItems.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={removeItem}
+                              className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-red-300 hover:bg-red-500/15 hover:text-red-200 transition-colors"
+                              aria-label="Remover camiseta"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" /> Remover
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-xs text-white/70">Modelo</Label>
+                          <RadioGroup
+                            value={item.model}
+                            onValueChange={(v) => updateItem({ model: v as Model })}
+                            className="grid grid-cols-3 gap-2"
+                          >
+                            {(Object.keys(MODEL_LABEL) as Model[]).map((m) => {
+                              const hasAny = SIZES_BY_MODEL[m].some((s) => (stock[`camiseta_${m}_${s}`] ?? 0) > 0);
+                              return (
+                                <label
+                                  key={m}
+                                  className={`flex items-center justify-center gap-2 rounded-lg border-2 p-2 cursor-pointer transition-all duration-200 ease-out bg-white/5 border-white/15 hover:border-[hsl(var(--hero-gold))] has-[:checked]:border-[hsl(var(--hero-gold))] has-[:checked]:bg-[hsl(var(--hero-gold)/0.12)] ${!hasAny ? "opacity-50 pointer-events-none" : ""}`}
+                                >
+                                  <RadioGroupItem
+                                    value={m}
+                                    disabled={!hasAny}
+                                    className="border-white/40 text-[hsl(var(--hero-gold))]"
+                                  />
+                                  <span className="text-sm font-semibold text-white">{MODEL_LABEL[m]}</span>
+                                </label>
+                              );
+                            })}
+                          </RadioGroup>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-xs text-white/70">
+                            {item.model === "infantil" ? "Idade" : "Tamanho"}
+                          </Label>
+                          <Select value={item.size} onValueChange={(v) => updateItem({ size: v })}>
+                            <SelectTrigger className="bg-white/5 border-white/15 text-white focus:ring-[hsl(var(--hero-gold))]">
+                              <SelectValue placeholder={item.model === "infantil" ? "Selecione a idade" : "Selecione o tamanho"} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {itemSizes.map((t) => {
+                                const left = sizeStock(item.model, t);
+                                const display = item.model === "infantil" ? `${t} anos` : t;
+                                return (
+                                  <SelectItem key={t} value={t} disabled={left <= 0}>
+                                    {display} {left <= 0 ? "— esgotado" : ""}
+                                  </SelectItem>
+                                );
+                              })}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               )}
 
-              <div className="space-y-2">
-                <Label htmlFor="qtd" className="text-white/85">Quantidade</Label>
-                <Input id="qtd" type="number" min={1} max={99} value={qtd}
-                  onChange={(e) => setQtd(Math.max(1, parseInt(e.target.value) || 1))}
-                  className="bg-white/5 border-white/15 text-white focus-visible:ring-[hsl(var(--hero-gold))]" />
-              </div>
 
               <div className="space-y-2">
                 <Label className="text-white/85">Forma de pagamento</Label>
