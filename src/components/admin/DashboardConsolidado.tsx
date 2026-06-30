@@ -5,9 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, AlertTriangle, TrendingUp, TrendingDown } from "lucide-react";
+import { netFromOrders, feeCents } from "@/lib/fees";
 
-interface OrderLite { total_cents: number; created_at: string; status: string; }
-interface EntradaLite { total_cents: number; created_at: string; status: string; product: string; quantity: number; }
+interface OrderLite { total_cents: number; created_at: string; status: string; payment_method: string | null; }
+interface EntradaLite { total_cents: number; created_at: string; status: string; product: string; quantity: number; payment_method: string | null; }
 interface ExpenseLite { amount_cents: number; expense_date: string; category: string; }
 interface SponsorLite { amount_cents: number; kind: "cash" | "permuta"; status: "confirmed" | "pending"; created_at: string; }
 
@@ -17,10 +18,6 @@ const DEFAULT_COST_PULSEIRA = 1.05;
 const COST_STORAGE_KEY = "dashboard_costs_v1";
 
 const fmtBRL = (c: number) => `R$ ${(c / 100).toFixed(2).replace(".", ",")}`;
-
-// Taxa de transação (Mercado Pago PIX = 0,99%) descontada dos valores arrecadados.
-const TX_FEE_RATE = 0.0099;
-const applyFee = (cents: number) => Math.round(cents * (1 - TX_FEE_RATE));
 
 export function DashboardConsolidado() {
   const [from, setFrom] = useState("");
