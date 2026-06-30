@@ -100,8 +100,7 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "kit" }: Pr
 
   const total = useMemo(() => prices[option] * qtd, [option, qtd, prices]);
   const pulseiraStock = stock["pulseira"] ?? 0;
-  const sizes = SIZES_BY_MODEL[model];
-  const sizeStock = (s: string) => stock[`camiseta_${model}_${s}`] ?? 0;
+  const sizeStock = (m: Model, s: string) => stock[`camiseta_${m}_${s}`] ?? 0;
   const kitAvailable = pulseiraStock > 0 && (["adulto", "baby", "infantil"] as Model[]).some(
     (m) => SIZES_BY_MODEL[m].some((s) => (stock[`camiseta_${m}_${s}`] ?? 0) > 0),
   );
