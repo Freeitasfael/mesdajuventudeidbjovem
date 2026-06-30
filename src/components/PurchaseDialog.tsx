@@ -189,15 +189,26 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "kit" }: Pr
 
   const createOrderPayment = async (extra: Partial<CardTokenPayload> & { method: Method } = { method: "pix" }) => {
     const ref_code = hasReferral && refResult && refResult.ok ? refResult.ref_code : null;
+    const grouped = new Map<string, { model: Model; size: string; quantity: number }>();
+    for (const it of shirtItems) {
+      if (!it.size) continue;
+      const k = `${it.model}|${it.size}`;
+      const cur = grouped.get(k);
+      if (cur) cur.quantity += 1;
+      else grouped.set(k, { model: it.model, size: it.size, quantity: 1 });
+    }
+    const items = option === "kit" ? Array.from(grouped.values()) : null;
+    const firstItem = items && items[0] ? items[0] : null;
     const { data, error } = await supabase.functions.invoke("create-entrada-payment", {
       body: {
         buyer_name: nome.trim(),
         buyer_phone: telefone.trim(),
         buyer_email: email.trim().toLowerCase(),
         product: option,
-        model: option === "kit" ? model : "adulto",
-        size: option === "kit" ? tamanho : null,
+        model: option === "kit" ? (firstItem?.model ?? "adulto") : "adulto",
+        size: option === "kit" ? (items && items.length === 1 ? firstItem?.size ?? null : null) : null,
         quantity: qtd,
+        items,
         ref_code,
         return_url: window.location.href,
         ...extra,
