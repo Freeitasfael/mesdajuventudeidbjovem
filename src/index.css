@@ -299,6 +299,30 @@
   }
   .scrollbar-hide::-webkit-scrollbar { display: none; }
 
+  /* ===== Scrollbar global com a paleta do site ===== */
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--hero-gold)) hsl(var(--hero-bg-deep));
+  }
+  ::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--hero-bg-deep));
+  }
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, hsl(var(--hero-gold)) 0%, hsl(var(--hero-gold-soft)) 100%);
+    border-radius: 9999px;
+    border: 2px solid hsl(var(--hero-bg-deep));
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--hero-gold-soft));
+  }
+  ::-webkit-scrollbar-corner {
+    background: hsl(var(--hero-bg-deep));
+  }
+
   /* ===== Quebra segura de palavras longas ===== */
   .break-anywhere {
     overflow-wrap: anywhere;
