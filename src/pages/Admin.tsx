@@ -970,7 +970,8 @@ const Admin = () => {
                 Resumo da Rifa
               </h2>
               <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-                <StatCard label="Receita paga" value={fmtBRL(rifaKpis.revPaid)} />
+                <StatCard label="Receita paga (bruta)" value={fmtBRL(rifaKpis.revPaid)} />
+                <StatCard label="Líquido (taxa MP)" value={fmtBRL(rifaKpis.revPaidNet)} />
                 <StatCard label="Receita pendente" value={fmtBRL(rifaKpis.revPending)} />
                 <StatCard label="Pedidos pagos" value={String(rifaKpis.paidCount)} />
                 <StatCard label="Números vendidos" value={String(stats?.numbers_paid ?? 0)} />
@@ -979,6 +980,9 @@ const Admin = () => {
                 <StatCard label="Pendentes" value={String(rifaKpis.pendingCount)} />
                 <StatCard label="Disponíveis" value={String(stats?.numbers_available ?? 0)} />
               </div>
+              <p className="text-[11px] text-muted-foreground mt-2">
+                Líquido = bruto − taxa Mercado Pago (PIX 0,99% · Cartão 4,99%) aplicada por pedido conforme o método.
+              </p>
             </div>
 
 
