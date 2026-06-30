@@ -206,12 +206,12 @@ Deno.serve(async (req) => {
           },
           additional_info: {
             items: [{
-              id: `${product}_${model}`,
-              title: product === "kit" ? `Kit ${model}${size ? ` ${size}` : ""}` : "Pulseira de acesso",
+              id: `${product}_${persistModel}`,
+              title: itemsLabel,
               description,
               category_id: "tickets",
-              quantity,
-              unit_price: (total_cents / quantity) / 100,
+              quantity: totalQty,
+              unit_price: (total_cents / totalQty) / 100,
             }],
             payer: {
               first_name: firstName,
