@@ -72,25 +72,57 @@ Deno.serve(async (req) => {
     const { buyer_name, buyer_phone, buyer_email, product, model, size, quantity, method, ref_code, return_url, card_token, installments, payment_method_id, issuer_id, payer_email, payer_doc_type, payer_doc_number, device_id } = parsed.data;
     const effectiveEmail = (payer_email || buyer_email).trim().toLowerCase();
 
-    if (product === "kit" && (!size || size.length === 0)) {
-      return new Response(JSON.stringify({ error: "size_required" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const { buyer_name, buyer_phone, buyer_email, product, model, size, quantity, items, method, ref_code, return_url, card_token, installments, payment_method_id, issuer_id, payer_email, payer_doc_type, payer_doc_number, device_id } = parsed.data;
+    const effectiveEmail = (payer_email || buyer_email).trim().toLowerCase();
+
+    // Normaliza itens: para kit, aceita "items" (multi-tamanho) ou cai pro legado model/size/quantity
+    let normalizedItems: Array<{ model: string; size: string; quantity: number }> | null = null;
+    let totalQty = quantity;
+    if (product === "kit") {
+      if (items && items.length > 0) {
+        // Agrupa por (model,size) para somar repetições
+        const agg = new Map<string, { model: string; size: string; quantity: number }>();
+        for (const it of items) {
+          const key = `${it.model}_${it.size}`;
+          const prev = agg.get(key);
+          if (prev) prev.quantity += it.quantity;
+          else agg.set(key, { ...it });
+        }
+        normalizedItems = Array.from(agg.values());
+        totalQty = normalizedItems.reduce((a, it) => a + it.quantity, 0);
+      } else if (!size || size.length === 0) {
+        return new Response(JSON.stringify({ error: "size_required" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
-    // SKU da camiseta inclui modelo
-    const shirtSku = product === "kit" && size ? `camiseta_${model}_${size}` : null;
-    const skusToCheck = ["pulseira", ...(shirtSku ? [shirtSku] : [])];
+    // SKUs a checar
+    const shirtSkus = normalizedItems
+      ? normalizedItems.map((it) => ({ sku: `camiseta_${it.model}_${it.size}`, qty: it.quantity }))
+      : (product === "kit" && size ? [{ sku: `camiseta_${model}_${size}`, qty: quantity }] : []);
+    const skusToCheck = ["pulseira", ...shirtSkus.map((s) => s.sku)];
     const { data: stockRows } = await admin
       .from("entrada_stock").select("sku, stock, label").in("sku", skusToCheck);
     const stockMap = new Map((stockRows ?? []).map((r) => [r.sku as string, r]));
-    for (const sku of skusToCheck) {
-      const row = stockMap.get(sku);
-      if (!row || (row.stock as number) < quantity) {
+    // Pulseira precisa de totalQty
+    {
+      const row = stockMap.get("pulseira");
+      if (!row || (row.stock as number) < totalQty) {
         return new Response(JSON.stringify({
           error: "out_of_stock",
-          message: `Sem estoque para ${row?.label ?? sku}. Disponível: ${row?.stock ?? 0}.`,
-          sku,
+          message: `Sem estoque para ${row?.label ?? "pulseira"}. Disponível: ${row?.stock ?? 0}.`,
+          sku: "pulseira",
+        }), { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+    }
+    for (const s of shirtSkus) {
+      const row = stockMap.get(s.sku);
+      if (!row || (row.stock as number) < s.qty) {
+        return new Response(JSON.stringify({
+          error: "out_of_stock",
+          message: `Sem estoque para ${row?.label ?? s.sku}. Disponível: ${row?.stock ?? 0}.`,
+          sku: s.sku,
         }), { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
     }
@@ -103,7 +135,7 @@ Deno.serve(async (req) => {
       pulseira: cfg.pulseira_cents && cfg.pulseira_cents > 0 ? cfg.pulseira_cents : DEFAULT_PRICES_CENTS.pulseira,
       kit: cfg.kit_cents && cfg.kit_cents > 0 ? cfg.kit_cents : DEFAULT_PRICES_CENTS.kit,
     };
-    const total_cents = prices[product] * quantity;
+    const total_cents = prices[product] * totalQty;
     const expires_at = new Date(Date.now() + 30 * 60_000).toISOString();
 
     // Resolve revendedor pelo ref_code (case-insensitive)
@@ -119,14 +151,21 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Para compat: model/size do legado vêm do primeiro item quando multi
+    const persistModel = normalizedItems ? normalizedItems[0].model : model;
+    const persistSize = normalizedItems
+      ? (normalizedItems.length === 1 ? normalizedItems[0].size : "MULTI")
+      : (product === "kit" ? size : null);
+
     const { data: order, error: insErr } = await admin
       .from("entrada_orders")
       .insert({
-        buyer_name, buyer_phone, buyer_email: effectiveEmail, product, model,
-        size: product === "kit" ? size : null,
-        quantity, total_cents, status: "pending", expires_at,
+        buyer_name, buyer_phone, buyer_email: effectiveEmail, product, model: persistModel,
+        size: persistSize,
+        quantity: totalQty, total_cents, status: "pending", expires_at,
         payment_method: method,
         seller_id, referral_label,
+        items: normalizedItems,
       })
       .select("id").single();
 
