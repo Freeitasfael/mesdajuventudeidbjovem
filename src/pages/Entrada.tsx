@@ -287,7 +287,7 @@ export default function Entrada() {
                     style={{ animationDelay: "120ms", animationFillMode: "backwards" }}
                   >
                     <div
-                      className="relative w-full aspect-[441/753] overflow-hidden transition-transform duration-700 ease-out group-hover:-translate-y-1"
+                      className="relative w-full aspect-[441/753] overflow-hidden transform-gpu [backface-visibility:hidden] motion-safe:transition-transform motion-safe:duration-700 motion-safe:ease-out motion-safe:will-change-transform motion-safe:group-hover:-translate-y-1"
                       style={{
                         backgroundColor: "hsl(var(--hero-bg-deep))",
                         boxShadow:
@@ -299,7 +299,7 @@ export default function Entrada() {
                         alt="Modelo vestindo a camiseta oficial Estações"
                         loading="lazy"
                         decoding="async"
-                        className="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-[1200ms] ease-out group-hover:scale-[1.04]"
+                        className="absolute inset-0 w-full h-full object-cover object-top transform-gpu [backface-visibility:hidden] motion-safe:transition-transform motion-safe:duration-[1200ms] motion-safe:ease-out motion-safe:will-change-transform motion-safe:group-hover:scale-[1.04]"
                       />
                       {/* Moldura dourada interna */}
                       <div
@@ -310,12 +310,13 @@ export default function Entrada() {
                       {/* Shimmer dourado */}
                       <div
                         aria-hidden
-                        className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-700"
+                        className="absolute inset-0 pointer-events-none opacity-0 transform-gpu motion-safe:transition-opacity motion-safe:duration-700 motion-safe:group-hover:opacity-100"
                         style={{
                           background:
                             "linear-gradient(115deg, transparent 35%, hsl(var(--hero-gold) / 0.18) 50%, transparent 65%)",
                         }}
                       />
+
                       {/* Vinheta */}
                       <div
                         aria-hidden
@@ -358,7 +359,7 @@ export default function Entrada() {
                     style={{ animationDelay: "260ms", animationFillMode: "backwards" }}
                   >
                     <div
-                      className="relative w-full aspect-[441/753] overflow-hidden transition-transform duration-700 ease-out group-hover:-translate-y-1"
+                      className="relative w-full aspect-[441/753] overflow-hidden transform-gpu [backface-visibility:hidden] motion-safe:transition-transform motion-safe:duration-700 motion-safe:ease-out motion-safe:will-change-transform motion-safe:group-hover:-translate-y-1"
                       style={{
                         backgroundColor: "hsl(var(--hero-bg-deep))",
                         boxShadow:
@@ -370,7 +371,7 @@ export default function Entrada() {
                         alt="Costas da camiseta oficial com estampa Jesus never changes"
                         loading="lazy"
                         decoding="async"
-                        className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-[1200ms] ease-out group-hover:scale-[1.04]"
+                        className="absolute inset-0 w-full h-full object-cover object-center transform-gpu [backface-visibility:hidden] motion-safe:transition-transform motion-safe:duration-[1200ms] motion-safe:ease-out motion-safe:will-change-transform motion-safe:group-hover:scale-[1.04]"
                       />
                       <div
                         aria-hidden
@@ -379,12 +380,13 @@ export default function Entrada() {
                       />
                       <div
                         aria-hidden
-                        className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-700"
+                        className="absolute inset-0 pointer-events-none opacity-0 transform-gpu motion-safe:transition-opacity motion-safe:duration-700 motion-safe:group-hover:opacity-100"
                         style={{
                           background:
                             "linear-gradient(115deg, transparent 35%, hsl(var(--hero-gold) / 0.18) 50%, transparent 65%)",
                         }}
                       />
+
                       <div
                         aria-hidden
                         className="absolute inset-x-0 bottom-0 h-24 pointer-events-none"
