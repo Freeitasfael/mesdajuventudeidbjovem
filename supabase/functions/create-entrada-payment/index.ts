@@ -193,7 +193,7 @@ Deno.serve(async (req) => {
           installments: Math.max(1, Math.min(24, installments ?? 1)),
           notification_url: webhookUrl,
           external_reference: order.id,
-          metadata: { entrada_order_id: order.id, product, model, quantity },
+          metadata: { entrada_order_id: order.id, product, model: persistModel, quantity: totalQty, items: normalizedItems ?? null },
           statement_descriptor: "MES JUVENTUDE",
           binary_mode: false,
           payer: {
