@@ -252,12 +252,21 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "kit" }: Pr
         toast.success("Pagamento aprovado!");
       } else if (data?.status === "in_process" || data?.status === "pending") {
         setCardError("Pagamento em análise. Você receberá a confirmação em instantes.");
-        // optional: poll mp_payment_id via entrada-status would need order_id; keep simple
       } else {
         setCardError(data?.status_detail ? `Cartão recusado: ${data.status_detail}` : "Cartão recusado.");
+        // Token de cartão é single-use — força remount do formulário para gerar novo token
+        setCardFormKey((k) => k + 1);
       }
     } catch (err) {
-      setCardError(err instanceof Error ? err.message : "Erro ao processar cartão");
+      const msg = err instanceof Error ? err.message : "Erro ao processar cartão";
+      // MP retorna "Invalid card_token_id" quando o token já foi consumido/expirou.
+      // Sempre que falhar, geramos um novo formulário para criar um novo token.
+      setCardError(
+        /card_token/i.test(msg)
+          ? "Não foi possível processar o cartão. Preencha os dados novamente."
+          : msg,
+      );
+      setCardFormKey((k) => k + 1);
     } finally {
       setCardSubmitting(false);
     }
