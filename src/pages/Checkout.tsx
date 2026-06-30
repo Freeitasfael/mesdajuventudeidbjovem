@@ -312,9 +312,16 @@ const Checkout = () => {
                 className="mt-0.5 h-4 w-4 rounded border-border"
               />
               <span>
-                Você recebeu do seu líder o código de identificação?
+                Você recebeu do seu líder o código de identificação da sua igreja?
               </span>
             </label>
+
+            <ChurchCodesHelp
+              onPick={(code) => {
+                setHasReferral(true);
+                setRefInput(code);
+              }}
+            />
 
             {hasReferral && (
               <div className="space-y-2">
