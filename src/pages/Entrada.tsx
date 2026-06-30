@@ -246,61 +246,185 @@ export default function Entrada() {
               </p>
             </div>
 
-            {/* Coluna direita — Imagens da camiseta */}
-            <div className="order-1 lg:order-2 relative flex justify-center lg:justify-end">
-              <div
-                className="grid grid-cols-2 gap-3 w-full max-w-[420px] sm:max-w-[500px] md:max-w-[560px]"
-              >
-                {/* Foto frente */}
+            {/* Coluna direita — Showcase editorial das camisetas */}
+            <div className="order-1 lg:order-2 relative">
+              <div className="relative w-full max-w-[640px] mx-auto lg:mx-0 lg:ml-auto">
+                {/* Tipografia ambiente ao fundo */}
                 <div
-                  className="relative aspect-[441/753] rounded-2xl overflow-hidden border"
-                  style={{
-                    borderColor: "hsl(var(--hero-gold) / 0.2)",
-                    backgroundColor: "hsl(var(--hero-bg-deep))",
-                  }}
+                  aria-hidden
+                  className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden"
                 >
-                  <img
-                    src={modeloImg.url}
-                    alt="Modelo vestindo a camiseta oficial do evento Mês da Juventude"
-                    loading="lazy"
-                    decoding="async"
-                    className="absolute inset-0 w-full h-full object-cover object-top"
-                  />
-                  {/* Gradiente inferior sutil */}
-                  <div
-                    aria-hidden
-                    className="absolute inset-x-0 bottom-0 h-20 pointer-events-none"
+                  <span
+                    className="leading-none whitespace-nowrap italic"
                     style={{
-                      background:
-                        "linear-gradient(to top, hsl(0 0% 0% / 0.75), transparent)",
+                      fontFamily: "'Cormorant Garamond', serif",
+                      fontSize: "clamp(8rem, 22vw, 18rem)",
+                      color: "hsl(var(--hero-gold))",
+                      opacity: 0.05,
+                      transform: "translateY(8%)",
                     }}
-                  />
+                  >
+                    Estações
+                  </span>
                 </div>
 
-                {/* Foto costas */}
+                {/* Cantos dourados decorativos */}
                 <div
-                  className="relative aspect-[441/753] rounded-2xl overflow-hidden border"
-                  style={{
-                    borderColor: "hsl(var(--hero-gold) / 0.2)",
-                    backgroundColor: "hsl(var(--hero-bg-deep))",
-                  }}
-                >
-                  <img
-                    src={camisetaCostasImg.url}
-                    alt="Costas da camiseta oficial com estampa Jesus never changes"
-                    loading="lazy"
-                    decoding="async"
-                    className="absolute inset-0 w-full h-full object-cover object-center"
-                  />
-                  {/* Gradiente inferior sutil */}
-                  <div
-                    aria-hidden
-                    className="absolute inset-x-0 bottom-0 h-20 pointer-events-none"
-                    style={{
-                      background:
-                        "linear-gradient(to top, hsl(0 0% 0% / 0.75), transparent)",
-                    }}
-                  />
+                  aria-hidden
+                  className="absolute -top-2 -right-2 w-20 h-20 border-t border-r pointer-events-none z-0"
+                  style={{ borderColor: "hsl(var(--hero-gold) / 0.35)" }}
+                />
+                <div
+                  aria-hidden
+                  className="absolute -bottom-2 -left-2 w-20 h-20 border-b border-l pointer-events-none z-0"
+                  style={{ borderColor: "hsl(var(--hero-gold) / 0.35)" }}
+                />
+
+                <div className="relative z-10 grid grid-cols-2 gap-4 sm:gap-6 md:gap-8 items-start">
+                  {/* Frente */}
+                  <figure
+                    className="group relative animate-fade-in"
+                    style={{ animationDelay: "120ms", animationFillMode: "backwards" }}
+                  >
+                    <div
+                      className="relative w-full aspect-[441/753] overflow-hidden transition-transform duration-700 ease-out group-hover:-translate-y-1"
+                      style={{
+                        backgroundColor: "hsl(var(--hero-bg-deep))",
+                        boxShadow:
+                          "20px 24px 60px -20px rgba(0,0,0,0.65), 0 0 0 1px hsl(var(--hero-gold) / 0.12)",
+                      }}
+                    >
+                      <img
+                        src={modeloImg.url}
+                        alt="Modelo vestindo a camiseta oficial Estações"
+                        loading="lazy"
+                        decoding="async"
+                        className="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-[1200ms] ease-out group-hover:scale-[1.04]"
+                      />
+                      {/* Moldura dourada interna */}
+                      <div
+                        aria-hidden
+                        className="absolute inset-2 border pointer-events-none"
+                        style={{ borderColor: "hsl(var(--hero-gold) / 0.25)" }}
+                      />
+                      {/* Shimmer dourado */}
+                      <div
+                        aria-hidden
+                        className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-700"
+                        style={{
+                          background:
+                            "linear-gradient(115deg, transparent 35%, hsl(var(--hero-gold) / 0.18) 50%, transparent 65%)",
+                        }}
+                      />
+                      {/* Vinheta */}
+                      <div
+                        aria-hidden
+                        className="absolute inset-x-0 bottom-0 h-24 pointer-events-none"
+                        style={{
+                          background:
+                            "linear-gradient(to top, hsl(0 0% 0% / 0.7), transparent)",
+                        }}
+                      />
+                      {/* Label vertical */}
+                      <div className="absolute -left-1 top-1/2 -translate-y-1/2 -rotate-90 origin-center flex items-center gap-2 sm:gap-3">
+                        <div
+                          className="h-px w-5 sm:w-7"
+                          style={{ backgroundColor: "hsl(var(--hero-gold))" }}
+                        />
+                        <span
+                          className="text-[8px] sm:text-[9px] tracking-[0.4em] uppercase whitespace-nowrap"
+                          style={{ color: "hsl(var(--hero-gold))" }}
+                        >
+                          Frente
+                        </span>
+                      </div>
+                    </div>
+                    <figcaption className="mt-5 hidden sm:block">
+                      <h3
+                        className="text-white text-2xl italic leading-tight"
+                        style={{ fontFamily: "'Cormorant Garamond', serif" }}
+                      >
+                        Estações
+                      </h3>
+                      <p className="text-white/40 text-[10px] tracking-[0.25em] uppercase font-light mt-1">
+                        Algodão Premium
+                      </p>
+                    </figcaption>
+                  </figure>
+
+                  {/* Costas — desencaixado para baixo */}
+                  <figure
+                    className="group relative mt-10 md:mt-20 animate-fade-in"
+                    style={{ animationDelay: "260ms", animationFillMode: "backwards" }}
+                  >
+                    <div
+                      className="relative w-full aspect-[441/753] overflow-hidden transition-transform duration-700 ease-out group-hover:-translate-y-1"
+                      style={{
+                        backgroundColor: "hsl(var(--hero-bg-deep))",
+                        boxShadow:
+                          "20px 24px 60px -20px rgba(0,0,0,0.65), 0 0 0 1px hsl(var(--hero-gold) / 0.12)",
+                      }}
+                    >
+                      <img
+                        src={camisetaCostasImg.url}
+                        alt="Costas da camiseta oficial com estampa Jesus never changes"
+                        loading="lazy"
+                        decoding="async"
+                        className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-[1200ms] ease-out group-hover:scale-[1.04]"
+                      />
+                      <div
+                        aria-hidden
+                        className="absolute inset-2 border pointer-events-none"
+                        style={{ borderColor: "hsl(var(--hero-gold) / 0.25)" }}
+                      />
+                      <div
+                        aria-hidden
+                        className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-700"
+                        style={{
+                          background:
+                            "linear-gradient(115deg, transparent 35%, hsl(var(--hero-gold) / 0.18) 50%, transparent 65%)",
+                        }}
+                      />
+                      <div
+                        aria-hidden
+                        className="absolute inset-x-0 bottom-0 h-24 pointer-events-none"
+                        style={{
+                          background:
+                            "linear-gradient(to top, hsl(0 0% 0% / 0.7), transparent)",
+                        }}
+                      />
+                      <div className="absolute -right-1 top-1/2 -translate-y-1/2 rotate-90 origin-center flex items-center gap-2 sm:gap-3">
+                        <div
+                          className="h-px w-5 sm:w-7"
+                          style={{ backgroundColor: "hsl(var(--hero-gold))" }}
+                        />
+                        <span
+                          className="text-[8px] sm:text-[9px] tracking-[0.4em] uppercase whitespace-nowrap"
+                          style={{ color: "hsl(var(--hero-gold))" }}
+                        >
+                          Costas
+                        </span>
+                      </div>
+                    </div>
+                    <figcaption className="mt-5 text-right hidden sm:flex flex-col items-end">
+                      <p
+                        className="text-white text-lg italic leading-snug"
+                        style={{ fontFamily: "'Cormorant Garamond', serif" }}
+                      >
+                        “Jesus never changes.”
+                      </p>
+                      <div
+                        className="h-px w-10 my-2"
+                        style={{ backgroundColor: "hsl(var(--hero-gold) / 0.5)" }}
+                      />
+                      <p
+                        className="text-[9px] tracking-[0.3em] uppercase"
+                        style={{ color: "hsl(var(--hero-gold))" }}
+                      >
+                        Edição Limitada 2026
+                      </p>
+                    </figcaption>
+                  </figure>
                 </div>
               </div>
             </div>
