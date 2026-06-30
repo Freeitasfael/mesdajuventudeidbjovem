@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, AlertTriangle, TrendingUp, TrendingDown } from "lucide-react";
-import { netFromOrders, feeCents } from "@/lib/fees";
+import { netFromOrders } from "@/lib/fees";
 
 interface OrderLite { total_cents: number; created_at: string; status: string; payment_method: string | null; }
 interface EntradaLite { total_cents: number; created_at: string; status: string; product: string; quantity: number; payment_method: string | null; }
