@@ -286,7 +286,7 @@ Deno.serve(async (req) => {
         auto_return: "approved",
         notification_url: webhookUrl,
         external_reference: order.id,
-        metadata: { entrada_order_id: order.id, product, model, quantity },
+        metadata: { entrada_order_id: order.id, product, model: persistModel, quantity: totalQty, items: normalizedItems ?? null },
         statement_descriptor: "MES JUVENTUDE",
       };
       const prefRes = await fetch("https://api.mercadopago.com/checkout/preferences", {
