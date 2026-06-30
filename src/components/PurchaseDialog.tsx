@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Copy, Check, Loader2, CreditCard, QrCode, CheckCircle2, XCircle } from "lucide-react";
+import { Copy, Check, Loader2, CreditCard, QrCode, CheckCircle2, XCircle, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { CardForm, type CardTokenPayload } from "@/components/CardForm";
@@ -47,6 +47,8 @@ interface PaymentData {
   total_cents: number;
 }
 
+type ShirtItem = { id: string; model: Model; size: string };
+
 export function PurchaseDialog({ open, onOpenChange, initialOption = "kit" }: Props) {
   const [step, setStep] = useState<"form" | "card" | "payment" | "done">("form");
   const [cardError, setCardError] = useState<string | null>(null);
@@ -56,9 +58,10 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "kit" }: Pr
   const [telefone, setTelefone] = useState("");
   const [email, setEmail] = useState("");
   const [option, setOption] = useState<Option>(initialOption);
-  const [model, setModel] = useState<Model>("adulto");
-  const [tamanho, setTamanho] = useState("");
-  const [qtd, setQtd] = useState(1);
+  // Lista de camisetas — cada item é UMA camiseta (qtd implícita = 1)
+  const [shirtItems, setShirtItems] = useState<ShirtItem[]>([
+    { id: crypto.randomUUID(), model: "adulto", size: "" },
+  ]);
   const [method, setMethod] = useState<Method>("pix");
   const [hasReferral, setHasReferral] = useState(false);
   const [refInput, setRefInput] = useState("");
@@ -74,29 +77,30 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "kit" }: Pr
   const [stock, setStock] = useState<Record<string, number>>({});
   const [prices, setPrices] = useState<Record<Option, number>>(DEFAULT_PRICES);
   const pollRef = useRef<number | null>(null);
+
+  const qtd = shirtItems.length;
+  const previewItem = shirtItems[0] ?? { model: "adulto" as Model, size: "" };
+  const previewKey = `${option}-${previewItem.model}-${previewItem.size || "x"}-${qtd}`;
   const [previewLoading, setPreviewLoading] = useState(false);
-  const previewKey = `${option}-${option === "kit" ? model : "x"}-${option === "kit" ? tamanho || "x" : "x"}`;
   useEffect(() => {
     setPreviewLoading(true);
     const t = window.setTimeout(() => setPreviewLoading(false), 100);
     return () => window.clearTimeout(t);
   }, [previewKey]);
-  const previewData = option === "kit"
-    ? {
-        img: modeloImg,
-        title: "Camisa Oficial",
-        desc: `Camisa ${MODEL_LABEL[model]}${tamanho ? ` · ${model === "infantil" ? `${tamanho} anos` : `tam. ${tamanho}`}` : ""} oficial do Mês da Juventude.`,
-      }
-    : {
-        img: pulseiraCloseImg,
-        title: "Camisa Oficial",
-        desc: "Camisa oficial do evento Mês da Juventude.",
-      };
+  const previewData = {
+    img: modeloImg,
+    title: qtd > 1 ? `Camisa Oficial × ${qtd}` : "Camisa Oficial",
+    desc:
+      qtd > 1
+        ? shirtItems
+            .map((it) => `${MODEL_LABEL[it.model]}${it.size ? ` ${it.model === "infantil" ? `${it.size}a` : it.size}` : ""}`)
+            .join(" · ")
+        : `Camisa ${MODEL_LABEL[previewItem.model]}${previewItem.size ? ` · ${previewItem.model === "infantil" ? `${previewItem.size} anos` : `tam. ${previewItem.size}`}` : ""} oficial do Mês da Juventude.`,
+  };
 
   const total = useMemo(() => prices[option] * qtd, [option, qtd, prices]);
   const pulseiraStock = stock["pulseira"] ?? 0;
-  const sizes = SIZES_BY_MODEL[model];
-  const sizeStock = (s: string) => stock[`camiseta_${model}_${s}`] ?? 0;
+  const sizeStock = (m: Model, s: string) => stock[`camiseta_${m}_${s}`] ?? 0;
   const kitAvailable = pulseiraStock > 0 && (["adulto", "baby", "infantil"] as Model[]).some(
     (m) => SIZES_BY_MODEL[m].some((s) => (stock[`camiseta_${m}_${s}`] ?? 0) > 0),
   );
@@ -130,8 +134,8 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "kit" }: Pr
     } catch { /* ignore */ }
   }, [open]);
 
-  // Reset tamanho quando mudar modelo
-  useEffect(() => { setTamanho(""); }, [model]);
+  // (sem reset por modelo — cada item gerencia o próprio modelo/tamanho)
+
 
   // Valida ref_code com debounce
   useEffect(() => {
@@ -158,8 +162,9 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "kit" }: Pr
 
   const reset = () => {
     setStep("form");
-    setNome(""); setTelefone(""); setEmail(""); setOption(initialOption); setModel("adulto");
-    setTamanho(""); setQtd(1); setMethod("pix"); setHasReferral(false); setRefInput(""); setRefResult(null);
+    setNome(""); setTelefone(""); setEmail(""); setOption(initialOption);
+    setShirtItems([{ id: crypto.randomUUID(), model: "adulto", size: "" }]);
+    setMethod("pix"); setHasReferral(false); setRefInput(""); setRefResult(null);
     setPayment(null); setLoading(false);
     if (pollRef.current) { window.clearInterval(pollRef.current); pollRef.current = null; }
   };
@@ -184,15 +189,26 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "kit" }: Pr
 
   const createOrderPayment = async (extra: Partial<CardTokenPayload> & { method: Method } = { method: "pix" }) => {
     const ref_code = hasReferral && refResult && refResult.ok ? refResult.ref_code : null;
+    const grouped = new Map<string, { model: Model; size: string; quantity: number }>();
+    for (const it of shirtItems) {
+      if (!it.size) continue;
+      const k = `${it.model}|${it.size}`;
+      const cur = grouped.get(k);
+      if (cur) cur.quantity += 1;
+      else grouped.set(k, { model: it.model, size: it.size, quantity: 1 });
+    }
+    const items = option === "kit" ? Array.from(grouped.values()) : null;
+    const firstItem = items && items[0] ? items[0] : null;
     const { data, error } = await supabase.functions.invoke("create-entrada-payment", {
       body: {
         buyer_name: nome.trim(),
         buyer_phone: telefone.trim(),
         buyer_email: email.trim().toLowerCase(),
         product: option,
-        model: option === "kit" ? model : "adulto",
-        size: option === "kit" ? tamanho : null,
+        model: option === "kit" ? (firstItem?.model ?? "adulto") : "adulto",
+        size: option === "kit" ? (items && items.length === 1 ? firstItem?.size ?? null : null) : null,
         quantity: qtd,
+        items,
         ref_code,
         return_url: window.location.href,
         ...extra,
@@ -217,7 +233,7 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "kit" }: Pr
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(emailClean)) {
       toast.error("Informe um e-mail válido"); return;
     }
-    if (option === "kit" && !tamanho) { toast.error("Selecione o tamanho da camiseta"); return; }
+    if (option === "kit" && shirtItems.some((it) => !it.size)) { toast.error("Selecione o tamanho de cada camiseta"); return; }
     if (hasReferral && refInput.trim() && (!refResult || !refResult.ok)) {
       toast.error("Código de revendedor inválido. Corrija ou desmarque a opção."); return;
     }
@@ -365,51 +381,102 @@ export function PurchaseDialog({ open, onOpenChange, initialOption = "kit" }: Pr
                 <p className="text-xs text-white/55">Necessário para confirmar o pagamento e enviar o comprovante.</p>
               </div>
               {option === "kit" && (
-                <>
-                  <div className="space-y-2">
-                    <Label className="text-white/85">Modelo da camiseta</Label>
-                    <RadioGroup value={model} onValueChange={(v) => setModel(v as Model)} className="grid grid-cols-3 gap-2">
-                      {(Object.keys(MODEL_LABEL) as Model[]).map((m) => {
-                        const hasAny = SIZES_BY_MODEL[m].some((s) => (stock[`camiseta_${m}_${s}`] ?? 0) > 0);
-                        return (
-                          <label key={m} className={`flex items-center justify-center gap-2 rounded-lg border-2 p-2 cursor-pointer transition-all duration-200 ease-out bg-white/5 border-white/15 hover:border-[hsl(var(--hero-gold))] hover:scale-[1.01] has-[:checked]:border-[hsl(var(--hero-gold))] has-[:checked]:bg-[hsl(var(--hero-gold)/0.12)] has-[:checked]:shadow-[0_0_0_3px_hsl(var(--hero-gold)/0.18),0_0_24px_hsl(var(--hero-gold)/0.25)] ${!hasAny ? "opacity-50 pointer-events-none" : ""}`}>
-                            <RadioGroupItem value={m} disabled={!hasAny} className="border-white/40 text-[hsl(var(--hero-gold))]" />
-                            <span className="text-sm font-semibold text-white">{MODEL_LABEL[m]}</span>
-                          </label>
-                        );
-                      })}
-                    </RadioGroup>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-white/85">Camisetas ({shirtItems.length})</Label>
+                    <button
+                      type="button"
+                      onClick={() => setShirtItems((arr) => [...arr, { id: crypto.randomUUID(), model: "adulto", size: "" }])}
+                      className="inline-flex items-center gap-1 rounded-md border border-[hsl(var(--hero-gold)/0.5)] bg-[hsl(var(--hero-gold)/0.12)] px-3 py-1.5 text-xs font-semibold text-[hsl(var(--hero-gold))] hover:bg-[hsl(var(--hero-gold)/0.2)] transition-colors"
+                    >
+                      <Plus className="h-3.5 w-3.5" /> Adicionar camiseta
+                    </button>
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-white/85">
-                      {model === "infantil" ? "Idade" : "Tamanho"} da camiseta
-                    </Label>
-                    <Select value={tamanho} onValueChange={setTamanho}>
-                      <SelectTrigger className="bg-white/5 border-white/15 text-white focus:ring-[hsl(var(--hero-gold))]">
-                        <SelectValue placeholder={model === "infantil" ? "Selecione a idade" : "Selecione o tamanho"} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {sizes.map((t) => {
-                          const left = sizeStock(t);
-                          const display = model === "infantil" ? `${t} anos` : t;
-                          return (
-                            <SelectItem key={t} value={t} disabled={left <= 0}>
-                              {display} {left <= 0 ? "— esgotado" : ""}
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </>
+
+                  {shirtItems.map((item, idx) => {
+                    const itemSizes = SIZES_BY_MODEL[item.model];
+                    const updateItem = (patch: Partial<ShirtItem>) => {
+                      setShirtItems((arr) =>
+                        arr.map((it) =>
+                          it.id === item.id
+                            ? { ...it, ...patch, ...(patch.model ? { size: "" } : {}) }
+                            : it,
+                        ),
+                      );
+                    };
+                    const removeItem = () =>
+                      setShirtItems((arr) => (arr.length > 1 ? arr.filter((it) => it.id !== item.id) : arr));
+                    return (
+                      <div key={item.id} className="rounded-lg border border-white/15 bg-white/5 p-3 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-semibold uppercase tracking-wider text-white/60">
+                            Camiseta #{idx + 1}
+                          </span>
+                          {shirtItems.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={removeItem}
+                              className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-red-300 hover:bg-red-500/15 hover:text-red-200 transition-colors"
+                              aria-label="Remover camiseta"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" /> Remover
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-xs text-white/70">Modelo</Label>
+                          <RadioGroup
+                            value={item.model}
+                            onValueChange={(v) => updateItem({ model: v as Model })}
+                            className="grid grid-cols-3 gap-2"
+                          >
+                            {(Object.keys(MODEL_LABEL) as Model[]).map((m) => {
+                              const hasAny = SIZES_BY_MODEL[m].some((s) => (stock[`camiseta_${m}_${s}`] ?? 0) > 0);
+                              return (
+                                <label
+                                  key={m}
+                                  className={`flex items-center justify-center gap-2 rounded-lg border-2 p-2 cursor-pointer transition-all duration-200 ease-out bg-white/5 border-white/15 hover:border-[hsl(var(--hero-gold))] has-[:checked]:border-[hsl(var(--hero-gold))] has-[:checked]:bg-[hsl(var(--hero-gold)/0.12)] ${!hasAny ? "opacity-50 pointer-events-none" : ""}`}
+                                >
+                                  <RadioGroupItem
+                                    value={m}
+                                    disabled={!hasAny}
+                                    className="border-white/40 text-[hsl(var(--hero-gold))]"
+                                  />
+                                  <span className="text-sm font-semibold text-white">{MODEL_LABEL[m]}</span>
+                                </label>
+                              );
+                            })}
+                          </RadioGroup>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-xs text-white/70">
+                            {item.model === "infantil" ? "Idade" : "Tamanho"}
+                          </Label>
+                          <Select value={item.size} onValueChange={(v) => updateItem({ size: v })}>
+                            <SelectTrigger className="bg-white/5 border-white/15 text-white focus:ring-[hsl(var(--hero-gold))]">
+                              <SelectValue placeholder={item.model === "infantil" ? "Selecione a idade" : "Selecione o tamanho"} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {itemSizes.map((t) => {
+                                const left = sizeStock(item.model, t);
+                                const display = item.model === "infantil" ? `${t} anos` : t;
+                                return (
+                                  <SelectItem key={t} value={t} disabled={left <= 0}>
+                                    {display} {left <= 0 ? "— esgotado" : ""}
+                                  </SelectItem>
+                                );
+                              })}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               )}
 
-              <div className="space-y-2">
-                <Label htmlFor="qtd" className="text-white/85">Quantidade</Label>
-                <Input id="qtd" type="number" min={1} max={99} value={qtd}
-                  onChange={(e) => setQtd(Math.max(1, parseInt(e.target.value) || 1))}
-                  className="bg-white/5 border-white/15 text-white focus-visible:ring-[hsl(var(--hero-gold))]" />
-              </div>
 
               <div className="space-y-2">
                 <Label className="text-white/85">Forma de pagamento</Label>

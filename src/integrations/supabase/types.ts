@@ -98,6 +98,7 @@ export type Database = {
           expires_at: string
           id: string
           init_point: string | null
+          items: Json | null
           model: string
           mp_payment_id: string | null
           payment_method: string
@@ -121,6 +122,7 @@ export type Database = {
           expires_at: string
           id?: string
           init_point?: string | null
+          items?: Json | null
           model?: string
           mp_payment_id?: string | null
           payment_method?: string
@@ -144,6 +146,7 @@ export type Database = {
           expires_at?: string
           id?: string
           init_point?: string | null
+          items?: Json | null
           model?: string
           mp_payment_id?: string | null
           payment_method?: string
@@ -678,6 +681,7 @@ export type Database = {
           expires_at: string
           id: string
           init_point: string | null
+          items: Json | null
           model: string
           mp_payment_id: string | null
           payment_method: string

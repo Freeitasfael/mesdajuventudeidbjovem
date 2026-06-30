@@ -10,6 +10,12 @@ const corsHeaders = {
 
 const DEFAULT_PRICES_CENTS = { pulseira: 1500, kit: 6000 } as const;
 
+const ItemSchema = z.object({
+  model: z.enum(["adulto", "baby", "infantil"]),
+  size: z.string().trim().min(1).max(10),
+  quantity: z.number().int().min(1).max(99),
+});
+
 const BodySchema = z.object({
   buyer_name: z.string().trim().min(2).max(120),
   buyer_phone: z.string().trim().min(8).max(20),
@@ -18,6 +24,7 @@ const BodySchema = z.object({
   model: z.enum(["adulto", "baby", "infantil"]).optional().default("adulto"),
   size: z.string().trim().max(10).optional().nullable(),
   quantity: z.number().int().min(1).max(99),
+  items: z.array(ItemSchema).min(1).max(20).optional().nullable(),
   method: z.enum(["pix", "card"]).optional().default("pix"),
   ref_code: z.string().trim().min(1).max(64).optional().nullable(),
   return_url: z.string().url().optional().nullable(),
@@ -62,28 +69,58 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { buyer_name, buyer_phone, buyer_email, product, model, size, quantity, method, ref_code, return_url, card_token, installments, payment_method_id, issuer_id, payer_email, payer_doc_type, payer_doc_number, device_id } = parsed.data;
+    const { buyer_name, buyer_phone, buyer_email, product, model, size, quantity, items, method, ref_code, return_url, card_token, installments, payment_method_id, issuer_id, payer_email, payer_doc_type, payer_doc_number, device_id } = parsed.data;
     const effectiveEmail = (payer_email || buyer_email).trim().toLowerCase();
 
-    if (product === "kit" && (!size || size.length === 0)) {
-      return new Response(JSON.stringify({ error: "size_required" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+
+    // Normaliza itens: para kit, aceita "items" (multi-tamanho) ou cai pro legado model/size/quantity
+    let normalizedItems: Array<{ model: string; size: string; quantity: number }> | null = null;
+    let totalQty = quantity;
+    if (product === "kit") {
+      if (items && items.length > 0) {
+        // Agrupa por (model,size) para somar repetições
+        const agg = new Map<string, { model: string; size: string; quantity: number }>();
+        for (const it of items) {
+          const key = `${it.model}_${it.size}`;
+          const prev = agg.get(key);
+          if (prev) prev.quantity += it.quantity;
+          else agg.set(key, { ...it });
+        }
+        normalizedItems = Array.from(agg.values());
+        totalQty = normalizedItems.reduce((a, it) => a + it.quantity, 0);
+      } else if (!size || size.length === 0) {
+        return new Response(JSON.stringify({ error: "size_required" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
-    // SKU da camiseta inclui modelo
-    const shirtSku = product === "kit" && size ? `camiseta_${model}_${size}` : null;
-    const skusToCheck = ["pulseira", ...(shirtSku ? [shirtSku] : [])];
+    // SKUs a checar
+    const shirtSkus = normalizedItems
+      ? normalizedItems.map((it) => ({ sku: `camiseta_${it.model}_${it.size}`, qty: it.quantity }))
+      : (product === "kit" && size ? [{ sku: `camiseta_${model}_${size}`, qty: quantity }] : []);
+    const skusToCheck = ["pulseira", ...shirtSkus.map((s) => s.sku)];
     const { data: stockRows } = await admin
       .from("entrada_stock").select("sku, stock, label").in("sku", skusToCheck);
     const stockMap = new Map((stockRows ?? []).map((r) => [r.sku as string, r]));
-    for (const sku of skusToCheck) {
-      const row = stockMap.get(sku);
-      if (!row || (row.stock as number) < quantity) {
+    // Pulseira precisa de totalQty
+    {
+      const row = stockMap.get("pulseira");
+      if (!row || (row.stock as number) < totalQty) {
         return new Response(JSON.stringify({
           error: "out_of_stock",
-          message: `Sem estoque para ${row?.label ?? sku}. Disponível: ${row?.stock ?? 0}.`,
-          sku,
+          message: `Sem estoque para ${row?.label ?? "pulseira"}. Disponível: ${row?.stock ?? 0}.`,
+          sku: "pulseira",
+        }), { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+    }
+    for (const s of shirtSkus) {
+      const row = stockMap.get(s.sku);
+      if (!row || (row.stock as number) < s.qty) {
+        return new Response(JSON.stringify({
+          error: "out_of_stock",
+          message: `Sem estoque para ${row?.label ?? s.sku}. Disponível: ${row?.stock ?? 0}.`,
+          sku: s.sku,
         }), { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
     }
@@ -96,7 +133,7 @@ Deno.serve(async (req) => {
       pulseira: cfg.pulseira_cents && cfg.pulseira_cents > 0 ? cfg.pulseira_cents : DEFAULT_PRICES_CENTS.pulseira,
       kit: cfg.kit_cents && cfg.kit_cents > 0 ? cfg.kit_cents : DEFAULT_PRICES_CENTS.kit,
     };
-    const total_cents = prices[product] * quantity;
+    const total_cents = prices[product] * totalQty;
     const expires_at = new Date(Date.now() + 30 * 60_000).toISOString();
 
     // Resolve revendedor pelo ref_code (case-insensitive)
@@ -112,14 +149,21 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Para compat: model/size do legado vêm do primeiro item quando multi
+    const persistModel = normalizedItems ? normalizedItems[0].model : model;
+    const persistSize = normalizedItems
+      ? (normalizedItems.length === 1 ? normalizedItems[0].size : "MULTI")
+      : (product === "kit" ? size : null);
+
     const { data: order, error: insErr } = await admin
       .from("entrada_orders")
       .insert({
-        buyer_name, buyer_phone, buyer_email: effectiveEmail, product, model,
-        size: product === "kit" ? size : null,
-        quantity, total_cents, status: "pending", expires_at,
+        buyer_name, buyer_phone, buyer_email: effectiveEmail, product, model: persistModel,
+        size: persistSize,
+        quantity: totalQty, total_cents, status: "pending", expires_at,
         payment_method: method,
         seller_id, referral_label,
+        items: normalizedItems,
       })
       .select("id").single();
 
@@ -131,7 +175,10 @@ Deno.serve(async (req) => {
     }
 
     const webhookUrl = `${SUPABASE_URL}/functions/v1/entrada-webhook`;
-    const description = `Mês da Juventude - ${product === "kit" ? `Kit ${model}${size ? ` ${size}` : ""}` : "Pulseira de acesso"} (x${quantity})`;
+    const itemsLabel = normalizedItems
+      ? normalizedItems.map((it) => `${it.model} ${it.size} x${it.quantity}`).join(", ")
+      : (product === "kit" ? `Kit ${model}${size ? ` ${size}` : ""}` : "Pulseira de acesso");
+    const description = `Mês da Juventude - ${itemsLabel} (total x${totalQty})`;
 
     if (method === "card") {
       // Inline (token-based) card charge
@@ -146,7 +193,7 @@ Deno.serve(async (req) => {
           installments: Math.max(1, Math.min(24, installments ?? 1)),
           notification_url: webhookUrl,
           external_reference: order.id,
-          metadata: { entrada_order_id: order.id, product, model, quantity },
+          metadata: { entrada_order_id: order.id, product, model: persistModel, quantity: totalQty, items: normalizedItems ?? null },
           statement_descriptor: "MES JUVENTUDE",
           binary_mode: false,
           payer: {
@@ -159,12 +206,12 @@ Deno.serve(async (req) => {
           },
           additional_info: {
             items: [{
-              id: `${product}_${model}`,
-              title: product === "kit" ? `Kit ${model}${size ? ` ${size}` : ""}` : "Pulseira de acesso",
+              id: `${product}_${persistModel}`,
+              title: itemsLabel,
               description,
               category_id: "tickets",
-              quantity,
-              unit_price: (total_cents / quantity) / 100,
+              quantity: totalQty,
+              unit_price: (total_cents / totalQty) / 100,
             }],
             payer: {
               first_name: firstName,
@@ -239,7 +286,7 @@ Deno.serve(async (req) => {
         auto_return: "approved",
         notification_url: webhookUrl,
         external_reference: order.id,
-        metadata: { entrada_order_id: order.id, product, model, quantity },
+        metadata: { entrada_order_id: order.id, product, model: persistModel, quantity: totalQty, items: normalizedItems ?? null },
         statement_descriptor: "MES JUVENTUDE",
       };
       const prefRes = await fetch("https://api.mercadopago.com/checkout/preferences", {
@@ -278,7 +325,7 @@ Deno.serve(async (req) => {
       payment_method_id: "pix",
       notification_url: webhookUrl,
       external_reference: order.id,
-      metadata: { entrada_order_id: order.id, product, model, quantity },
+      metadata: { entrada_order_id: order.id, product, model: persistModel, quantity: totalQty, items: normalizedItems ?? null },
       payer: {
         email: effectiveEmail,
         first_name: buyer_name.split(" ")[0] ?? "Comprador",
