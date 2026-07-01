@@ -11,6 +11,11 @@ import { Download, RefreshCw, Save, Undo2, UserPlus } from "lucide-react";
 import { buildCsv, downloadCsv } from "@/lib/csv";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
 
+interface EntradaOrderItem {
+  model: string;
+  size: string;
+  quantity: number;
+}
 interface EntradaOrder {
   id: string;
   created_at: string;
@@ -26,6 +31,46 @@ interface EntradaOrder {
   payment_method: string | null;
   seller_id: string | null;
   referral_label: string | null;
+  items: EntradaOrderItem[] | null;
+}
+
+const MODEL_LABEL: Record<string, string> = {
+  adulto: "Adulto",
+  baby: "Babylook",
+  infantil: "Infantil",
+};
+
+function normalizeItems(o: EntradaOrder): EntradaOrderItem[] {
+  if (Array.isArray(o.items) && o.items.length > 0) {
+    return o.items.map((it) => ({
+      model: it.model || "adulto",
+      size: it.size || "—",
+      quantity: Number(it.quantity) || 0,
+    }));
+  }
+  if (o.product === "kit" && o.size) {
+    return [{ model: o.model || "adulto", size: o.size, quantity: o.quantity }];
+  }
+  return [];
+}
+
+function ItemsCell({ o }: { o: EntradaOrder }) {
+  if (o.product !== "kit") return <span className="text-muted-foreground">—</span>;
+  const items = normalizeItems(o);
+  if (items.length === 0) return <span className="text-muted-foreground">—</span>;
+  return (
+    <ul className="space-y-0.5">
+      {items.map((it, i) => (
+        <li key={i} className="text-xs whitespace-nowrap">
+          <span className="font-medium">{MODEL_LABEL[it.model] ?? it.model}</span>
+          {" · "}
+          <span>Tam {it.size}</span>
+          {" · "}
+          <span className="text-muted-foreground">x{it.quantity}</span>
+        </li>
+      ))}
+    </ul>
+  );
 }
 
 interface StockRow {
@@ -121,7 +166,7 @@ export function EntradaPanel() {
     const [o, s, p] = await Promise.all([
       supabase
         .from("entrada_orders")
-        .select("id, created_at, buyer_name, buyer_phone, product, model, size, quantity, total_cents, status, mp_payment_id, payment_method, seller_id, referral_label")
+        .select("id, created_at, buyer_name, buyer_phone, product, model, size, quantity, total_cents, status, mp_payment_id, payment_method, seller_id, referral_label, items")
         .order("created_at", { ascending: false })
         .limit(500),
       supabase.from("entrada_stock").select("sku, label, stock").order("sku"),
@@ -240,21 +285,26 @@ export function EntradaPanel() {
       return;
     }
     const csv = buildCsv(
-      ["ID Pedido", "Status", "Comprador", "Telefone", "Produto", "Modelo", "Tam/Idade", "Qtd", "Pagamento", "Revendedor", "Total (R$)", "Criado em"],
-      filteredOrders.map((o) => [
-        o.id,
-        o.status,
-        o.buyer_name,
-        o.buyer_phone,
-        o.product,
-        o.product === "kit" ? (o.model ?? "adulto") : "—",
-        o.size ?? "—",
-        o.quantity,
-        o.payment_method ?? "pix",
-        o.referral_label ?? "—",
-        (o.total_cents / 100).toFixed(2).replace(".", ","),
-        fmtDate(o.created_at),
-      ]),
+      ["ID Pedido", "Status", "Comprador", "Telefone", "Produto", "Itens (modelo/tamanho/qtd)", "Qtd total", "Pagamento", "Revendedor", "Total (R$)", "Criado em"],
+      filteredOrders.map((o) => {
+        const its = normalizeItems(o);
+        const itensLabel = o.product === "kit"
+          ? (its.length > 0 ? its.map((it) => `${MODEL_LABEL[it.model] ?? it.model} ${it.size} x${it.quantity}`).join(" | ") : "—")
+          : "—";
+        return [
+          o.id,
+          o.status,
+          o.buyer_name,
+          o.buyer_phone,
+          o.product,
+          itensLabel,
+          o.quantity,
+          o.payment_method ?? "pix",
+          o.referral_label ?? "—",
+          (o.total_cents / 100).toFixed(2).replace(".", ","),
+          fmtDate(o.created_at),
+        ];
+      }),
     );
     const stamp = new Date().toISOString().slice(0, 10);
     downloadCsv(`camisetas-pulseiras-${stamp}.csv`, csv);
@@ -353,9 +403,8 @@ export function EntradaPanel() {
                 <th className="px-4 py-3">Comprador</th>
                 <th className="px-4 py-3">Telefone</th>
                 <th className="px-4 py-3">Produto</th>
-                <th className="px-4 py-3">Modelo</th>
-                <th className="px-4 py-3">Tam/Idade</th>
-                <th className="px-4 py-3">Qtd</th>
+                <th className="px-4 py-3">Itens (modelo · tamanho · qtd)</th>
+                <th className="px-4 py-3">Qtd total</th>
                 <th className="px-4 py-3">Pgto</th>
                 <th className="px-4 py-3">Revendedor</th>
                 <th className="px-4 py-3">Status</th>
@@ -372,8 +421,7 @@ export function EntradaPanel() {
                     <td className="px-4 py-3">{o.buyer_name}</td>
                     <td className="px-4 py-3">{o.buyer_phone ? <WhatsAppLink phone={o.buyer_phone} /> : "—"}</td>
                     <td className="px-4 py-3 capitalize">{o.product}</td>
-                    <td className="px-4 py-3 capitalize">{o.product === "kit" ? (o.model ?? "adulto") : "—"}</td>
-                    <td className="px-4 py-3">{o.size ?? "—"}</td>
+                    <td className="px-4 py-3"><ItemsCell o={o} /></td>
                     <td className="px-4 py-3">{o.quantity}</td>
                     <td className="px-4 py-3 uppercase text-xs">{o.payment_method ?? "pix"}</td>
                     <td className="px-4 py-3 text-xs">
@@ -398,7 +446,7 @@ export function EntradaPanel() {
               })}
               {filteredOrders.length === 0 && (
                 <tr>
-                  <td colSpan={12} className="px-4 py-8 text-center text-muted-foreground">
+                  <td colSpan={11} className="px-4 py-8 text-center text-muted-foreground">
                     {orders.length === 0 ? "Nenhuma transação ainda." : "Nenhum pedido corresponde aos filtros."}
                   </td>
                 </tr>
