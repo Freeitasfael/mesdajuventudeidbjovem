@@ -78,16 +78,24 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
     const camisetasGross = camisetasAgg.gross;
     const camisetasTotal = camisetasAgg.net;
     const camisetasCount = camisetasOrders.length;
-    const entAgg = netFromOrders(entrada);
+
+    // Entrada (camisetas): separar por status
+    const entPaid = entrada.filter((e) => e.status === "paid");
+    const entPending = entrada.filter((e) => e.status === "pending");
+    const entCanceled = entrada.filter((e) => e.status === "canceled" || e.status === "cancelled" || e.status === "rejected");
+    const entAgg = netFromOrders(entPaid);
     const entGross = entAgg.gross;
     const entTotal = entAgg.net;
-    const entCount = entrada.length;
-    const pulseira = entrada.filter((e) => e.product === "pulseira");
-    const kit = entrada.filter((e) => e.product === "kit");
-    const pulTotal = netFromOrders(pulseira).net;
-    const kitTotal = netFromOrders(kit).net;
-    const pulUnits = pulseira.reduce((a, o) => a + (o.quantity || 1), 0);
+    const entFee = entAgg.fee;
+    const entCount = entPaid.length;
+    const entPendingCount = entPending.length;
+    const entCanceledCount = entCanceled.length;
+    const entPendingGross = entPending.reduce((a, o) => a + o.total_cents, 0);
+    const kit = entPaid.filter((e) => e.product === "kit");
     const kitUnits = kit.reduce((a, o) => a + (o.quantity || 1), 0);
+    const itemsSold = entPaid.reduce((a, o) => a + (o.quantity || 1), 0);
+    const shirtCost = Math.round(itemsSold * costCamiseta * 100);
+    const shirtProfit = entGross - shirtCost - entFee;
 
     // Patrocínios (apenas confirmados em dinheiro contam para receita)
     const sponsorsConfirmedCash = sponsors
@@ -101,16 +109,13 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
 
     // Gastos
     const expensesTotal = expenses.reduce((a, e) => a + e.amount_cents, 0);
-    const fabricationCost = Math.round(
-      pulUnits * costPulseira * 100 +
-      kitUnits * (costCamiseta + costPulseira) * 100,
-    );
+    const fabricationCost = shirtCost;
     const totalExpenses = expensesTotal + fabricationCost;
 
     // Receita Total = Camisetas + Entrada + Patrocínios confirmados
     const totalRevenue = camisetasTotal + entTotal + sponsorsConfirmedTotal;
     const totalGross = camisetasGross + entGross;
-    const totalFee = camisetasAgg.fee + entAgg.fee;
+    const totalFee = camisetasAgg.fee + entFee;
 
     // Lucro líquido & margem
     const netProfit = totalRevenue - totalExpenses;
@@ -121,15 +126,14 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
 
     return {
       camisetasTotal, camisetasGross, camisetasCount,
-      entTotal, entGross, entCount,
-      pulTotal, pulCount: pulseira.length, pulUnits,
-      kitTotal, kitCount: kit.length, kitUnits,
+      entTotal, entGross, entCount, entFee, entPendingCount, entCanceledCount, entPendingGross,
+      kitCount: kit.length, kitUnits, itemsSold, shirtCost, shirtProfit,
       sponsorsConfirmedCash, sponsorsConfirmedPermuta, sponsorsConfirmedTotal, sponsorsCount,
       expensesTotal, fabricationCost, totalExpenses,
       totalRevenue, totalGross, feeCents: totalFee,
       netProfit, margin, totalCount, ticket,
     };
-  }, [camisetasOrders, entrada, expenses, sponsors, costCamiseta, costPulseira]);
+  }, [camisetasOrders, entrada, expenses, sponsors, costCamiseta]);
 
   // Alertas inteligentes
   const alerts: { level: "warn" | "danger"; msg: string }[] = [];
