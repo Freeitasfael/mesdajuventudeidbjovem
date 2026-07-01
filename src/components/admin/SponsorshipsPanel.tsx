@@ -54,6 +54,55 @@ export function SponsorshipsPanel() {
 
   const [tier, setTier] = useState<"" | "apoio" | "standard" | "premium">("");
 
+  // Edit dialog state
+  const [editing, setEditing] = useState<Sponsorship | null>(null);
+  const [eSponsor, setESponsor] = useState("");
+  const [eAmount, setEAmount] = useState("");
+  const [eKind, setEKind] = useState<"cash" | "permuta">("cash");
+  const [eStatus, setEStatus] = useState<"confirmed" | "pending">("pending");
+  const [eTier, setETier] = useState<"" | "apoio" | "standard" | "premium">("");
+  const [eOwnerName, setEOwnerName] = useState("");
+  const [eOwnerPhone, setEOwnerPhone] = useState("");
+  const [eNotes, setENotes] = useState("");
+  const [eSaving, setESaving] = useState(false);
+
+  const openEdit = (s: Sponsorship) => {
+    setEditing(s);
+    setESponsor(s.sponsor_name);
+    setEAmount((s.amount_cents / 100).toFixed(2));
+    setEKind(s.kind);
+    setEStatus(s.status);
+    setETier((s.tier ?? "") as "" | "apoio" | "standard" | "premium");
+    setEOwnerName(s.owner_name ?? "");
+    setEOwnerPhone(s.owner_phone ?? "");
+    setENotes(s.notes ?? "");
+  };
+
+  const saveEdit = async () => {
+    if (!editing) return;
+    const n = eSponsor.trim();
+    const cents = Math.round(parseFloat(eAmount.replace(",", ".")) * 100);
+    if (!n) return toast.error("Informe o nome do patrocinador");
+    if (!Number.isFinite(cents) || cents <= 0) return toast.error("Valor inválido");
+    setESaving(true);
+    const { error } = await supabase.from("sponsorships").update({
+      sponsor_name: n,
+      amount_cents: cents,
+      kind: eKind,
+      status: eStatus,
+      tier: eTier || null,
+      notes: eNotes.trim() || null,
+      owner_name: eOwnerName.trim() || null,
+      owner_phone: eOwnerPhone.trim() || null,
+    }).eq("id", editing.id);
+    setESaving(false);
+    if (error) return toast.error("Erro: " + error.message);
+    toast.success("Patrocinador atualizado");
+    setEditing(null);
+    load();
+  };
+
+
   const load = async () => {
     setLoading(true);
     const { data, error } = await supabase
