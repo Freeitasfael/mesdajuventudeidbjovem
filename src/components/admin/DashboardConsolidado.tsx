@@ -235,14 +235,13 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
         </div>
       </div>
 
-      {/* Entrada */}
+      {/* Camiseta */}
       <div>
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Entrada</h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard label="Arrecadado (entrada)" value={fmtBRL(metrics.entTotal)} />
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Camiseta</h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <StatCard label="Arrecadado (camiseta)" value={fmtBRL(metrics.entTotal)} />
           <StatCard label="Pedidos pagos" value={String(metrics.entCount)} />
-          <StatCard label="Pulseiras vendidas" value={`${metrics.pulCount} · ${fmtBRL(metrics.pulTotal)}`} />
-          <StatCard label="Kits vendidos" value={`${metrics.kitCount} · ${fmtBRL(metrics.kitTotal)}`} />
+          <StatCard label="Camisetas vendidas" value={`${metrics.kitCount} · ${fmtBRL(metrics.kitTotal)}`} />
         </div>
       </div>
 
