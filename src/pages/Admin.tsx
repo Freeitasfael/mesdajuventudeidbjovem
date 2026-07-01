@@ -663,7 +663,7 @@ const Admin = () => {
     if (!detailOrder) return;
     if (
       !confirm(
-        "Liberar TODOS os números deste pedido? O reembolso deve ser feito manualmente. Esta ação não pode ser desfeita.",
+        "Marcar este pedido como ESTORNADO?\n\nEsta é uma ação apenas de controle interno — nenhum estorno automático será feito no Mercado Pago. O reembolso do valor deve ser realizado manualmente por você.\n\nOs números do pedido serão liberados de volta para 'disponíveis'.",
       )
     ) {
       return;
@@ -674,15 +674,16 @@ const Admin = () => {
     });
     setRefunding(false);
     if (error) {
-      toast.error("Erro ao liberar números: " + error.message);
+      toast.error("Erro ao estornar pedido: " + error.message);
       return;
     }
     const freed = Array.isArray(data) && data[0] ? (data[0] as { freed_numbers: number }).freed_numbers : 0;
-    toast.success(`${freed} números liberados. Faça o reembolso manualmente.`);
+    toast.success(`Pedido estornado. ${freed} número(s) liberado(s). Lembre de reembolsar manualmente.`);
     setDetailOrder(null);
     setDetailNumbers([]);
     loadAll();
   };
+
 
 
 
