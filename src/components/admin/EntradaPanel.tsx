@@ -65,8 +65,12 @@ function ItemsCell({ o }: { o: EntradaOrder }) {
           <span className="font-medium">{MODEL_LABEL[it.model] ?? it.model}</span>
           {" · "}
           <span>Tam {it.size}</span>
-          {" · "}
-          <span className="text-muted-foreground">x{it.quantity}</span>
+          {it.quantity > 1 && (
+            <>
+              {" · "}
+              <span className="text-muted-foreground">x{it.quantity}</span>
+            </>
+          )}
         </li>
       ))}
     </ul>
@@ -289,7 +293,7 @@ export function EntradaPanel() {
       filteredOrders.map((o) => {
         const its = normalizeItems(o);
         const itensLabel = o.product === "kit"
-          ? (its.length > 0 ? its.map((it) => `${MODEL_LABEL[it.model] ?? it.model} ${it.size} x${it.quantity}`).join(" | ") : "—")
+          ? (its.length > 0 ? its.map((it) => `${MODEL_LABEL[it.model] ?? it.model} ${it.size}${it.quantity > 1 ? ` x${it.quantity}` : ""}`).join(" | ") : "—")
           : "—";
         return [
           o.id,
