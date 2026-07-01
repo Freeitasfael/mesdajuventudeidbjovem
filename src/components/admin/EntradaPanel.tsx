@@ -299,6 +299,41 @@ export function EntradaPanel() {
     return { revPaid, revPaidNet, revPending, paidCount: paid.length, pendingCount: pending.length, itemsSold, ticket, conv };
   })();
 
+  // Custos & Lucro (baseado em pedidos pagos)
+  const costMetrics = useMemo(() => {
+    const paid = orders.filter((o) => o.status === "paid");
+    const pulseiraOrders = paid.filter((o) => o.product === "pulseira");
+    const kitOrders = paid.filter((o) => o.product === "kit");
+    const pulseiraUnits = pulseiraOrders.reduce((a, o) => a + (o.quantity || 0), 0);
+    // Cada kit = 1 camiseta + 1 pulseira
+    const kitUnits = kitOrders.reduce((a, o) => a + (o.quantity || 0), 0);
+
+    const pulseiraAgg = netFromOrders(pulseiraOrders);
+    const kitAgg = netFromOrders(kitOrders);
+    const grossPulseira = pulseiraAgg.gross;
+    const grossKit = kitAgg.gross;
+    const netPulseira = pulseiraAgg.net;
+    const netKit = kitAgg.net;
+    const gross = grossPulseira + grossKit;
+    const net = netPulseira + netKit;
+    const fee = pulseiraAgg.fee + kitAgg.fee;
+
+    const costPulseiraTotal = Math.round((pulseiraUnits + kitUnits) * costPulseira * 100);
+    const costCamisetaTotal = Math.round(kitUnits * costCamiseta * 100);
+    const costTotal = costPulseiraTotal + costCamisetaTotal;
+
+    const profit = net - costTotal;
+    const margin = net > 0 ? (profit / net) * 100 : 0;
+
+    return {
+      pulseiraUnits, kitUnits,
+      grossPulseira, grossKit, netPulseira, netKit,
+      gross, net, fee,
+      costPulseiraTotal, costCamisetaTotal, costTotal,
+      profit, margin,
+    };
+  }, [orders, costCamiseta, costPulseira]);
+
   const exportCsv = () => {
     if (filteredOrders.length === 0) {
       toast.info("Sem pedidos para exportar nesse filtro");
