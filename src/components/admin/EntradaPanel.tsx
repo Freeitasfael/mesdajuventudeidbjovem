@@ -368,6 +368,161 @@ export function EntradaPanel() {
     toast.success(`${filteredOrders.length} pedidos exportados`);
   };
 
+  const exportSizesXlsx = async () => {
+    // Consolida apenas pedidos PAGOS (camisetas efetivamente vendidas)
+    const paidOrders = filteredOrders.filter((o) => o.status === "paid");
+    if (paidOrders.length === 0) {
+      toast.info("Sem pedidos pagos para exportar nesse filtro");
+      return;
+    }
+
+    // Agrega quantidade por modelo x tamanho
+    const bucket = new Map<string, Map<string, number>>();
+    const modelOrder: string[] = [];
+    const sizeSet = new Set<string>();
+    for (const o of paidOrders) {
+      if (o.product !== "kit") continue;
+      for (const it of normalizeItems(o)) {
+        const model = it.model || "adulto";
+        const size = it.size || "—";
+        if (!bucket.has(model)) { bucket.set(model, new Map()); modelOrder.push(model); }
+        const m = bucket.get(model)!;
+        m.set(size, (m.get(size) || 0) + (it.quantity || 0));
+        sizeSet.add(size);
+      }
+    }
+    if (bucket.size === 0) {
+      toast.info("Nenhuma camiseta vendida no filtro atual");
+      return;
+    }
+
+    const SIZE_ORDER = ["PP", "P", "M", "G", "GG", "XG", "XGG", "2", "4", "6", "8", "10", "12", "14"];
+    const sizes = Array.from(sizeSet).sort((a, b) => {
+      const ia = SIZE_ORDER.indexOf(a); const ib = SIZE_ORDER.indexOf(b);
+      if (ia === -1 && ib === -1) return a.localeCompare(b);
+      if (ia === -1) return 1;
+      if (ib === -1) return -1;
+      return ia - ib;
+    });
+
+    const wb = new ExcelJS.Workbook();
+    wb.creator = "IDB Jovem";
+    wb.created = new Date();
+    const ws = wb.addWorksheet("Camisetas por tamanho", {
+      views: [{ state: "frozen", ySplit: 4 }],
+    });
+
+    // Título
+    const totalCols = 2 + sizes.length; // Modelo + tamanhos + Total
+    ws.mergeCells(1, 1, 1, totalCols);
+    const title = ws.getCell(1, 1);
+    title.value = "Camisetas vendidas por tamanho";
+    title.font = { name: "Calibri", size: 16, bold: true, color: { argb: "FFFFFFFF" } };
+    title.alignment = { vertical: "middle", horizontal: "center" };
+    title.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1F4E3D" } };
+    ws.getRow(1).height = 28;
+
+    // Subtítulo com filtros
+    ws.mergeCells(2, 1, 2, totalCols);
+    const sub = ws.getCell(2, 1);
+    const stamp = new Date().toLocaleString("pt-BR");
+    sub.value = `Gerado em ${stamp}  ·  ${paidOrders.length} pedidos pagos considerados`;
+    sub.font = { name: "Calibri", size: 10, italic: true, color: { argb: "FF666666" } };
+    sub.alignment = { horizontal: "center" };
+
+    // Cabeçalho
+    const headerRowIdx = 4;
+    const headers = ["Modelo", ...sizes, "Total"];
+    const headerRow = ws.getRow(headerRowIdx);
+    headers.forEach((h, i) => {
+      const c = headerRow.getCell(i + 1);
+      c.value = h;
+      c.font = { name: "Calibri", size: 11, bold: true, color: { argb: "FFFFFFFF" } };
+      c.alignment = { vertical: "middle", horizontal: i === 0 ? "left" : "center" };
+      c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF2E7D5B" } };
+      c.border = {
+        top: { style: "thin", color: { argb: "FF1F4E3D" } },
+        bottom: { style: "thin", color: { argb: "FF1F4E3D" } },
+        left: { style: "thin", color: { argb: "FFDDDDDD" } },
+        right: { style: "thin", color: { argb: "FFDDDDDD" } },
+      };
+    });
+    headerRow.height = 22;
+
+    // Linhas por modelo
+    let rowIdx = headerRowIdx + 1;
+    const totalsBySize = new Map<string, number>();
+    let grandTotal = 0;
+    for (const model of modelOrder) {
+      const perSize = bucket.get(model)!;
+      let rowTotal = 0;
+      const row = ws.getRow(rowIdx);
+      row.getCell(1).value = MODEL_LABEL[model] ?? model;
+      row.getCell(1).font = { name: "Calibri", size: 11, bold: true };
+      row.getCell(1).alignment = { vertical: "middle", horizontal: "left" };
+      sizes.forEach((s, i) => {
+        const q = perSize.get(s) || 0;
+        rowTotal += q;
+        totalsBySize.set(s, (totalsBySize.get(s) || 0) + q);
+        const c = row.getCell(2 + i);
+        c.value = q;
+        c.alignment = { horizontal: "center" };
+        c.font = { name: "Calibri", size: 11, color: { argb: q === 0 ? "FFBBBBBB" : "FF000000" } };
+      });
+      const totalCell = row.getCell(2 + sizes.length);
+      totalCell.value = rowTotal;
+      totalCell.font = { name: "Calibri", size: 11, bold: true };
+      totalCell.alignment = { horizontal: "center" };
+      totalCell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF3F8F5" } };
+      // zebra
+      if ((rowIdx - headerRowIdx) % 2 === 0) {
+        for (let i = 1; i <= totalCols; i++) {
+          const cc = row.getCell(i);
+          if (!cc.fill || (cc.fill as any).fgColor?.argb !== "FFF3F8F5") {
+            cc.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFAFAFA" } };
+          }
+        }
+      }
+      for (let i = 1; i <= totalCols; i++) {
+        row.getCell(i).border = {
+          bottom: { style: "thin", color: { argb: "FFEEEEEE" } },
+        };
+      }
+      grandTotal += rowTotal;
+      rowIdx++;
+    }
+
+    // Linha total geral
+    const totalRow = ws.getRow(rowIdx);
+    totalRow.getCell(1).value = "Total geral";
+    sizes.forEach((s, i) => {
+      totalRow.getCell(2 + i).value = totalsBySize.get(s) || 0;
+    });
+    totalRow.getCell(2 + sizes.length).value = grandTotal;
+    for (let i = 1; i <= totalCols; i++) {
+      const c = totalRow.getCell(i);
+      c.font = { name: "Calibri", size: 11, bold: true, color: { argb: "FFFFFFFF" } };
+      c.alignment = { horizontal: i === 0 ? "left" : "center", vertical: "middle" };
+      c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1F4E3D" } };
+    }
+    totalRow.height = 22;
+
+    // Larguras
+    ws.getColumn(1).width = 18;
+    for (let i = 0; i < sizes.length; i++) ws.getColumn(2 + i).width = 10;
+    ws.getColumn(2 + sizes.length).width = 12;
+
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const dateStamp = new Date().toISOString().slice(0, 10);
+    a.href = url; a.download = `camisetas-por-tamanho-${dateStamp}.xlsx`;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    toast.success(`Relatório de tamanhos exportado (${grandTotal} camisetas)`);
+  };
+
   return (
     <Tabs defaultValue="transacoes" className="space-y-4">
       <TabsList>
