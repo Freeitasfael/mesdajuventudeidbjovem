@@ -92,6 +92,7 @@ export function SponsorshipsPanel() {
     setNotes("");
     setOwnerName("");
     setOwnerPhone("");
+    setTier("");
   };
 
   const handleSave = async () => {
@@ -105,6 +106,7 @@ export function SponsorshipsPanel() {
       amount_cents: cents,
       kind,
       status,
+      tier: tier || null,
       notes: notes.trim() || null,
       owner_name: ownerName.trim() || null,
       owner_phone: ownerPhone.trim() || null,
@@ -115,6 +117,7 @@ export function SponsorshipsPanel() {
     reset();
     load();
   };
+
 
   const toggleStatus = async (s: Sponsorship) => {
     const next = s.status === "confirmed" ? "pending" : "confirmed";
