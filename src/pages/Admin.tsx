@@ -222,6 +222,7 @@ const Admin = () => {
   const rifaKpis = useMemo(() => {
     const paid = orders.filter((o) => o.status === "paid");
     const pending = orders.filter((o) => o.status === "pending");
+    const canceled = orders.filter((o) => o.status === "cancelled" || o.status === "canceled" || o.status === "expired" || o.status === "refunded" || o.status === "rejected");
     const paidAgg = netFromOrders(paid);
     const revPaid = paidAgg.gross;
     const revPaidNet = paidAgg.net;
@@ -230,8 +231,9 @@ const Admin = () => {
     const ticket = paid.length > 0 ? Math.round(revPaid / paid.length) : 0;
     const totalCreated = orders.length;
     const conv = totalCreated > 0 ? (paid.length / totalCreated) * 100 : 0;
-    return { revPaid, revPaidNet, revPaidFee, revPending, paidCount: paid.length, pendingCount: pending.length, ticket, conv };
+    return { revPaid, revPaidNet, revPaidFee, revPending, paidCount: paid.length, pendingCount: pending.length, canceledCount: canceled.length, ticket, conv };
   }, [orders]);
+
 
   // KPIs do Pagamentos — usa payment_method do pedido vinculado para calcular taxa correta
   const paymentKpis = useMemo(() => {
@@ -973,18 +975,20 @@ const Admin = () => {
                 Resumo da Rifa
               </h2>
               <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-                <StatCard label="Receita paga (bruta)" value={fmtBRL(rifaKpis.revPaid)} />
-                <StatCard label="Líquido (taxa MP)" value={fmtBRL(rifaKpis.revPaidNet)} />
-                <StatCard label="Receita pendente" value={fmtBRL(rifaKpis.revPending)} />
-                <StatCard label="Pedidos pagos" value={String(rifaKpis.paidCount)} />
+                <StatCard label="Receita paga" value={fmtBRL(rifaKpis.revPaid)} tone="positive" />
+                <StatCard label="Preço de custo (prêmio)" value={fmtBRL(50000)} tone="negative" />
+                <StatCard label="Taxa de Mercado Pago" value={fmtBRL(rifaKpis.revPaidFee)} tone="negative" />
+                <StatCard
+                  label="Lucro líquido"
+                  value={fmtBRL(rifaKpis.revPaid - 50000 - rifaKpis.revPaidFee)}
+                  tone={rifaKpis.revPaid - 50000 - rifaKpis.revPaidFee >= 0 ? "positive" : "negative"}
+                />
                 <StatCard label="Números vendidos" value={String(stats?.numbers_paid ?? 0)} />
-                <StatCard label="Ticket médio" value={fmtBRL(rifaKpis.ticket)} />
-                <StatCard label="Conversão" value={`${rifaKpis.conv.toFixed(1)}%`} />
-                <StatCard label="Pendentes" value={String(rifaKpis.pendingCount)} />
-                <StatCard label="Disponíveis" value={String(stats?.numbers_available ?? 0)} />
+                <StatCard label="Vendas pendentes" value={String(rifaKpis.pendingCount)} />
+                <StatCard label="Vendas canceladas" value={String(rifaKpis.canceledCount)} />
               </div>
               <p className="text-[11px] text-muted-foreground mt-2">
-                Líquido = bruto − taxa Mercado Pago (PIX 0,99% · Cartão 4,99%) aplicada por pedido conforme o método.
+                Lucro líquido = Receita paga − (Preço de custo do prêmio R$ 500,00 + Taxa Mercado Pago). Taxa aplicada por pedido: PIX 0,99% · Cartão 4,99%.
               </p>
             </div>
 
@@ -1708,12 +1712,18 @@ const Admin = () => {
   );
 };
 
-const StatCard = ({ label, value }: { label: string; value: string }) => (
-  <Card className="p-4">
-    <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
-    <p className="mt-1 text-2xl font-bold">{value}</p>
-  </Card>
-);
+const StatCard = ({ label, value, tone = "neutral" }: { label: string; value: string; tone?: "positive" | "negative" | "warning" | "neutral" }) => {
+  const toneCls =
+    tone === "positive" ? "text-emerald-600 dark:text-emerald-400" :
+    tone === "negative" ? "text-red-600 dark:text-red-400" :
+    tone === "warning" ? "text-amber-600 dark:text-amber-400" : "";
+  return (
+    <Card className="p-4">
+      <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className={`mt-1 text-2xl font-bold ${toneCls}`}>{value}</p>
+    </Card>
+  );
+};
 
 const StatusBadge = ({ status }: { status: string }) => {
   const map: Record<string, string> = {
