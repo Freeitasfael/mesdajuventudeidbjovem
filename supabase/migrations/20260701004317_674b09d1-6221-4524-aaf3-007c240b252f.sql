@@ -1,0 +1,2 @@
+ALTER TABLE public.entrada_orders DROP CONSTRAINT IF EXISTS entrada_orders_status_check;
+ALTER TABLE public.entrada_orders ADD CONSTRAINT entrada_orders_status_check CHECK (status = ANY (ARRAY['pending'::text, 'paid'::text, 'expired'::text, 'cancelled'::text, 'refunded'::text, 'rejected'::text]));
