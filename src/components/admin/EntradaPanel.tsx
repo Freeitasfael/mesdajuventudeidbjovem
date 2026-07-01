@@ -769,7 +769,7 @@ export function EntradaPanel() {
   );
 }
 
-function KpiCard({ label, value, tone = "neutral" }: { label: string; value: string; tone?: "positive" | "negative" | "warning" | "neutral" }) {
+function KpiCard({ label, value, tone = "neutral", hint }: { label: string; value: string; tone?: "positive" | "negative" | "warning" | "neutral"; hint?: string }) {
   const toneClass = {
     positive: "text-emerald-600 dark:text-emerald-400",
     negative: "text-red-600 dark:text-red-400",
@@ -783,9 +783,10 @@ function KpiCard({ label, value, tone = "neutral" }: { label: string; value: str
     neutral: "",
   }[tone];
   return (
-    <Card className={`p-3 ${borderClass}`}>
+    <Card className={`p-3 ${borderClass}`} title={hint}>
       <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</p>
       <p className={`mt-1 text-lg font-bold ${toneClass}`}>{value}</p>
+      {hint && <p className="mt-1 text-[10px] text-muted-foreground leading-tight">{hint}</p>}
     </Card>
   );
 }
