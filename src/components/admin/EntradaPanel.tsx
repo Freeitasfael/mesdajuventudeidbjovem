@@ -128,6 +128,17 @@ export function EntradaPanel() {
   const [refundingId, setRefundingId] = useState<string | null>(null);
   const [assigningId, setAssigningId] = useState<string | null>(null);
 
+  // Custos de fabricação (sincronizados com a Dashboard via localStorage)
+  const [costCamiseta, setCostCamiseta] = useState<number>(() => {
+    try { const s = JSON.parse(localStorage.getItem(COST_STORAGE_KEY) || "{}"); return Number(s.camiseta) || DEFAULT_COST_CAMISETA; } catch { return DEFAULT_COST_CAMISETA; }
+  });
+  const [costPulseira, setCostPulseira] = useState<number>(() => {
+    try { const s = JSON.parse(localStorage.getItem(COST_STORAGE_KEY) || "{}"); return Number(s.pulseira) || DEFAULT_COST_PULSEIRA; } catch { return DEFAULT_COST_PULSEIRA; }
+  });
+  useEffect(() => {
+    localStorage.setItem(COST_STORAGE_KEY, JSON.stringify({ camiseta: costCamiseta, pulseira: costPulseira }));
+  }, [costCamiseta, costPulseira]);
+
   // Filtros
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "paid" | "expired" | "cancelled" | "refunded">("all");
   const [productFilter, setProductFilter] = useState<"all" | "pulseira" | "kit">("all");
