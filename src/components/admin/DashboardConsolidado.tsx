@@ -353,6 +353,16 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
           <StatCard label="Patrocinadores ativos" value={String(metrics.sponsorsCount)} />
         </div>
       </div>
+
+      {/* Ofertas resumo */}
+      <div>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Ofertas</h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <StatCard label="Total arrecadado" value={fmtBRL(metrics.offeringsTotal)} tone="positive" />
+          <StatCard label="Quantidade de ofertas" value={String(metrics.offeringsCount)} />
+          <StatCard label="Somado à Receita Total" value="Sim" subtitle="Contribui integralmente para o total geral" />
+        </div>
+      </div>
     </div>
   );
 }
