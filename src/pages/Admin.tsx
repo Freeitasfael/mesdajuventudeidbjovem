@@ -988,6 +988,30 @@ const Admin = () => {
 
           {/* ORDERS */}
           <TabsContent value="orders" className="mt-6 space-y-4">
+            {/* Configuração do Preço de Custo do prêmio (alimenta Lucro Líquido) */}
+            <Card className="p-4 border-primary/30 bg-primary/5">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold uppercase tracking-wide text-primary">
+                    Preço de Custo do Prêmio
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Alimenta o cálculo do <strong>Lucro Líquido</strong> = Receita paga − (Preço de custo + Taxa MP).
+                  </p>
+                </div>
+                <div className="flex items-end gap-2 w-full sm:w-auto">
+                  <div className="space-y-1 flex-1 sm:w-48">
+                    <Label className="text-xs" htmlFor="costRifaPremio">Prêmio (R$)</Label>
+                    <Input id="costRifaPremio" type="number" step="0.01" min="0" value={costRifaPremio}
+                      onChange={(e) => setCostRifaPremio(Number(e.target.value) || 0)} />
+                  </div>
+                  <Button variant="outline" size="sm" onClick={loadAll} title="Atualizar dados">
+                    <RefreshCw className="h-4 w-4 mr-1" /> Atualizar
+                  </Button>
+                </div>
+              </div>
+            </Card>
+
             {/* KPIs individuais da Rifa */}
             <div>
               <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">
@@ -995,19 +1019,22 @@ const Admin = () => {
               </h2>
               <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
                 <StatCard label="Receita paga" value={fmtBRL(rifaKpis.revPaid)} tone="positive" />
-                <StatCard label="Preço de custo (prêmio)" value={fmtBRL(50000)} tone="negative" />
+                <StatCard label="Preço de custo (prêmio)" value={fmtBRL(rifaPrizeCostCents)} tone="negative" />
                 <StatCard label="Taxa de Mercado Pago" value={fmtBRL(rifaKpis.revPaidFee)} tone="negative" />
                 <StatCard
                   label="Lucro líquido"
-                  value={fmtBRL(rifaKpis.revPaid - 50000 - rifaKpis.revPaidFee)}
-                  tone={rifaKpis.revPaid - 50000 - rifaKpis.revPaidFee >= 0 ? "positive" : "negative"}
+                  value={fmtBRL(rifaKpis.revPaid - (rifaPrizeCostCents + rifaKpis.revPaidFee))}
+                  tone={rifaKpis.revPaid - (rifaPrizeCostCents + rifaKpis.revPaidFee) >= 0 ? "positive" : "negative"}
                 />
                 <StatCard label="Números vendidos" value={String(stats?.numbers_paid ?? 0)} />
                 <StatCard label="Vendas pendentes" value={String(rifaKpis.pendingCount)} />
                 <StatCard label="Vendas canceladas" value={String(rifaKpis.canceledCount)} />
               </div>
               <p className="text-[11px] text-muted-foreground mt-2">
-                Lucro líquido = Receita paga − (Preço de custo do prêmio R$ 500,00 + Taxa Mercado Pago). Taxa aplicada por pedido: PIX 0,99% · Cartão 4,99%.
+                Lucro líquido = Receita paga − (Preço de custo {fmtBRL(rifaPrizeCostCents)} + Taxa Mercado Pago). Taxa aplicada por pedido: PIX 0,99% · Cartão 4,99%.
+              </p>
+            </div>
+
               </p>
             </div>
 
