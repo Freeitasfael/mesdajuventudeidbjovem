@@ -51,13 +51,20 @@ export function SponsorshipsPanel() {
   const [ownerName, setOwnerName] = useState("");
   const [ownerPhone, setOwnerPhone] = useState("");
 
+  const [tier, setTier] = useState<"" | "apoio" | "standard" | "premium">("");
+
   const load = async () => {
     setLoading(true);
     const { data, error } = await supabase
       .from("sponsorships")
-      .select("id, sponsor_name, amount_cents, kind, status, notes, owner_contact, owner_name, owner_phone, created_at")
+      .select("id, sponsor_name, amount_cents, kind, status, tier, notes, owner_contact, owner_name, owner_phone, created_at")
       .order("created_at", { ascending: false })
       .limit(1000);
+    if (error) toast.error("Erro ao carregar: " + error.message);
+    else setItems((data ?? []) as Sponsorship[]);
+    setLoading(false);
+  };
+
     if (error) toast.error("Erro ao carregar: " + error.message);
     else setItems((data ?? []) as Sponsorship[]);
     setLoading(false);
