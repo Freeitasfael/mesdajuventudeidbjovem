@@ -89,6 +89,11 @@ const fmtDate = (s: string) => new Date(s).toLocaleString("pt-BR");
 // Taxa de transação Mercado Pago aplicada por método (PIX 0,99% · Cartão 4,99%).
 import { netFromOrders } from "@/lib/fees";
 
+// Custos unitários de fabricação (R$) — sincronizados com a Dashboard
+const DEFAULT_COST_CAMISETA = 38;
+const DEFAULT_COST_PULSEIRA = 1.05;
+const COST_STORAGE_KEY = "dashboard_costs_v1";
+
 const STATUS_LABEL: Record<string, string> = {
   paid: "Pago",
   pending: "Pendente",
@@ -122,6 +127,17 @@ export function EntradaPanel() {
   const [savingPrices, setSavingPrices] = useState(false);
   const [refundingId, setRefundingId] = useState<string | null>(null);
   const [assigningId, setAssigningId] = useState<string | null>(null);
+
+  // Custos de fabricação (sincronizados com a Dashboard via localStorage)
+  const [costCamiseta, setCostCamiseta] = useState<number>(() => {
+    try { const s = JSON.parse(localStorage.getItem(COST_STORAGE_KEY) || "{}"); return Number(s.camiseta) || DEFAULT_COST_CAMISETA; } catch { return DEFAULT_COST_CAMISETA; }
+  });
+  const [costPulseira, setCostPulseira] = useState<number>(() => {
+    try { const s = JSON.parse(localStorage.getItem(COST_STORAGE_KEY) || "{}"); return Number(s.pulseira) || DEFAULT_COST_PULSEIRA; } catch { return DEFAULT_COST_PULSEIRA; }
+  });
+  useEffect(() => {
+    localStorage.setItem(COST_STORAGE_KEY, JSON.stringify({ camiseta: costCamiseta, pulseira: costPulseira }));
+  }, [costCamiseta, costPulseira]);
 
   // Filtros
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "paid" | "expired" | "cancelled" | "refunded">("all");
@@ -283,6 +299,41 @@ export function EntradaPanel() {
     return { revPaid, revPaidNet, revPending, paidCount: paid.length, pendingCount: pending.length, itemsSold, ticket, conv };
   })();
 
+  // Custos & Lucro (baseado em pedidos pagos)
+  const costMetrics = useMemo(() => {
+    const paid = orders.filter((o) => o.status === "paid");
+    const pulseiraOrders = paid.filter((o) => o.product === "pulseira");
+    const kitOrders = paid.filter((o) => o.product === "kit");
+    const pulseiraUnits = pulseiraOrders.reduce((a, o) => a + (o.quantity || 0), 0);
+    // Cada kit = 1 camiseta + 1 pulseira
+    const kitUnits = kitOrders.reduce((a, o) => a + (o.quantity || 0), 0);
+
+    const pulseiraAgg = netFromOrders(pulseiraOrders);
+    const kitAgg = netFromOrders(kitOrders);
+    const grossPulseira = pulseiraAgg.gross;
+    const grossKit = kitAgg.gross;
+    const netPulseira = pulseiraAgg.net;
+    const netKit = kitAgg.net;
+    const gross = grossPulseira + grossKit;
+    const net = netPulseira + netKit;
+    const fee = pulseiraAgg.fee + kitAgg.fee;
+
+    const costPulseiraTotal = Math.round((pulseiraUnits + kitUnits) * costPulseira * 100);
+    const costCamisetaTotal = Math.round(kitUnits * costCamiseta * 100);
+    const costTotal = costPulseiraTotal + costCamisetaTotal;
+
+    const profit = net - costTotal;
+    const margin = net > 0 ? (profit / net) * 100 : 0;
+
+    return {
+      pulseiraUnits, kitUnits,
+      grossPulseira, grossKit, netPulseira, netKit,
+      gross, net, fee,
+      costPulseiraTotal, costCamisetaTotal, costTotal,
+      profit, margin,
+    };
+  }, [orders, costCamiseta, costPulseira]);
+
   const exportCsv = () => {
     if (filteredOrders.length === 0) {
       toast.info("Sem pedidos para exportar nesse filtro");
@@ -339,6 +390,48 @@ export function EntradaPanel() {
             <KpiCard label="Pendentes" value={String(shirtKpis.pendingCount)} />
             <KpiCard label="Líquido (taxa MP)" value={fmtBRL(shirtKpis.revPaidNet)} />
           </div>
+        </div>
+
+        {/* Custos & Lucro */}
+        <div>
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">
+            Custos & Lucro
+          </h3>
+          <Card className="p-4 space-y-4">
+            <div className="grid gap-3 sm:grid-cols-2 max-w-md">
+              <div className="space-y-1">
+                <Label className="text-xs" htmlFor="costCamEnt">Custo camiseta (R$)</Label>
+                <Input id="costCamEnt" type="number" step="0.01" min="0" value={costCamiseta}
+                  onChange={(e) => setCostCamiseta(Number(e.target.value) || 0)} />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs" htmlFor="costPulEnt">Custo pulseira (R$)</Label>
+                <Input id="costPulEnt" type="number" step="0.01" min="0" value={costPulseira}
+                  onChange={(e) => setCostPulseira(Number(e.target.value) || 0)} />
+              </div>
+            </div>
+
+            <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+              <KpiCard label="Valor bruto" value={fmtBRL(costMetrics.gross)} />
+              <KpiCard label="Líquido (após taxa MP)" value={fmtBRL(costMetrics.net)} />
+              <KpiCard label="Custo total (fabricação)" value={fmtBRL(costMetrics.costTotal)} />
+              <KpiCard
+                label="Lucro"
+                value={fmtBRL(costMetrics.profit)}
+                tone={costMetrics.profit > 0 ? "positive" : costMetrics.profit < 0 ? "negative" : "neutral"}
+              />
+              <KpiCard label="Margem" value={`${costMetrics.margin.toFixed(1)}%`}
+                tone={costMetrics.margin >= 20 ? "positive" : costMetrics.margin >= 0 ? "warning" : "negative"} />
+              <KpiCard label="Taxa MP descontada" value={fmtBRL(costMetrics.fee)} />
+              <KpiCard label="Pulseiras vendidas" value={`${costMetrics.pulseiraUnits} un · ${fmtBRL(costMetrics.costPulseiraTotal)}`} />
+              <KpiCard label="Kits (camiseta+pulseira)" value={`${costMetrics.kitUnits} un · ${fmtBRL(costMetrics.costCamisetaTotal + Math.round(costMetrics.kitUnits * costPulseira * 100))}`} />
+            </div>
+
+            <p className="text-xs text-muted-foreground">
+              Cálculo: cada <strong>kit</strong> usa 1 camiseta ({fmtBRL(Math.round(costCamiseta * 100))}) + 1 pulseira ({fmtBRL(Math.round(costPulseira * 100))}); cada <strong>pulseira avulsa</strong> usa 1 pulseira.
+              Lucro = líquido (após taxa Mercado Pago) − custo de fabricação. Os custos são sincronizados com a Dashboard.
+            </p>
+          </Card>
         </div>
 
         <Card className="p-3">
@@ -532,11 +625,23 @@ export function EntradaPanel() {
   );
 }
 
-function KpiCard({ label, value }: { label: string; value: string }) {
+function KpiCard({ label, value, tone = "neutral" }: { label: string; value: string; tone?: "positive" | "negative" | "warning" | "neutral" }) {
+  const toneClass = {
+    positive: "text-emerald-600 dark:text-emerald-400",
+    negative: "text-red-600 dark:text-red-400",
+    warning: "text-amber-600 dark:text-amber-400",
+    neutral: "",
+  }[tone];
+  const borderClass = {
+    positive: "border-emerald-500/30 bg-emerald-500/5",
+    negative: "border-red-500/30 bg-red-500/5",
+    warning: "border-amber-500/30 bg-amber-500/5",
+    neutral: "",
+  }[tone];
   return (
-    <Card className="p-3">
+    <Card className={`p-3 ${borderClass}`}>
       <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</p>
-      <p className="mt-1 text-lg font-bold">{value}</p>
+      <p className={`mt-1 text-lg font-bold ${toneClass}`}>{value}</p>
     </Card>
   );
 }
