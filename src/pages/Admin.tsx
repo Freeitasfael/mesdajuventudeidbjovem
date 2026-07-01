@@ -1759,18 +1759,35 @@ const Admin = () => {
   );
 };
 
-const StatCard = ({ label, value, tone = "neutral" }: { label: string; value: string; tone?: "positive" | "negative" | "warning" | "neutral" }) => {
+const StatCard = ({ label, value, tone = "neutral", hint }: { label: string; value: string; tone?: "positive" | "negative" | "warning" | "neutral"; hint?: string }) => {
   const toneCls =
     tone === "positive" ? "text-emerald-600 dark:text-emerald-400" :
     tone === "negative" ? "text-red-600 dark:text-red-400" :
     tone === "warning" ? "text-amber-600 dark:text-amber-400" : "";
   return (
     <Card className="p-4">
-      <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+        {hint ? (
+          <TooltipProvider delayDuration={100}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button type="button" aria-label={`Como é calculado: ${label}`} className="text-muted-foreground/70 hover:text-foreground transition-colors">
+                  <Info className="h-3.5 w-3.5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-xs text-xs leading-relaxed">
+                {hint}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ) : null}
+      </div>
       <p className={`mt-1 text-2xl font-bold ${toneCls}`}>{value}</p>
     </Card>
   );
 };
+
 
 const StatusBadge = ({ status }: { status: string }) => {
   const map: Record<string, string> = {
