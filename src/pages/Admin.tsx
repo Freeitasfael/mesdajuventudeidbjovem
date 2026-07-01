@@ -832,10 +832,10 @@ const Admin = () => {
                 </h2>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                   <StatCard label="Pedidos pendentes" value={String(stats.pending_orders)} />
-                  <StatCard label="Vendedores" value={String(stats.sellers_count)} />
+                  <StatCard label="Números disponíveis" value={String(stats.numbers_available)} />
                   <StatCard label="Números pagos" value={String(stats.numbers_paid)} />
                   <StatCard label="Números reservados" value={String(stats.numbers_reserved)} />
-                  <StatCard label="Números disponíveis" value={String(stats.numbers_available)} />
+                  <StatCard label="Vendedores" value={String(stats.sellers_count)} />
                 </div>
               </div>
             )}
