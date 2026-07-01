@@ -11,6 +11,11 @@ import { Download, RefreshCw, Save, Undo2, UserPlus } from "lucide-react";
 import { buildCsv, downloadCsv } from "@/lib/csv";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
 
+interface EntradaOrderItem {
+  model: string;
+  size: string;
+  quantity: number;
+}
 interface EntradaOrder {
   id: string;
   created_at: string;
@@ -26,6 +31,46 @@ interface EntradaOrder {
   payment_method: string | null;
   seller_id: string | null;
   referral_label: string | null;
+  items: EntradaOrderItem[] | null;
+}
+
+const MODEL_LABEL: Record<string, string> = {
+  adulto: "Adulto",
+  baby: "Babylook",
+  infantil: "Infantil",
+};
+
+function normalizeItems(o: EntradaOrder): EntradaOrderItem[] {
+  if (Array.isArray(o.items) && o.items.length > 0) {
+    return o.items.map((it) => ({
+      model: it.model || "adulto",
+      size: it.size || "—",
+      quantity: Number(it.quantity) || 0,
+    }));
+  }
+  if (o.product === "kit" && o.size) {
+    return [{ model: o.model || "adulto", size: o.size, quantity: o.quantity }];
+  }
+  return [];
+}
+
+function ItemsCell({ o }: { o: EntradaOrder }) {
+  if (o.product !== "kit") return <span className="text-muted-foreground">—</span>;
+  const items = normalizeItems(o);
+  if (items.length === 0) return <span className="text-muted-foreground">—</span>;
+  return (
+    <ul className="space-y-0.5">
+      {items.map((it, i) => (
+        <li key={i} className="text-xs whitespace-nowrap">
+          <span className="font-medium">{MODEL_LABEL[it.model] ?? it.model}</span>
+          {" · "}
+          <span>Tam {it.size}</span>
+          {" · "}
+          <span className="text-muted-foreground">x{it.quantity}</span>
+        </li>
+      ))}
+    </ul>
+  );
 }
 
 interface StockRow {
