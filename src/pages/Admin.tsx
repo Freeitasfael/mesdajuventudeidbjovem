@@ -1712,12 +1712,18 @@ const Admin = () => {
   );
 };
 
-const StatCard = ({ label, value }: { label: string; value: string }) => (
-  <Card className="p-4">
-    <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
-    <p className="mt-1 text-2xl font-bold">{value}</p>
-  </Card>
-);
+const StatCard = ({ label, value, tone = "neutral" }: { label: string; value: string; tone?: "positive" | "negative" | "warning" | "neutral" }) => {
+  const toneCls =
+    tone === "positive" ? "text-emerald-600 dark:text-emerald-400" :
+    tone === "negative" ? "text-red-600 dark:text-red-400" :
+    tone === "warning" ? "text-amber-600 dark:text-amber-400" : "";
+  return (
+    <Card className="p-4">
+      <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className={`mt-1 text-2xl font-bold ${toneCls}`}>{value}</p>
+    </Card>
+  );
+};
 
 const StatusBadge = ({ status }: { status: string }) => {
   const map: Record<string, string> = {
