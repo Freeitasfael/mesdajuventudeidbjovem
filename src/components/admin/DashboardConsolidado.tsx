@@ -47,7 +47,7 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
   const load = async () => {
     setLoading(true);
     let camisetasQ = supabase.from("orders").select("total_cents, created_at, status, payment_method").eq("status", "paid").limit(5000);
-    let entQ = supabase.from("entrada_orders").select("total_cents, created_at, status, product, quantity, payment_method").eq("status", "paid").limit(5000);
+    let entQ = supabase.from("entrada_orders").select("total_cents, created_at, status, product, quantity, payment_method").limit(5000);
     let expQ = supabase.from("expenses").select("amount_cents, expense_date, category").limit(5000);
     const sponsorsQ = supabase.from("sponsorships").select("amount_cents, kind, status, created_at").limit(5000);
 
@@ -78,16 +78,24 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
     const camisetasGross = camisetasAgg.gross;
     const camisetasTotal = camisetasAgg.net;
     const camisetasCount = camisetasOrders.length;
-    const entAgg = netFromOrders(entrada);
+
+    // Entrada (camisetas): separar por status
+    const entPaid = entrada.filter((e) => e.status === "paid");
+    const entPending = entrada.filter((e) => e.status === "pending");
+    const entCanceled = entrada.filter((e) => e.status === "canceled" || e.status === "cancelled" || e.status === "rejected");
+    const entAgg = netFromOrders(entPaid);
     const entGross = entAgg.gross;
     const entTotal = entAgg.net;
-    const entCount = entrada.length;
-    const pulseira = entrada.filter((e) => e.product === "pulseira");
-    const kit = entrada.filter((e) => e.product === "kit");
-    const pulTotal = netFromOrders(pulseira).net;
-    const kitTotal = netFromOrders(kit).net;
-    const pulUnits = pulseira.reduce((a, o) => a + (o.quantity || 1), 0);
+    const entFee = entAgg.fee;
+    const entCount = entPaid.length;
+    const entPendingCount = entPending.length;
+    const entCanceledCount = entCanceled.length;
+    const entPendingGross = entPending.reduce((a, o) => a + o.total_cents, 0);
+    const kit = entPaid.filter((e) => e.product === "kit");
     const kitUnits = kit.reduce((a, o) => a + (o.quantity || 1), 0);
+    const itemsSold = entPaid.reduce((a, o) => a + (o.quantity || 1), 0);
+    const shirtCost = Math.round(itemsSold * costCamiseta * 100);
+    const shirtProfit = entGross - shirtCost - entFee;
 
     // Patrocínios (apenas confirmados em dinheiro contam para receita)
     const sponsorsConfirmedCash = sponsors
@@ -101,16 +109,13 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
 
     // Gastos
     const expensesTotal = expenses.reduce((a, e) => a + e.amount_cents, 0);
-    const fabricationCost = Math.round(
-      pulUnits * costPulseira * 100 +
-      kitUnits * (costCamiseta + costPulseira) * 100,
-    );
+    const fabricationCost = shirtCost;
     const totalExpenses = expensesTotal + fabricationCost;
 
     // Receita Total = Camisetas + Entrada + Patrocínios confirmados
     const totalRevenue = camisetasTotal + entTotal + sponsorsConfirmedTotal;
     const totalGross = camisetasGross + entGross;
-    const totalFee = camisetasAgg.fee + entAgg.fee;
+    const totalFee = camisetasAgg.fee + entFee;
 
     // Lucro líquido & margem
     const netProfit = totalRevenue - totalExpenses;
@@ -121,15 +126,14 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
 
     return {
       camisetasTotal, camisetasGross, camisetasCount,
-      entTotal, entGross, entCount,
-      pulTotal, pulCount: pulseira.length, pulUnits,
-      kitTotal, kitCount: kit.length, kitUnits,
+      entTotal, entGross, entCount, entFee, entPendingCount, entCanceledCount, entPendingGross,
+      kitCount: kit.length, kitUnits, itemsSold, shirtCost, shirtProfit,
       sponsorsConfirmedCash, sponsorsConfirmedPermuta, sponsorsConfirmedTotal, sponsorsCount,
       expensesTotal, fabricationCost, totalExpenses,
       totalRevenue, totalGross, feeCents: totalFee,
       netProfit, margin, totalCount, ticket,
     };
-  }, [camisetasOrders, entrada, expenses, sponsors, costCamiseta, costPulseira]);
+  }, [camisetasOrders, entrada, expenses, sponsors, costCamiseta]);
 
   // Alertas inteligentes
   const alerts: { level: "warn" | "danger"; msg: string }[] = [];
@@ -235,13 +239,38 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
         </div>
       </div>
 
-      {/* Camiseta */}
+      {/* Resumo da Camiseta */}
       <div>
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Camiseta</h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <StatCard label="Arrecadado (camiseta)" value={fmtBRL(metrics.entTotal)} />
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Resumo da Camiseta</h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard
+            label="Receita paga"
+            value={fmtBRL(metrics.entGross)}
+            subtitle="Valor bruto (sem descontar taxas)"
+            tone="positive"
+          />
+          <StatCard
+            label="Preço de custo"
+            value={fmtBRL(metrics.shirtCost)}
+            subtitle="Custo × camisetas vendidas"
+            tone="warning"
+          />
+          <StatCard
+            label="Taxa de Mercado Pago"
+            value={fmtBRL(metrics.entFee)}
+            subtitle="PIX 0,99% · Cartão 4,99%"
+            tone="warning"
+          />
+          <StatCard
+            label="Lucro líquido"
+            value={fmtBRL(metrics.shirtProfit)}
+            subtitle="Receita − (custo + taxa MP)"
+            tone={metrics.shirtProfit >= 0 ? "positive" : "negative"}
+          />
+          <StatCard label="Camisetas vendidas" value={String(metrics.itemsSold)} />
           <StatCard label="Pedidos pagos" value={String(metrics.entCount)} />
-          <StatCard label="Camisetas vendidas" value={`${metrics.kitCount} · ${fmtBRL(metrics.kitTotal)}`} />
+          <StatCard label="Vendas pendentes" value={String(metrics.entPendingCount)} subtitle={fmtBRL(metrics.entPendingGross)} />
+          <StatCard label="Vendas canceladas" value={String(metrics.entCanceledCount)} />
         </div>
       </div>
 
@@ -255,12 +284,12 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
         </div>
       </div>
 
-      {/* Custos de fabricação editáveis */}
+      {/* Custo unitário editável */}
       <div>
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Custos de fabricação</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Custo de fabricação</h2>
         <Card className="p-4">
           <p className="text-xs text-muted-foreground mb-3">
-            Custos unitários (R$) usados para calcular o custo da entrada. Editáveis — salvos neste navegador.
+            Custo unitário (R$) usado para calcular o preço de custo da camiseta. Editável — salvo neste navegador.
           </p>
           <div className="grid gap-3 sm:grid-cols-2 max-w-md">
             <div className="space-y-1">
@@ -268,14 +297,9 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
               <Input id="costCam" type="number" step="0.01" min="0" value={costCamiseta}
                 onChange={(e) => setCostCamiseta(Number(e.target.value) || 0)} />
             </div>
-            <div className="space-y-1">
-              <Label className="text-xs" htmlFor="costPul">Custo pulseira (R$)</Label>
-              <Input id="costPul" type="number" step="0.01" min="0" value={costPulseira}
-                onChange={(e) => setCostPulseira(Number(e.target.value) || 0)} />
-            </div>
           </div>
           <p className="text-xs text-muted-foreground mt-3">
-            {metrics.pulUnits} pulseira(s) + {metrics.kitUnits} kit(s) = {fmtBRL(metrics.fabricationCost)} em fabricação. Gastos avulsos cadastrados na aba "Gastos": {fmtBRL(metrics.expensesTotal)}.
+            {metrics.itemsSold} camiseta(s) vendida(s) × {fmtBRL(Math.round(costCamiseta * 100))} = {fmtBRL(metrics.fabricationCost)}. Gastos avulsos cadastrados na aba "Gastos": {fmtBRL(metrics.expensesTotal)}.
           </p>
         </Card>
       </div>
