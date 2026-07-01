@@ -398,9 +398,8 @@ export function EntradaPanel() {
                 <th className="px-4 py-3">Comprador</th>
                 <th className="px-4 py-3">Telefone</th>
                 <th className="px-4 py-3">Produto</th>
-                <th className="px-4 py-3">Modelo</th>
-                <th className="px-4 py-3">Tam/Idade</th>
-                <th className="px-4 py-3">Qtd</th>
+                <th className="px-4 py-3">Itens (modelo · tamanho · qtd)</th>
+                <th className="px-4 py-3">Qtd total</th>
                 <th className="px-4 py-3">Pgto</th>
                 <th className="px-4 py-3">Revendedor</th>
                 <th className="px-4 py-3">Status</th>
