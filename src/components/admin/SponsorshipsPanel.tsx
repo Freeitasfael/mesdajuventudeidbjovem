@@ -5,8 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Plus, Trash2, RefreshCw, CheckCircle2, Clock, Download, Star } from "lucide-react";
+import { Plus, Trash2, RefreshCw, CheckCircle2, Clock, Download, Star, Pencil } from "lucide-react";
 import cotasPdf from "@/assets/cotas-patrocinio.pdf.asset.json";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
 
@@ -52,6 +53,55 @@ export function SponsorshipsPanel() {
   const [ownerPhone, setOwnerPhone] = useState("");
 
   const [tier, setTier] = useState<"" | "apoio" | "standard" | "premium">("");
+
+  // Edit dialog state
+  const [editing, setEditing] = useState<Sponsorship | null>(null);
+  const [eSponsor, setESponsor] = useState("");
+  const [eAmount, setEAmount] = useState("");
+  const [eKind, setEKind] = useState<"cash" | "permuta">("cash");
+  const [eStatus, setEStatus] = useState<"confirmed" | "pending">("pending");
+  const [eTier, setETier] = useState<"" | "apoio" | "standard" | "premium">("");
+  const [eOwnerName, setEOwnerName] = useState("");
+  const [eOwnerPhone, setEOwnerPhone] = useState("");
+  const [eNotes, setENotes] = useState("");
+  const [eSaving, setESaving] = useState(false);
+
+  const openEdit = (s: Sponsorship) => {
+    setEditing(s);
+    setESponsor(s.sponsor_name);
+    setEAmount((s.amount_cents / 100).toFixed(2));
+    setEKind(s.kind);
+    setEStatus(s.status);
+    setETier((s.tier ?? "") as "" | "apoio" | "standard" | "premium");
+    setEOwnerName(s.owner_name ?? "");
+    setEOwnerPhone(s.owner_phone ?? "");
+    setENotes(s.notes ?? "");
+  };
+
+  const saveEdit = async () => {
+    if (!editing) return;
+    const n = eSponsor.trim();
+    const cents = Math.round(parseFloat(eAmount.replace(",", ".")) * 100);
+    if (!n) return toast.error("Informe o nome do patrocinador");
+    if (!Number.isFinite(cents) || cents <= 0) return toast.error("Valor inválido");
+    setESaving(true);
+    const { error } = await supabase.from("sponsorships").update({
+      sponsor_name: n,
+      amount_cents: cents,
+      kind: eKind,
+      status: eStatus,
+      tier: eTier || null,
+      notes: eNotes.trim() || null,
+      owner_name: eOwnerName.trim() || null,
+      owner_phone: eOwnerPhone.trim() || null,
+    }).eq("id", editing.id);
+    setESaving(false);
+    if (error) return toast.error("Erro: " + error.message);
+    toast.success("Patrocinador atualizado");
+    setEditing(null);
+    load();
+  };
+
 
   const load = async () => {
     setLoading(true);
@@ -154,10 +204,7 @@ export function SponsorshipsPanel() {
 
         <div className="grid gap-3 md:grid-cols-3">
           <div className="rounded-lg border border-border p-4 space-y-2">
-            <div className="flex items-center justify-between">
-              <h4 className="font-semibold text-sm uppercase tracking-wide">Cota Apoio</h4>
-              <span className="text-base font-bold text-emerald-600 dark:text-emerald-400">R$ 200</span>
-            </div>
+            <h4 className="font-semibold text-sm uppercase tracking-wide">Cota Apoio</h4>
             <p className="text-xs text-muted-foreground">
               Indicada para empresas que desejam apoiar o evento com presença institucional básica.
             </p>
@@ -170,10 +217,7 @@ export function SponsorshipsPanel() {
           </div>
 
           <div className="rounded-lg border border-border p-4 space-y-2">
-            <div className="flex items-center justify-between">
-              <h4 className="font-semibold text-sm uppercase tracking-wide">Cota Standard</h4>
-              <span className="text-base font-bold text-emerald-600 dark:text-emerald-400">R$ 500</span>
-            </div>
+            <h4 className="font-semibold text-sm uppercase tracking-wide">Cota Standard</h4>
             <ul className="space-y-1.5 text-sm">
               <li className="flex gap-2">
                 <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
@@ -194,10 +238,7 @@ export function SponsorshipsPanel() {
             <span className="absolute -top-2 right-3 inline-flex items-center gap-1 rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
               <Star className="h-3 w-3" /> Destaque
             </span>
-            <div className="flex items-center justify-between">
-              <h4 className="font-semibold text-sm uppercase tracking-wide">Cota Premium</h4>
-              <span className="text-base font-bold text-amber-600 dark:text-amber-400">R$ 800</span>
-            </div>
+            <h4 className="font-semibold text-sm uppercase tracking-wide">Cota Premium</h4>
             <ul className="space-y-1.5 text-sm">
               <li className="flex gap-2">
                 <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
@@ -371,7 +412,10 @@ export function SponsorshipsPanel() {
                   <Button size="sm" variant="outline" onClick={() => toggleStatus(s)}>
                     {s.status === "confirmed" ? "Marcar pendente" : "Confirmar"}
                   </Button>
-                  <Button size="sm" variant="ghost" onClick={() => handleDelete(s.id)}>
+                  <Button size="sm" variant="ghost" onClick={() => openEdit(s)} title="Editar">
+                    <Pencil className="h-3 w-3" />
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => handleDelete(s.id)} title="Remover">
                     <Trash2 className="h-3 w-3 text-destructive" />
                   </Button>
                 </td>
@@ -387,6 +431,80 @@ export function SponsorshipsPanel() {
           </tbody>
         </table>
       </Card>
+
+      {/* Edit dialog */}
+      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Editar patrocinador</DialogTitle>
+          </DialogHeader>
+          {editing && (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1 sm:col-span-2">
+                <Label className="text-xs">Patrocinador</Label>
+                <Input value={eSponsor} onChange={(e) => setESponsor(e.target.value)} />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Valor (R$)</Label>
+                <Input type="number" step="0.01" min="0.01" value={eAmount} onChange={(e) => setEAmount(e.target.value)} />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Tipo</Label>
+                <select
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  value={eKind}
+                  onChange={(e) => setEKind(e.target.value as "cash" | "permuta")}
+                >
+                  <option value="cash">Dinheiro</option>
+                  <option value="permuta">Permuta</option>
+                </select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Cota (pacote)</Label>
+                <select
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  value={eTier}
+                  onChange={(e) => setETier(e.target.value as "" | "apoio" | "standard" | "premium")}
+                >
+                  <option value="">— Sem cota —</option>
+                  <option value="apoio">Cota Apoio</option>
+                  <option value="standard">Cota Standard</option>
+                  <option value="premium">Cota Premium</option>
+                </select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Status</Label>
+                <select
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  value={eStatus}
+                  onChange={(e) => setEStatus(e.target.value as "confirmed" | "pending")}
+                >
+                  <option value="pending">Pendente</option>
+                  <option value="confirmed">Confirmado</option>
+                </select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Nome do proprietário (opcional)</Label>
+                <Input value={eOwnerName} onChange={(e) => setEOwnerName(e.target.value)} />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Telefone do proprietário (opcional)</Label>
+                <Input value={eOwnerPhone} onChange={(e) => setEOwnerPhone(e.target.value)} />
+              </div>
+              <div className="space-y-1 sm:col-span-2">
+                <Label className="text-xs">Observação</Label>
+                <Textarea value={eNotes} onChange={(e) => setENotes(e.target.value)} rows={2} />
+              </div>
+            </div>
+          )}
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setEditing(null)}>Cancelar</Button>
+            <Button onClick={saveEdit} disabled={eSaving}>
+              {eSaving ? "Salvando..." : "Salvar alterações"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
