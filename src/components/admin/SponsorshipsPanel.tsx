@@ -16,12 +16,25 @@ interface Sponsorship {
   amount_cents: number;
   kind: "cash" | "permuta";
   status: "confirmed" | "pending";
+  tier: "apoio" | "standard" | "premium" | null;
   notes: string | null;
   owner_contact: string | null;
   owner_name: string | null;
   owner_phone: string | null;
   created_at: string;
 }
+
+const TIER_LABEL: Record<string, string> = {
+  apoio: "Cota Apoio",
+  standard: "Cota Standard",
+  premium: "Cota Premium",
+};
+const TIER_STYLE: Record<string, string> = {
+  apoio: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
+  standard: "bg-sky-500/15 text-sky-700 dark:text-sky-300",
+  premium: "bg-amber-500/20 text-amber-700 dark:text-amber-300 font-semibold",
+};
+
 
 const fmtBRL = (c: number) => `R$ ${(c / 100).toFixed(2).replace(".", ",")}`;
 
