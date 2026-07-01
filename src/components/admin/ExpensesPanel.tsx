@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Plus, Trash2, RefreshCw, Paperclip, Download, FileDown, ExternalLink, CheckCircle2 } from "lucide-react";
+import { Plus, Trash2, RefreshCw, Paperclip, FileDown, ExternalLink, CheckCircle2, Pencil } from "lucide-react";
 
 interface Expense {
   id: string;
@@ -43,6 +44,19 @@ export function ExpensesPanel() {
   const [paidDate, setPaidDate] = useState<string>(() => new Date().toISOString().slice(0, 10));
   const [notes, setNotes] = useState("");
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
+
+  // Edit dialog state
+  const [editing, setEditing] = useState<Expense | null>(null);
+  const [eName, setEName] = useState("");
+  const [eCategory, setECategory] = useState("Geral");
+  const [eAmount, setEAmount] = useState("");
+  const [eDate, setEDate] = useState("");
+  const [eStatus, setEStatus] = useState<"paid" | "scheduled">("paid");
+  const [ePaidDate, setEPaidDate] = useState<string>("");
+  const [eNotes, setENotes] = useState("");
+  const [eReceiptFile, setEReceiptFile] = useState<File | null>(null);
+  const [eRemoveReceipt, setERemoveReceipt] = useState(false);
+  const [eSaving, setESaving] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -149,6 +163,60 @@ export function ExpensesPanel() {
       .eq("id", e.id);
     if (error) return toast.error("Erro: " + error.message);
     toast.success("Marcado como pago");
+    load();
+  };
+
+  const openEdit = (e: Expense) => {
+    setEditing(e);
+    setEName(e.name);
+    setECategory(e.category);
+    setEAmount((e.amount_cents / 100).toFixed(2));
+    setEDate(e.expense_date);
+    setEStatus((e.status === "paid" ? "paid" : "scheduled"));
+    setEPaidDate(e.paid_date ?? new Date().toISOString().slice(0, 10));
+    setENotes(e.notes ?? "");
+    setEReceiptFile(null);
+    setERemoveReceipt(false);
+  };
+
+  const saveEdit = async () => {
+    if (!editing) return;
+    const n = eName.trim();
+    const cents = Math.round(parseFloat(eAmount.replace(",", ".")) * 100);
+    if (!n) return toast.error("Informe o nome do gasto");
+    if (!Number.isFinite(cents) || cents <= 0) return toast.error("Valor inválido");
+    setESaving(true);
+
+    let receipt_path: string | null | undefined = undefined; // undefined = do not change
+    if (eReceiptFile) {
+      const newPath = await uploadReceipt(eReceiptFile);
+      if (!newPath) { setESaving(false); return; }
+      // remove old
+      if (editing.receipt_path) {
+        await supabase.storage.from("expense-receipts").remove([editing.receipt_path]);
+      }
+      receipt_path = newPath;
+    } else if (eRemoveReceipt && editing.receipt_path) {
+      await supabase.storage.from("expense-receipts").remove([editing.receipt_path]);
+      receipt_path = null;
+    }
+
+    const payload: Record<string, unknown> = {
+      name: n,
+      category: eCategory,
+      amount_cents: cents,
+      expense_date: eDate,
+      notes: eNotes.trim() || null,
+      status: eStatus,
+      paid_date: eStatus === "paid" ? ePaidDate : null,
+    };
+    if (receipt_path !== undefined) payload.receipt_path = receipt_path;
+
+    const { error } = await supabase.from("expenses").update(payload).eq("id", editing.id);
+    setESaving(false);
+    if (error) return toast.error("Erro ao salvar: " + error.message);
+    toast.success("Gasto atualizado");
+    setEditing(null);
     load();
   };
 
@@ -313,7 +381,10 @@ export function ExpensesPanel() {
                       <CheckCircle2 className="h-3 w-3 text-emerald-600" />
                     </Button>
                   )}
-                  <Button size="sm" variant="ghost" onClick={() => handleDelete(e.id, e.receipt_path)}>
+                  <Button size="sm" variant="ghost" onClick={() => openEdit(e)} title="Editar">
+                    <Pencil className="h-3 w-3" />
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => handleDelete(e.id, e.receipt_path)} title="Remover">
                     <Trash2 className="h-3 w-3 text-destructive" />
                   </Button>
                 </td>
@@ -329,6 +400,102 @@ export function ExpensesPanel() {
           </tbody>
         </table>
       </Card>
+
+      {/* Edit dialog */}
+      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Editar gasto</DialogTitle>
+          </DialogHeader>
+          {editing && (
+            <div className="space-y-3">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-1 sm:col-span-2">
+                  <Label className="text-xs">Nome</Label>
+                  <Input value={eName} onChange={(e) => setEName(e.target.value)} />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Categoria</Label>
+                  <select
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    value={eCategory}
+                    onChange={(e) => setECategory(e.target.value)}
+                  >
+                    {CATEGORIES.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Valor (R$)</Label>
+                  <Input type="number" step="0.01" min="0.01" value={eAmount} onChange={(e) => setEAmount(e.target.value)} />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Data do lançamento</Label>
+                  <Input type="date" value={eDate} onChange={(e) => setEDate(e.target.value)} />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Situação</Label>
+                  <select
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    value={eStatus}
+                    onChange={(e) => setEStatus(e.target.value as "paid" | "scheduled")}
+                  >
+                    {STATUS_OPTIONS.map((s) => (
+                      <option key={s.value} value={s.value}>{s.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-1 sm:col-span-2">
+                  <Label className="text-xs">Data do pagamento</Label>
+                  <Input
+                    type="date"
+                    value={ePaidDate}
+                    onChange={(e) => setEPaidDate(e.target.value)}
+                    disabled={eStatus !== "paid"}
+                  />
+                </div>
+                <div className="space-y-1 sm:col-span-2">
+                  <Label className="text-xs">Comprovante</Label>
+                  {editing.receipt_path && !eReceiptFile && !eRemoveReceipt && (
+                    <div className="flex items-center gap-2 text-xs">
+                      <Button size="sm" variant="outline" onClick={() => openReceipt(editing.receipt_path!)}>
+                        <ExternalLink className="h-3 w-3 mr-1" /> Ver atual
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => setERemoveReceipt(true)}>
+                        Remover comprovante
+                      </Button>
+                    </div>
+                  )}
+                  {eRemoveReceipt && (
+                    <p className="text-xs text-amber-600">Comprovante será removido ao salvar. <button className="underline" onClick={() => setERemoveReceipt(false)}>desfazer</button></p>
+                  )}
+                  <Input
+                    type="file"
+                    accept="image/*,application/pdf"
+                    onChange={(e) => setEReceiptFile(e.target.files?.[0] ?? null)}
+                  />
+                  {eReceiptFile && (
+                    <p className="text-xs text-muted-foreground truncate">
+                      <Paperclip className="inline h-3 w-3 mr-1" />{eReceiptFile.name} (substituirá o atual)
+                    </p>
+                  )}
+                </div>
+                <div className="space-y-1 sm:col-span-2">
+                  <Label className="text-xs">Observação</Label>
+                  <Textarea value={eNotes} onChange={(e) => setENotes(e.target.value)} rows={2} />
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setEditing(null)}>Cancelar</Button>
+            <Button onClick={saveEdit} disabled={eSaving}>
+              {eSaving ? "Salvando..." : "Salvar alterações"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
