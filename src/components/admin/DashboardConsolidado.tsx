@@ -11,6 +11,7 @@ interface OrderLite { total_cents: number; created_at: string; status: string; p
 interface EntradaLite { total_cents: number; created_at: string; status: string; product: string; quantity: number; payment_method: string | null; }
 interface ExpenseLite { amount_cents: number; expense_date: string; category: string; }
 interface SponsorLite { amount_cents: number; kind: "cash" | "permuta"; status: "confirmed" | "pending"; created_at: string; }
+interface OfferingLite { amount_cents: number; offering_date: string; payment_method: string; }
 
 // Custos unitários de fabricação (R$)
 const DEFAULT_COST_CAMISETA = 38;
