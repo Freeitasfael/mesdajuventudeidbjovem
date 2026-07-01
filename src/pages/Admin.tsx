@@ -1020,18 +1020,47 @@ const Admin = () => {
                 Resumo da Rifa
               </h2>
               <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-                <StatCard label="Receita paga" value={fmtBRL(rifaKpis.revPaid)} tone="positive" />
-                <StatCard label="Preço de custo (prêmio)" value={fmtBRL(rifaPrizeCostCents)} tone="negative" />
-                <StatCard label="Taxa de Mercado Pago" value={fmtBRL(rifaKpis.revPaidFee)} tone="negative" />
+                <StatCard
+                  label="Receita paga"
+                  value={fmtBRL(rifaKpis.revPaid)}
+                  tone="positive"
+                  hint="Soma do valor bruto (total_cents) de todos os pedidos com status 'paid'. É a receita bruta antes de descontar custos e taxas."
+                />
+                <StatCard
+                  label="Preço de custo (prêmio)"
+                  value={fmtBRL(rifaPrizeCostCents)}
+                  tone="negative"
+                  hint="Valor configurável no campo 'Preço de Custo do Prêmio' acima. Representa quanto sai do caixa para pagar o vencedor da rifa."
+                />
+                <StatCard
+                  label="Taxa de Mercado Pago"
+                  value={fmtBRL(rifaKpis.revPaidFee)}
+                  tone="negative"
+                  hint="Taxa cobrada pelo Mercado Pago por pedido pago: PIX 0,99% · Cartão 4,99%. Calculada individualmente por pedido conforme o método de pagamento."
+                />
                 <StatCard
                   label="Lucro líquido"
                   value={fmtBRL(rifaKpis.revPaid - (rifaPrizeCostCents + rifaKpis.revPaidFee))}
                   tone={rifaKpis.revPaid - (rifaPrizeCostCents + rifaKpis.revPaidFee) >= 0 ? "positive" : "negative"}
+                  hint={`Fórmula: Receita paga − (Preço de custo + Taxa MP). Cálculo atual: ${fmtBRL(rifaKpis.revPaid)} − (${fmtBRL(rifaPrizeCostCents)} + ${fmtBRL(rifaKpis.revPaidFee)}) = ${fmtBRL(rifaKpis.revPaid - (rifaPrizeCostCents + rifaKpis.revPaidFee))}.`}
                 />
-                <StatCard label="Números vendidos" value={String(stats?.numbers_paid ?? 0)} />
-                <StatCard label="Vendas pendentes" value={String(rifaKpis.pendingCount)} />
-                <StatCard label="Vendas canceladas" value={String(rifaKpis.canceledCount)} />
+                <StatCard
+                  label="Números vendidos"
+                  value={String(stats?.numbers_paid ?? 0)}
+                  hint="Quantidade de números da rifa com status 'paid' na tabela numbers (contagem direta no banco)."
+                />
+                <StatCard
+                  label="Vendas pendentes"
+                  value={String(rifaKpis.pendingCount)}
+                  hint="Pedidos com status 'pending' — aguardando confirmação de pagamento. Ainda podem virar 'paid' ou 'expired'."
+                />
+                <StatCard
+                  label="Vendas canceladas"
+                  value={String(rifaKpis.canceledCount)}
+                  hint="Soma dos pedidos com status 'cancelled', 'expired', 'refunded' ou 'rejected'. Não geram receita nem consomem números."
+                />
               </div>
+
               <p className="text-[11px] text-muted-foreground mt-2">
                 Lucro líquido = Receita paga − (Preço de custo {fmtBRL(rifaPrizeCostCents)} + Taxa Mercado Pago). Taxa aplicada por pedido: PIX 0,99% · Cartão 4,99%.
               </p>
