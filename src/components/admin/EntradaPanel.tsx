@@ -289,15 +289,16 @@ export function EntradaPanel() {
   const shirtKpis = (() => {
     const paid = orders.filter((o) => o.status === "paid");
     const pending = orders.filter((o) => o.status === "pending");
+    const canceled = orders.filter((o) => o.status === "canceled" || o.status === "cancelled" || o.status === "rejected");
     const paidAgg = netFromOrders(paid);
     const revPaid = paidAgg.gross;
     const revPaidNet = paidAgg.net;
+    const fee = paidAgg.fee;
     const revPending = pending.reduce((a, o) => a + o.total_cents, 0);
     const itemsSold = paid.reduce((a, o) => a + (o.quantity || 0), 0);
-    const ticket = paid.length > 0 ? Math.round(revPaid / paid.length) : 0;
-    const conv = orders.length > 0 ? (paid.length / orders.length) * 100 : 0;
-    return { revPaid, revPaidNet, revPending, paidCount: paid.length, pendingCount: pending.length, itemsSold, ticket, conv };
+    return { revPaid, revPaidNet, fee, revPending, paidCount: paid.length, pendingCount: pending.length, canceledCount: canceled.length, itemsSold };
   })();
+
 
   // Custos & Lucro (baseado em pedidos pagos)
   const costMetrics = useMemo(() => {
@@ -382,13 +383,16 @@ export function EntradaPanel() {
           </h3>
           <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
             <KpiCard label="Receita paga" value={fmtBRL(shirtKpis.revPaid)} />
-            <KpiCard label="Receita pendente" value={fmtBRL(shirtKpis.revPending)} />
-            <KpiCard label="Pedidos pagos" value={String(shirtKpis.paidCount)} />
-            <KpiCard label="Itens vendidos" value={String(shirtKpis.itemsSold)} />
-            <KpiCard label="Ticket médio" value={fmtBRL(shirtKpis.ticket)} />
-            <KpiCard label="Conversão" value={`${shirtKpis.conv.toFixed(1)}%`} />
-            <KpiCard label="Pendentes" value={String(shirtKpis.pendingCount)} />
-            <KpiCard label="Líquido (taxa MP)" value={fmtBRL(shirtKpis.revPaidNet)} />
+            <KpiCard label="Preço de custo" value={fmtBRL(costMetrics.costTotal)} tone="warning" />
+            <KpiCard label="Taxa de Mercado Pago" value={fmtBRL(shirtKpis.fee)} tone="warning" />
+            <KpiCard
+              label="Lucro líquido"
+              value={fmtBRL(shirtKpis.revPaid - costMetrics.costTotal - shirtKpis.fee)}
+              tone={shirtKpis.revPaid - costMetrics.costTotal - shirtKpis.fee >= 0 ? "positive" : "negative"}
+            />
+            <KpiCard label="Camisetas vendidas" value={String(shirtKpis.itemsSold)} />
+            <KpiCard label="Vendas pendentes" value={String(shirtKpis.pendingCount)} />
+            <KpiCard label="Vendas canceladas" value={String(shirtKpis.canceledCount)} />
           </div>
         </div>
 
