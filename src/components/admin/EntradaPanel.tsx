@@ -376,6 +376,32 @@ export function EntradaPanel() {
       </TabsList>
 
       <TabsContent value="transacoes" className="space-y-3">
+        {/* Configuração do Preço de Custo (alimenta o Lucro Líquido) */}
+        <Card className="p-4 border-primary/30 bg-primary/5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-primary">
+                Preço de Custo
+              </h3>
+              <p className="text-xs text-muted-foreground mt-1">
+                Usado automaticamente no cálculo do <strong>Lucro Líquido</strong> (Receita paga − Custo − Taxa MP). Sincronizado com a Dashboard.
+              </p>
+            </div>
+            <div className="grid gap-3 grid-cols-2 sm:max-w-sm w-full">
+              <div className="space-y-1">
+                <Label className="text-xs" htmlFor="costCamTop">Camiseta (R$)</Label>
+                <Input id="costCamTop" type="number" step="0.01" min="0" value={costCamiseta}
+                  onChange={(e) => setCostCamiseta(Number(e.target.value) || 0)} />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs" htmlFor="costPulTop">Pulseira (R$)</Label>
+                <Input id="costPulTop" type="number" step="0.01" min="0" value={costPulseira}
+                  onChange={(e) => setCostPulseira(Number(e.target.value) || 0)} />
+              </div>
+            </div>
+          </div>
+        </Card>
+
         {/* KPIs individuais da Camiseta */}
         <div>
           <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">
@@ -395,6 +421,7 @@ export function EntradaPanel() {
             <KpiCard label="Vendas canceladas" value={String(shirtKpis.canceledCount)} />
           </div>
         </div>
+
 
         {/* Custos & Lucro */}
         <div>
