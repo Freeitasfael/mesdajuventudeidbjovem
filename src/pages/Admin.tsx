@@ -222,6 +222,7 @@ const Admin = () => {
   const rifaKpis = useMemo(() => {
     const paid = orders.filter((o) => o.status === "paid");
     const pending = orders.filter((o) => o.status === "pending");
+    const canceled = orders.filter((o) => o.status === "cancelled" || o.status === "canceled" || o.status === "expired" || o.status === "refunded" || o.status === "rejected");
     const paidAgg = netFromOrders(paid);
     const revPaid = paidAgg.gross;
     const revPaidNet = paidAgg.net;
@@ -230,8 +231,9 @@ const Admin = () => {
     const ticket = paid.length > 0 ? Math.round(revPaid / paid.length) : 0;
     const totalCreated = orders.length;
     const conv = totalCreated > 0 ? (paid.length / totalCreated) * 100 : 0;
-    return { revPaid, revPaidNet, revPaidFee, revPending, paidCount: paid.length, pendingCount: pending.length, ticket, conv };
+    return { revPaid, revPaidNet, revPaidFee, revPending, paidCount: paid.length, pendingCount: pending.length, canceledCount: canceled.length, ticket, conv };
   }, [orders]);
+
 
   // KPIs do Pagamentos — usa payment_method do pedido vinculado para calcular taxa correta
   const paymentKpis = useMemo(() => {
