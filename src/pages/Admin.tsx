@@ -847,21 +847,13 @@ const Admin = () => {
                 {realtimeOk ? "Atualizando em tempo real" : "Conectando ao tempo real..."}
               </span>
             </div>
-            <DashboardConsolidado />
-            {stats && (
-              <div className="pt-2">
-                <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">
-                  Status dos números da rifa
-                </h2>
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                  <StatCard label="Pedidos pendentes" value={String(stats.pending_orders)} />
-                  <StatCard label="Números disponíveis" value={String(stats.numbers_available)} />
-                  <StatCard label="Números pagos" value={String(stats.numbers_paid)} />
-                  <StatCard label="Números reservados" value={String(stats.numbers_reserved)} />
-                  <StatCard label="Vendedores" value={String(stats.sellers_count)} />
-                </div>
-              </div>
-            )}
+            <DashboardConsolidado rifaStatus={stats ? {
+              pending_orders: stats.pending_orders,
+              numbers_available: stats.numbers_available,
+              numbers_paid: stats.numbers_paid,
+              numbers_reserved: stats.numbers_reserved,
+              sellers_count: stats.sellers_count,
+            } : undefined} />
           </TabsContent>
 
           {/* PAYMENTS */}
