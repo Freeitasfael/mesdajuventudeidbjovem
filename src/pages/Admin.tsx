@@ -975,18 +975,20 @@ const Admin = () => {
                 Resumo da Rifa
               </h2>
               <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-                <StatCard label="Receita paga (bruta)" value={fmtBRL(rifaKpis.revPaid)} />
-                <StatCard label="Líquido (taxa MP)" value={fmtBRL(rifaKpis.revPaidNet)} />
-                <StatCard label="Receita pendente" value={fmtBRL(rifaKpis.revPending)} />
-                <StatCard label="Pedidos pagos" value={String(rifaKpis.paidCount)} />
+                <StatCard label="Receita paga" value={fmtBRL(rifaKpis.revPaid)} tone="positive" />
+                <StatCard label="Preço de custo (prêmio)" value={fmtBRL(50000)} tone="negative" />
+                <StatCard label="Taxa de Mercado Pago" value={fmtBRL(rifaKpis.revPaidFee)} tone="negative" />
+                <StatCard
+                  label="Lucro líquido"
+                  value={fmtBRL(rifaKpis.revPaid - 50000 - rifaKpis.revPaidFee)}
+                  tone={rifaKpis.revPaid - 50000 - rifaKpis.revPaidFee >= 0 ? "positive" : "negative"}
+                />
                 <StatCard label="Números vendidos" value={String(stats?.numbers_paid ?? 0)} />
-                <StatCard label="Ticket médio" value={fmtBRL(rifaKpis.ticket)} />
-                <StatCard label="Conversão" value={`${rifaKpis.conv.toFixed(1)}%`} />
-                <StatCard label="Pendentes" value={String(rifaKpis.pendingCount)} />
-                <StatCard label="Disponíveis" value={String(stats?.numbers_available ?? 0)} />
+                <StatCard label="Vendas pendentes" value={String(rifaKpis.pendingCount)} />
+                <StatCard label="Vendas canceladas" value={String(rifaKpis.canceledCount)} />
               </div>
               <p className="text-[11px] text-muted-foreground mt-2">
-                Líquido = bruto − taxa Mercado Pago (PIX 0,99% · Cartão 4,99%) aplicada por pedido conforme o método.
+                Lucro líquido = Receita paga − (Preço de custo do prêmio R$ 500,00 + Taxa Mercado Pago). Taxa aplicada por pedido: PIX 0,99% · Cartão 4,99%.
               </p>
             </div>
 
