@@ -19,7 +19,14 @@ const COST_STORAGE_KEY = "dashboard_costs_v1";
 
 const fmtBRL = (c: number) => `R$ ${(c / 100).toFixed(2).replace(".", ",")}`;
 
-export function DashboardConsolidado() {
+interface RifaStatusStats {
+  pending_orders: number;
+  numbers_available: number;
+  numbers_paid: number;
+  numbers_reserved: number;
+  sellers_count: number;
+}
+export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusStats } = {}) {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [camisetasOrders, setCamisetasOrders] = useState<OrderLite[]>([]);
