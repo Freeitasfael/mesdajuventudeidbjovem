@@ -34,6 +34,7 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
   const [entrada, setEntrada] = useState<EntradaLite[]>([]);
   const [expenses, setExpenses] = useState<ExpenseLite[]>([]);
   const [sponsors, setSponsors] = useState<SponsorLite[]>([]);
+  const [offerings, setOfferings] = useState<OfferingLite[]>([]);
   const [loading, setLoading] = useState(false);
   const [costCamiseta, setCostCamiseta] = useState<number>(() => {
     try { const s = JSON.parse(localStorage.getItem(COST_STORAGE_KEY) || "{}"); return Number(s.camiseta) || DEFAULT_COST_CAMISETA; } catch { return DEFAULT_COST_CAMISETA; }
