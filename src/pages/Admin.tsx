@@ -6,7 +6,9 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LogOut, Plus, Trash2, Copy, Trophy, Bell, Upload, Move, Image as ImageIcon, Eye, RefreshCw, RotateCw, Radio, Download, Users } from "lucide-react";
+import { LogOut, Plus, Trash2, Copy, Trophy, Bell, Upload, Move, Image as ImageIcon, Eye, RefreshCw, RotateCw, Radio, Download, Users, Info } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Slider } from "@/components/ui/slider";
@@ -1018,18 +1020,47 @@ const Admin = () => {
                 Resumo da Rifa
               </h2>
               <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-                <StatCard label="Receita paga" value={fmtBRL(rifaKpis.revPaid)} tone="positive" />
-                <StatCard label="Preço de custo (prêmio)" value={fmtBRL(rifaPrizeCostCents)} tone="negative" />
-                <StatCard label="Taxa de Mercado Pago" value={fmtBRL(rifaKpis.revPaidFee)} tone="negative" />
+                <StatCard
+                  label="Receita paga"
+                  value={fmtBRL(rifaKpis.revPaid)}
+                  tone="positive"
+                  hint="Soma do valor bruto (total_cents) de todos os pedidos com status 'paid'. É a receita bruta antes de descontar custos e taxas."
+                />
+                <StatCard
+                  label="Preço de custo (prêmio)"
+                  value={fmtBRL(rifaPrizeCostCents)}
+                  tone="negative"
+                  hint="Valor configurável no campo 'Preço de Custo do Prêmio' acima. Representa quanto sai do caixa para pagar o vencedor da rifa."
+                />
+                <StatCard
+                  label="Taxa de Mercado Pago"
+                  value={fmtBRL(rifaKpis.revPaidFee)}
+                  tone="negative"
+                  hint="Taxa cobrada pelo Mercado Pago por pedido pago: PIX 0,99% · Cartão 4,99%. Calculada individualmente por pedido conforme o método de pagamento."
+                />
                 <StatCard
                   label="Lucro líquido"
                   value={fmtBRL(rifaKpis.revPaid - (rifaPrizeCostCents + rifaKpis.revPaidFee))}
                   tone={rifaKpis.revPaid - (rifaPrizeCostCents + rifaKpis.revPaidFee) >= 0 ? "positive" : "negative"}
+                  hint={`Fórmula: Receita paga − (Preço de custo + Taxa MP). Cálculo atual: ${fmtBRL(rifaKpis.revPaid)} − (${fmtBRL(rifaPrizeCostCents)} + ${fmtBRL(rifaKpis.revPaidFee)}) = ${fmtBRL(rifaKpis.revPaid - (rifaPrizeCostCents + rifaKpis.revPaidFee))}.`}
                 />
-                <StatCard label="Números vendidos" value={String(stats?.numbers_paid ?? 0)} />
-                <StatCard label="Vendas pendentes" value={String(rifaKpis.pendingCount)} />
-                <StatCard label="Vendas canceladas" value={String(rifaKpis.canceledCount)} />
+                <StatCard
+                  label="Números vendidos"
+                  value={String(stats?.numbers_paid ?? 0)}
+                  hint="Quantidade de números da rifa com status 'paid' na tabela numbers (contagem direta no banco)."
+                />
+                <StatCard
+                  label="Vendas pendentes"
+                  value={String(rifaKpis.pendingCount)}
+                  hint="Pedidos com status 'pending' — aguardando confirmação de pagamento. Ainda podem virar 'paid' ou 'expired'."
+                />
+                <StatCard
+                  label="Vendas canceladas"
+                  value={String(rifaKpis.canceledCount)}
+                  hint="Soma dos pedidos com status 'cancelled', 'expired', 'refunded' ou 'rejected'. Não geram receita nem consomem números."
+                />
               </div>
+
               <p className="text-[11px] text-muted-foreground mt-2">
                 Lucro líquido = Receita paga − (Preço de custo {fmtBRL(rifaPrizeCostCents)} + Taxa Mercado Pago). Taxa aplicada por pedido: PIX 0,99% · Cartão 4,99%.
               </p>
@@ -1757,18 +1788,35 @@ const Admin = () => {
   );
 };
 
-const StatCard = ({ label, value, tone = "neutral" }: { label: string; value: string; tone?: "positive" | "negative" | "warning" | "neutral" }) => {
+const StatCard = ({ label, value, tone = "neutral", hint }: { label: string; value: string; tone?: "positive" | "negative" | "warning" | "neutral"; hint?: string }) => {
   const toneCls =
     tone === "positive" ? "text-emerald-600 dark:text-emerald-400" :
     tone === "negative" ? "text-red-600 dark:text-red-400" :
     tone === "warning" ? "text-amber-600 dark:text-amber-400" : "";
   return (
     <Card className="p-4">
-      <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+        {hint ? (
+          <TooltipProvider delayDuration={100}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button type="button" aria-label={`Como é calculado: ${label}`} className="text-muted-foreground/70 hover:text-foreground transition-colors">
+                  <Info className="h-3.5 w-3.5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-xs text-xs leading-relaxed">
+                {hint}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ) : null}
+      </div>
       <p className={`mt-1 text-2xl font-bold ${toneCls}`}>{value}</p>
     </Card>
   );
 };
+
 
 const StatusBadge = ({ status }: { status: string }) => {
   const map: Record<string, string> = {
