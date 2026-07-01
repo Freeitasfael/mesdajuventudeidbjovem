@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 
 import { toast } from "sonner";
-import { Download, RefreshCw, Save, Undo2, UserPlus } from "lucide-react";
+import { Download, FileSpreadsheet, RefreshCw, Save, Undo2, UserPlus } from "lucide-react";
 import { buildCsv, downloadCsv } from "@/lib/csv";
+import ExcelJS from "exceljs";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
 
 interface EntradaOrderItem {
