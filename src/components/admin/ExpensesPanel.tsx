@@ -201,7 +201,7 @@ export function ExpensesPanel() {
       receipt_path = null;
     }
 
-    const payload: Record<string, unknown> = {
+    const payload = {
       name: n,
       category: eCategory,
       amount_cents: cents,
@@ -209,8 +209,8 @@ export function ExpensesPanel() {
       notes: eNotes.trim() || null,
       status: eStatus,
       paid_date: eStatus === "paid" ? ePaidDate : null,
+      ...(receipt_path !== undefined ? { receipt_path } : {}),
     };
-    if (receipt_path !== undefined) payload.receipt_path = receipt_path;
 
     const { error } = await supabase.from("expenses").update(payload).eq("id", editing.id);
     setESaving(false);
