@@ -543,16 +543,11 @@ export function EntradaPanel() {
                 Usado automaticamente no cálculo do <strong>Lucro Líquido</strong> (Receita paga − Custo − Taxa MP). Sincronizado com a Dashboard.
               </p>
             </div>
-            <div className="grid gap-3 grid-cols-2 sm:max-w-sm w-full">
+            <div className="grid gap-3 grid-cols-1 sm:max-w-xs w-full">
               <div className="space-y-1">
                 <Label className="text-xs" htmlFor="costCamTop">Camiseta (R$)</Label>
                 <Input id="costCamTop" type="number" step="0.01" min="0" value={costCamiseta}
                   onChange={(e) => setCostCamiseta(Number(e.target.value) || 0)} />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs" htmlFor="costPulTop">Pulseira (R$)</Label>
-                <Input id="costPulTop" type="number" step="0.01" min="0" value={costPulseira}
-                  onChange={(e) => setCostPulseira(Number(e.target.value) || 0)} />
               </div>
             </div>
           </div>
