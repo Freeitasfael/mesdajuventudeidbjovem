@@ -239,6 +239,7 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
           <StatCard label="Receita Total" value={fmtBRL(metrics.totalRevenue)} highlight tone="positive" />
           <StatCard label="Gastos Totais" value={fmtBRL(metrics.totalExpenses)} tone="negative" />
           <StatCard label="Patrocínios (confirmados)" value={fmtBRL(metrics.sponsorsConfirmedTotal)} tone="neutral" subtitle={`${metrics.sponsorsCount} patrocinador(es)`} />
+          <StatCard label="Ofertas" value={fmtBRL(metrics.offeringsTotal)} tone="positive" subtitle={`${metrics.offeringsCount} oferta(s)`} />
           <StatCard
             label="Lucro Líquido"
             value={fmtBRL(metrics.netProfit)}
