@@ -52,24 +52,28 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
     let entQ = supabase.from("entrada_orders").select("total_cents, created_at, status, product, quantity, payment_method").limit(5000);
     let expQ = supabase.from("expenses").select("amount_cents, expense_date, category").limit(5000);
     const sponsorsQ = supabase.from("sponsorships").select("amount_cents, kind, status, created_at").limit(5000);
+    let offeringsQ = supabase.from("offerings").select("amount_cents, offering_date, payment_method").limit(5000);
 
     if (from) {
       const f = new Date(from + "T00:00:00").toISOString();
       camisetasQ = camisetasQ.gte("created_at", f);
       entQ = entQ.gte("created_at", f);
       expQ = expQ.gte("expense_date", from);
+      offeringsQ = offeringsQ.gte("offering_date", from);
     }
     if (to) {
       const t = new Date(to + "T23:59:59").toISOString();
       camisetasQ = camisetasQ.lte("created_at", t);
       entQ = entQ.lte("created_at", t);
       expQ = expQ.lte("expense_date", to);
+      offeringsQ = offeringsQ.lte("offering_date", to);
     }
-    const [r, e, x, s] = await Promise.all([camisetasQ, entQ, expQ, sponsorsQ]);
+    const [r, e, x, s, o] = await Promise.all([camisetasQ, entQ, expQ, sponsorsQ, offeringsQ]);
     if (r.data) setCamisetasOrders(r.data as OrderLite[]);
     if (e.data) setEntrada(e.data as EntradaLite[]);
     if (x.data) setExpenses(x.data as ExpenseLite[]);
     if (s.data) setSponsors(s.data as SponsorLite[]);
+    if (o.data) setOfferings(o.data as OfferingLite[]);
     setLoading(false);
   };
 
