@@ -559,13 +559,18 @@ export function EntradaPanel() {
             Resumo da Camiseta
           </h3>
           <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
-            <KpiCard label="Receita paga" value={fmtBRL(shirtKpis.revPaid)} />
-            <KpiCard label="Preço de custo" value={fmtBRL(costMetrics.costTotal)} tone="warning" />
-            <KpiCard label="Taxa de Mercado Pago" value={fmtBRL(shirtKpis.fee)} tone="warning" />
+            <KpiCard
+              label="Receita paga"
+              value={fmtBRL(shirtKpis.revPaid)}
+              hint="Valor bruto recebido (sem descontar taxas). Ex.: 1 camiseta = R$ 60,00."
+            />
+            <KpiCard label="Preço de custo" value={fmtBRL(costMetrics.costTotal)} tone="warning" hint="Custo × camisetas vendidas." />
+            <KpiCard label="Taxa de Mercado Pago" value={fmtBRL(shirtKpis.fee)} tone="warning" hint="PIX 0,99% · Cartão 4,99% sobre o valor bruto." />
             <KpiCard
               label="Lucro líquido"
               value={fmtBRL(shirtKpis.revPaid - costMetrics.costTotal - shirtKpis.fee)}
               tone={shirtKpis.revPaid - costMetrics.costTotal - shirtKpis.fee >= 0 ? "positive" : "negative"}
+              hint="Receita paga − (Preço de custo + Taxa MP)."
             />
             <KpiCard label="Camisetas vendidas" value={String(shirtKpis.itemsSold)} />
             <KpiCard label="Vendas pendentes" value={String(shirtKpis.pendingCount)} />
