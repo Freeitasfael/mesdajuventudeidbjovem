@@ -239,13 +239,38 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
         </div>
       </div>
 
-      {/* Camiseta */}
+      {/* Resumo da Camiseta */}
       <div>
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Camiseta</h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <StatCard label="Arrecadado (camiseta)" value={fmtBRL(metrics.entTotal)} />
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Resumo da Camiseta</h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard
+            label="Receita paga"
+            value={fmtBRL(metrics.entGross)}
+            subtitle="Valor bruto (sem descontar taxas)"
+            tone="positive"
+          />
+          <StatCard
+            label="Preço de custo"
+            value={fmtBRL(metrics.shirtCost)}
+            subtitle="Custo × camisetas vendidas"
+            tone="warning"
+          />
+          <StatCard
+            label="Taxa de Mercado Pago"
+            value={fmtBRL(metrics.entFee)}
+            subtitle="PIX 0,99% · Cartão 4,99%"
+            tone="warning"
+          />
+          <StatCard
+            label="Lucro líquido"
+            value={fmtBRL(metrics.shirtProfit)}
+            subtitle="Receita − (custo + taxa MP)"
+            tone={metrics.shirtProfit >= 0 ? "positive" : "negative"}
+          />
+          <StatCard label="Camisetas vendidas" value={String(metrics.itemsSold)} />
           <StatCard label="Pedidos pagos" value={String(metrics.entCount)} />
-          <StatCard label="Camisetas vendidas" value={`${metrics.kitCount} · ${fmtBRL(metrics.kitTotal)}`} />
+          <StatCard label="Vendas pendentes" value={String(metrics.entPendingCount)} subtitle={fmtBRL(metrics.entPendingGross)} />
+          <StatCard label="Vendas canceladas" value={String(metrics.entCanceledCount)} />
         </div>
       </div>
 
@@ -259,12 +284,12 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
         </div>
       </div>
 
-      {/* Custos de fabricação editáveis */}
+      {/* Custo unitário editável */}
       <div>
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Custos de fabricação</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Custo de fabricação</h2>
         <Card className="p-4">
           <p className="text-xs text-muted-foreground mb-3">
-            Custos unitários (R$) usados para calcular o custo da entrada. Editáveis — salvos neste navegador.
+            Custo unitário (R$) usado para calcular o preço de custo da camiseta. Editável — salvo neste navegador.
           </p>
           <div className="grid gap-3 sm:grid-cols-2 max-w-md">
             <div className="space-y-1">
@@ -272,14 +297,9 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
               <Input id="costCam" type="number" step="0.01" min="0" value={costCamiseta}
                 onChange={(e) => setCostCamiseta(Number(e.target.value) || 0)} />
             </div>
-            <div className="space-y-1">
-              <Label className="text-xs" htmlFor="costPul">Custo pulseira (R$)</Label>
-              <Input id="costPul" type="number" step="0.01" min="0" value={costPulseira}
-                onChange={(e) => setCostPulseira(Number(e.target.value) || 0)} />
-            </div>
           </div>
           <p className="text-xs text-muted-foreground mt-3">
-            {metrics.pulUnits} pulseira(s) + {metrics.kitUnits} kit(s) = {fmtBRL(metrics.fabricationCost)} em fabricação. Gastos avulsos cadastrados na aba "Gastos": {fmtBRL(metrics.expensesTotal)}.
+            {metrics.itemsSold} camiseta(s) vendida(s) × {fmtBRL(Math.round(costCamiseta * 100))} = {fmtBRL(metrics.fabricationCost)}. Gastos avulsos cadastrados na aba "Gastos": {fmtBRL(metrics.expensesTotal)}.
           </p>
         </Card>
       </div>
