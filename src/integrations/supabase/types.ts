@@ -600,6 +600,7 @@ export type Database = {
           owner_phone: string | null
           sponsor_name: string
           status: string
+          tier: string | null
           updated_at: string
         }
         Insert: {
@@ -614,6 +615,7 @@ export type Database = {
           owner_phone?: string | null
           sponsor_name: string
           status?: string
+          tier?: string | null
           updated_at?: string
         }
         Update: {
@@ -628,6 +630,7 @@ export type Database = {
           owner_phone?: string | null
           sponsor_name?: string
           status?: string
+          tier?: string | null
           updated_at?: string
         }
         Relationships: []
