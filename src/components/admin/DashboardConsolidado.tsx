@@ -160,11 +160,12 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
       // pulseira
       pulCount: pulPaid.length, pulGross, pulFee, pulNet, pulUnits,
       sponsorsConfirmedCash, sponsorsConfirmedPermuta, sponsorsConfirmedTotal, sponsorsCount,
+      offeringsTotal, offeringsCount,
       expensesTotal, fabricationCost, totalExpenses,
       totalRevenue, totalGross, feeCents: totalFee,
       netProfit, margin, totalCount, ticket,
     };
-  }, [camisetasOrders, entrada, expenses, sponsors, costCamiseta]);
+  }, [camisetasOrders, entrada, expenses, sponsors, offerings, costCamiseta]);
 
   // Alertas inteligentes
   const alerts: { level: "warn" | "danger"; msg: string }[] = [];
