@@ -293,7 +293,7 @@ export function EntradaPanel() {
       filteredOrders.map((o) => {
         const its = normalizeItems(o);
         const itensLabel = o.product === "kit"
-          ? (its.length > 0 ? its.map((it) => `${MODEL_LABEL[it.model] ?? it.model} ${it.size} x${it.quantity}`).join(" | ") : "—")
+          ? (its.length > 0 ? its.map((it) => `${MODEL_LABEL[it.model] ?? it.model} ${it.size}${it.quantity > 1 ? ` x${it.quantity}` : ""}`).join(" | ") : "—")
           : "—";
         return [
           o.id,
