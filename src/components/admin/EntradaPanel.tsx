@@ -285,21 +285,26 @@ export function EntradaPanel() {
       return;
     }
     const csv = buildCsv(
-      ["ID Pedido", "Status", "Comprador", "Telefone", "Produto", "Modelo", "Tam/Idade", "Qtd", "Pagamento", "Revendedor", "Total (R$)", "Criado em"],
-      filteredOrders.map((o) => [
-        o.id,
-        o.status,
-        o.buyer_name,
-        o.buyer_phone,
-        o.product,
-        o.product === "kit" ? (o.model ?? "adulto") : "—",
-        o.size ?? "—",
-        o.quantity,
-        o.payment_method ?? "pix",
-        o.referral_label ?? "—",
-        (o.total_cents / 100).toFixed(2).replace(".", ","),
-        fmtDate(o.created_at),
-      ]),
+      ["ID Pedido", "Status", "Comprador", "Telefone", "Produto", "Itens (modelo/tamanho/qtd)", "Qtd total", "Pagamento", "Revendedor", "Total (R$)", "Criado em"],
+      filteredOrders.map((o) => {
+        const its = normalizeItems(o);
+        const itensLabel = o.product === "kit"
+          ? (its.length > 0 ? its.map((it) => `${MODEL_LABEL[it.model] ?? it.model} ${it.size} x${it.quantity}`).join(" | ") : "—")
+          : "—";
+        return [
+          o.id,
+          o.status,
+          o.buyer_name,
+          o.buyer_phone,
+          o.product,
+          itensLabel,
+          o.quantity,
+          o.payment_method ?? "pix",
+          o.referral_label ?? "—",
+          (o.total_cents / 100).toFixed(2).replace(".", ","),
+          fmtDate(o.created_at),
+        ];
+      }),
     );
     const stamp = new Date().toISOString().slice(0, 10);
     downloadCsv(`camisetas-pulseiras-${stamp}.csv`, csv);
