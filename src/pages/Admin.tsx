@@ -22,6 +22,7 @@ import { AdminsPanel } from "@/components/admin/AdminsPanel";
 import { DashboardConsolidado } from "@/components/admin/DashboardConsolidado";
 import { ExpensesPanel } from "@/components/admin/ExpensesPanel";
 import { SponsorshipsPanel } from "@/components/admin/SponsorshipsPanel";
+import { OfferingsPanel } from "@/components/admin/OfferingsPanel";
 import { RecapPanel } from "@/components/admin/RecapPanel";
 import { AboutPanel } from "@/components/admin/AboutPanel";
 
