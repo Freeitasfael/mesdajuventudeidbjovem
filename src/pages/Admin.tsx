@@ -22,6 +22,7 @@ import { AdminsPanel } from "@/components/admin/AdminsPanel";
 import { DashboardConsolidado } from "@/components/admin/DashboardConsolidado";
 import { ExpensesPanel } from "@/components/admin/ExpensesPanel";
 import { SponsorshipsPanel } from "@/components/admin/SponsorshipsPanel";
+import { OfferingsPanel } from "@/components/admin/OfferingsPanel";
 import { RecapPanel } from "@/components/admin/RecapPanel";
 import { AboutPanel } from "@/components/admin/AboutPanel";
 
@@ -789,6 +790,7 @@ const Admin = () => {
               <TabsTrigger value="entrada">Camiseta</TabsTrigger>
               <TabsTrigger value="expenses">Gastos</TabsTrigger>
               <TabsTrigger value="sponsors">Patrocínios</TabsTrigger>
+              <TabsTrigger value="offerings">Ofertas</TabsTrigger>
               <TabsTrigger value="sellers">Vendedores</TabsTrigger>
               <TabsTrigger value="payments">Pagamentos</TabsTrigger>
               <TabsTrigger value="settings">Configurações</TabsTrigger>
@@ -810,6 +812,11 @@ const Admin = () => {
           {/* PATROCÍNIOS */}
           <TabsContent value="sponsors" className="mt-6">
             <SponsorshipsPanel />
+          </TabsContent>
+
+          {/* OFERTAS */}
+          <TabsContent value="offerings" className="mt-6">
+            <OfferingsPanel />
           </TabsContent>
 
           {/* ENTRADA — transações, estoque e preços do /entrada */}

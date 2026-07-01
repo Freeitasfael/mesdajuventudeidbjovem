@@ -11,6 +11,7 @@ interface OrderLite { total_cents: number; created_at: string; status: string; p
 interface EntradaLite { total_cents: number; created_at: string; status: string; product: string; quantity: number; payment_method: string | null; }
 interface ExpenseLite { amount_cents: number; expense_date: string; category: string; }
 interface SponsorLite { amount_cents: number; kind: "cash" | "permuta"; status: "confirmed" | "pending"; created_at: string; }
+interface OfferingLite { amount_cents: number; offering_date: string; payment_method: string; }
 
 // Custos unitários de fabricação (R$)
 const DEFAULT_COST_CAMISETA = 38;
@@ -33,6 +34,7 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
   const [entrada, setEntrada] = useState<EntradaLite[]>([]);
   const [expenses, setExpenses] = useState<ExpenseLite[]>([]);
   const [sponsors, setSponsors] = useState<SponsorLite[]>([]);
+  const [offerings, setOfferings] = useState<OfferingLite[]>([]);
   const [loading, setLoading] = useState(false);
   const [costCamiseta, setCostCamiseta] = useState<number>(() => {
     try { const s = JSON.parse(localStorage.getItem(COST_STORAGE_KEY) || "{}"); return Number(s.camiseta) || DEFAULT_COST_CAMISETA; } catch { return DEFAULT_COST_CAMISETA; }
@@ -50,24 +52,28 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
     let entQ = supabase.from("entrada_orders").select("total_cents, created_at, status, product, quantity, payment_method").limit(5000);
     let expQ = supabase.from("expenses").select("amount_cents, expense_date, category").limit(5000);
     const sponsorsQ = supabase.from("sponsorships").select("amount_cents, kind, status, created_at").limit(5000);
+    let offeringsQ = supabase.from("offerings").select("amount_cents, offering_date, payment_method").limit(5000);
 
     if (from) {
       const f = new Date(from + "T00:00:00").toISOString();
       camisetasQ = camisetasQ.gte("created_at", f);
       entQ = entQ.gte("created_at", f);
       expQ = expQ.gte("expense_date", from);
+      offeringsQ = offeringsQ.gte("offering_date", from);
     }
     if (to) {
       const t = new Date(to + "T23:59:59").toISOString();
       camisetasQ = camisetasQ.lte("created_at", t);
       entQ = entQ.lte("created_at", t);
       expQ = expQ.lte("expense_date", to);
+      offeringsQ = offeringsQ.lte("offering_date", to);
     }
-    const [r, e, x, s] = await Promise.all([camisetasQ, entQ, expQ, sponsorsQ]);
+    const [r, e, x, s, o] = await Promise.all([camisetasQ, entQ, expQ, sponsorsQ, offeringsQ]);
     if (r.data) setCamisetasOrders(r.data as OrderLite[]);
     if (e.data) setEntrada(e.data as EntradaLite[]);
     if (x.data) setExpenses(x.data as ExpenseLite[]);
     if (s.data) setSponsors(s.data as SponsorLite[]);
+    if (o.data) setOfferings(o.data as OfferingLite[]);
     setLoading(false);
   };
 
@@ -131,7 +137,11 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
     const totalExpenses = expensesTotal + fabricationCost;
 
     // Receita Total = Camisetas + Entrada + Patrocínios confirmados
-    const totalRevenue = camisetasTotal + entTotal + sponsorsConfirmedTotal;
+    // Ofertas (soma total)
+    const offeringsTotal = offerings.reduce((a, o) => a + o.amount_cents, 0);
+    const offeringsCount = offerings.length;
+
+    const totalRevenue = camisetasTotal + entTotal + sponsorsConfirmedTotal + offeringsTotal;
     const totalGross = camisetasGross + entGross;
     const totalFee = camisetasAgg.fee + entFee;
 
@@ -150,11 +160,12 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
       // pulseira
       pulCount: pulPaid.length, pulGross, pulFee, pulNet, pulUnits,
       sponsorsConfirmedCash, sponsorsConfirmedPermuta, sponsorsConfirmedTotal, sponsorsCount,
+      offeringsTotal, offeringsCount,
       expensesTotal, fabricationCost, totalExpenses,
       totalRevenue, totalGross, feeCents: totalFee,
       netProfit, margin, totalCount, ticket,
     };
-  }, [camisetasOrders, entrada, expenses, sponsors, costCamiseta]);
+  }, [camisetasOrders, entrada, expenses, sponsors, offerings, costCamiseta]);
 
   // Alertas inteligentes
   const alerts: { level: "warn" | "danger"; msg: string }[] = [];
@@ -198,7 +209,7 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
           </div>
         </div>
         <p className="text-xs text-muted-foreground mt-3">
-          Considera apenas pedidos pagos (taxa do Mercado Pago descontada conforme o método: PIX 0,99% · Cartão 4,99%) e patrocínios confirmados. Sem filtro = histórico completo.
+          Considera pedidos pagos (taxa do Mercado Pago descontada conforme o método: PIX 0,99% · Cartão 4,99%), patrocínios confirmados e ofertas registradas. Sem filtro = histórico completo.
         </p>
       </Card>
 
@@ -228,6 +239,7 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
           <StatCard label="Receita Total" value={fmtBRL(metrics.totalRevenue)} highlight tone="positive" />
           <StatCard label="Gastos Totais" value={fmtBRL(metrics.totalExpenses)} tone="negative" />
           <StatCard label="Patrocínios (confirmados)" value={fmtBRL(metrics.sponsorsConfirmedTotal)} tone="neutral" subtitle={`${metrics.sponsorsCount} patrocinador(es)`} />
+          <StatCard label="Ofertas" value={fmtBRL(metrics.offeringsTotal)} tone="positive" subtitle={`${metrics.offeringsCount} oferta(s)`} />
           <StatCard
             label="Lucro Líquido"
             value={fmtBRL(metrics.netProfit)}
@@ -339,6 +351,16 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
           <StatCard label="Em dinheiro (confirmado)" value={fmtBRL(metrics.sponsorsConfirmedCash)} tone="positive" />
           <StatCard label="Em permuta (confirmado)" value={fmtBRL(metrics.sponsorsConfirmedPermuta)} />
           <StatCard label="Patrocinadores ativos" value={String(metrics.sponsorsCount)} />
+        </div>
+      </div>
+
+      {/* Ofertas resumo */}
+      <div>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Ofertas</h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <StatCard label="Total arrecadado" value={fmtBRL(metrics.offeringsTotal)} tone="positive" />
+          <StatCard label="Quantidade de ofertas" value={String(metrics.offeringsCount)} />
+          <StatCard label="Somado à Receita Total" value="Sim" subtitle="Contribui integralmente para o total geral" />
         </div>
       </div>
     </div>
