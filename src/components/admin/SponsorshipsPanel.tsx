@@ -253,7 +253,21 @@ export function SponsorshipsPanel() {
               <option value="permuta">Permuta</option>
             </select>
           </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Cota (pacote)</Label>
+            <select
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              value={tier}
+              onChange={(e) => setTier(e.target.value as "" | "apoio" | "standard" | "premium")}
+            >
+              <option value="">— Sem cota —</option>
+              <option value="apoio">Cota Apoio (R$ 200)</option>
+              <option value="standard">Cota Standard (R$ 500)</option>
+              <option value="premium">Cota Premium (R$ 800)</option>
+            </select>
+          </div>
         </div>
+
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-1">
             <Label className="text-xs">Status</Label>
