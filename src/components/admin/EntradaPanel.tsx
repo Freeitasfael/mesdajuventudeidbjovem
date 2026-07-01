@@ -632,6 +632,9 @@ export function EntradaPanel() {
             <Button variant="outline" size="sm" onClick={exportCsv} disabled={filteredOrders.length === 0}>
               <Download className="mr-2 h-3 w-3" /> Exportar CSV
             </Button>
+            <Button variant="default" size="sm" onClick={exportSizesXlsx} disabled={filteredOrders.length === 0}>
+              <FileSpreadsheet className="mr-2 h-3 w-3" /> Exportar tamanhos (Excel)
+            </Button>
             <Button variant="ghost" size="sm" onClick={load} disabled={loading}>
               <RefreshCw className={`mr-2 h-3 w-3 ${loading ? "animate-spin" : ""}`} /> Recarregar
             </Button>
