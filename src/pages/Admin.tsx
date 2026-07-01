@@ -194,7 +194,7 @@ const Admin = () => {
     }
   }, [costRifaPremio]);
   const rifaPrizeCostCents = Math.round(costRifaPremio * 100);
-  const rifaLucroLiquido = rifaKpis => rifaKpis.revPaid - (rifaPrizeCostCents + rifaKpis.revPaidFee);
+
 
   useEffect(() => {
     document.title = "Painel Admin";
