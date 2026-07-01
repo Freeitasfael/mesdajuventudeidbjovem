@@ -283,26 +283,6 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
           <StatCard label="Patrocinadores ativos" value={String(metrics.sponsorsCount)} />
         </div>
       </div>
-
-      {/* Custo unitário editável */}
-      <div>
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Custo de fabricação</h2>
-        <Card className="p-4">
-          <p className="text-xs text-muted-foreground mb-3">
-            Custo unitário (R$) usado para calcular o preço de custo da camiseta. Editável — salvo neste navegador.
-          </p>
-          <div className="grid gap-3 sm:grid-cols-2 max-w-md">
-            <div className="space-y-1">
-              <Label className="text-xs" htmlFor="costCam">Custo camiseta (R$)</Label>
-              <Input id="costCam" type="number" step="0.01" min="0" value={costCamiseta}
-                onChange={(e) => setCostCamiseta(Number(e.target.value) || 0)} />
-            </div>
-          </div>
-          <p className="text-xs text-muted-foreground mt-3">
-            {metrics.itemsSold} camiseta(s) vendida(s) × {fmtBRL(Math.round(costCamiseta * 100))} = {fmtBRL(metrics.fabricationCost)}. Gastos avulsos cadastrados na aba "Gastos": {fmtBRL(metrics.expensesTotal)}.
-          </p>
-        </Card>
-      </div>
     </div>
   );
 }
