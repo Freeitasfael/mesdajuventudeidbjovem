@@ -392,6 +392,48 @@ export function EntradaPanel() {
           </div>
         </div>
 
+        {/* Custos & Lucro */}
+        <div>
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">
+            Custos & Lucro
+          </h3>
+          <Card className="p-4 space-y-4">
+            <div className="grid gap-3 sm:grid-cols-2 max-w-md">
+              <div className="space-y-1">
+                <Label className="text-xs" htmlFor="costCamEnt">Custo camiseta (R$)</Label>
+                <Input id="costCamEnt" type="number" step="0.01" min="0" value={costCamiseta}
+                  onChange={(e) => setCostCamiseta(Number(e.target.value) || 0)} />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs" htmlFor="costPulEnt">Custo pulseira (R$)</Label>
+                <Input id="costPulEnt" type="number" step="0.01" min="0" value={costPulseira}
+                  onChange={(e) => setCostPulseira(Number(e.target.value) || 0)} />
+              </div>
+            </div>
+
+            <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+              <KpiCard label="Valor bruto" value={fmtBRL(costMetrics.gross)} />
+              <KpiCard label="Líquido (após taxa MP)" value={fmtBRL(costMetrics.net)} />
+              <KpiCard label="Custo total (fabricação)" value={fmtBRL(costMetrics.costTotal)} />
+              <KpiCard
+                label="Lucro"
+                value={fmtBRL(costMetrics.profit)}
+                tone={costMetrics.profit > 0 ? "positive" : costMetrics.profit < 0 ? "negative" : "neutral"}
+              />
+              <KpiCard label="Margem" value={`${costMetrics.margin.toFixed(1)}%`}
+                tone={costMetrics.margin >= 20 ? "positive" : costMetrics.margin >= 0 ? "warning" : "negative"} />
+              <KpiCard label="Taxa MP descontada" value={fmtBRL(costMetrics.fee)} />
+              <KpiCard label="Pulseiras vendidas" value={`${costMetrics.pulseiraUnits} un · ${fmtBRL(costMetrics.costPulseiraTotal)}`} />
+              <KpiCard label="Kits (camiseta+pulseira)" value={`${costMetrics.kitUnits} un · ${fmtBRL(costMetrics.costCamisetaTotal + Math.round(costMetrics.kitUnits * costPulseira * 100))}`} />
+            </div>
+
+            <p className="text-xs text-muted-foreground">
+              Cálculo: cada <strong>kit</strong> usa 1 camiseta ({fmtBRL(Math.round(costCamiseta * 100))}) + 1 pulseira ({fmtBRL(Math.round(costPulseira * 100))}); cada <strong>pulseira avulsa</strong> usa 1 pulseira.
+              Lucro = líquido (após taxa Mercado Pago) − custo de fabricação. Os custos são sincronizados com a Dashboard.
+            </p>
+          </Card>
+        </div>
+
         <Card className="p-3">
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
             <div className="space-y-1">
