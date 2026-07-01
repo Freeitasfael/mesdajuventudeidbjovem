@@ -145,7 +145,10 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
     return {
       camisetasTotal, camisetasGross, camisetasCount,
       entTotal, entGross, entCount, entFee, entPendingCount, entCanceledCount, entPendingGross,
-      kitCount: kit.length, kitUnits, itemsSold, shirtCost, shirtProfit,
+      // camiseta (kit)
+      kitCount: kitPaid.length, kitGross, kitFee, kitNet, kitUnits, shirtCost, shirtProfit,
+      // pulseira
+      pulCount: pulPaid.length, pulGross, pulFee, pulNet, pulUnits,
       sponsorsConfirmedCash, sponsorsConfirmedPermuta, sponsorsConfirmedTotal, sponsorsCount,
       expensesTotal, fabricationCost, totalExpenses,
       totalRevenue, totalGross, feeCents: totalFee,
