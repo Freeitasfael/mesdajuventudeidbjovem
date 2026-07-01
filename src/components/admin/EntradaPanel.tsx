@@ -416,8 +416,7 @@ export function EntradaPanel() {
                     <td className="px-4 py-3">{o.buyer_name}</td>
                     <td className="px-4 py-3">{o.buyer_phone ? <WhatsAppLink phone={o.buyer_phone} /> : "—"}</td>
                     <td className="px-4 py-3 capitalize">{o.product}</td>
-                    <td className="px-4 py-3 capitalize">{o.product === "kit" ? (o.model ?? "adulto") : "—"}</td>
-                    <td className="px-4 py-3">{o.size ?? "—"}</td>
+                    <td className="px-4 py-3"><ItemsCell o={o} /></td>
                     <td className="px-4 py-3">{o.quantity}</td>
                     <td className="px-4 py-3 uppercase text-xs">{o.payment_method ?? "pix"}</td>
                     <td className="px-4 py-3 text-xs">
