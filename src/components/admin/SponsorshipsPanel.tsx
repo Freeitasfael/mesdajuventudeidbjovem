@@ -412,7 +412,10 @@ export function SponsorshipsPanel() {
                   <Button size="sm" variant="outline" onClick={() => toggleStatus(s)}>
                     {s.status === "confirmed" ? "Marcar pendente" : "Confirmar"}
                   </Button>
-                  <Button size="sm" variant="ghost" onClick={() => handleDelete(s.id)}>
+                  <Button size="sm" variant="ghost" onClick={() => openEdit(s)} title="Editar">
+                    <Pencil className="h-3 w-3" />
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => handleDelete(s.id)} title="Remover">
                     <Trash2 className="h-3 w-3 text-destructive" />
                   </Button>
                 </td>
@@ -428,6 +431,80 @@ export function SponsorshipsPanel() {
           </tbody>
         </table>
       </Card>
+
+      {/* Edit dialog */}
+      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Editar patrocinador</DialogTitle>
+          </DialogHeader>
+          {editing && (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1 sm:col-span-2">
+                <Label className="text-xs">Patrocinador</Label>
+                <Input value={eSponsor} onChange={(e) => setESponsor(e.target.value)} />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Valor (R$)</Label>
+                <Input type="number" step="0.01" min="0.01" value={eAmount} onChange={(e) => setEAmount(e.target.value)} />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Tipo</Label>
+                <select
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  value={eKind}
+                  onChange={(e) => setEKind(e.target.value as "cash" | "permuta")}
+                >
+                  <option value="cash">Dinheiro</option>
+                  <option value="permuta">Permuta</option>
+                </select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Cota (pacote)</Label>
+                <select
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  value={eTier}
+                  onChange={(e) => setETier(e.target.value as "" | "apoio" | "standard" | "premium")}
+                >
+                  <option value="">— Sem cota —</option>
+                  <option value="apoio">Cota Apoio</option>
+                  <option value="standard">Cota Standard</option>
+                  <option value="premium">Cota Premium</option>
+                </select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Status</Label>
+                <select
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  value={eStatus}
+                  onChange={(e) => setEStatus(e.target.value as "confirmed" | "pending")}
+                >
+                  <option value="pending">Pendente</option>
+                  <option value="confirmed">Confirmado</option>
+                </select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Nome do proprietário (opcional)</Label>
+                <Input value={eOwnerName} onChange={(e) => setEOwnerName(e.target.value)} />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Telefone do proprietário (opcional)</Label>
+                <Input value={eOwnerPhone} onChange={(e) => setEOwnerPhone(e.target.value)} />
+              </div>
+              <div className="space-y-1 sm:col-span-2">
+                <Label className="text-xs">Observação</Label>
+                <Textarea value={eNotes} onChange={(e) => setENotes(e.target.value)} rows={2} />
+              </div>
+            </div>
+          )}
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setEditing(null)}>Cancelar</Button>
+            <Button onClick={saveEdit} disabled={eSaving}>
+              {eSaving ? "Salvando..." : "Salvar alterações"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
