@@ -333,6 +333,16 @@ export function SponsorshipsPanel() {
             {items.map((s) => (
               <tr key={s.id} className="border-t border-border">
                 <td className="px-4 py-3 font-medium">{s.sponsor_name}</td>
+                <td className="px-4 py-3">
+                  {s.tier ? (
+                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs ${TIER_STYLE[s.tier]}`}>
+                      {TIER_LABEL[s.tier]}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">—</span>
+                  )}
+                </td>
+
                 <td className="px-4 py-3 text-xs text-muted-foreground">
                   {s.owner_name ?? (s.owner_contact ?? "—")}
                 </td>
