@@ -383,13 +383,16 @@ export function EntradaPanel() {
           </h3>
           <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
             <KpiCard label="Receita paga" value={fmtBRL(shirtKpis.revPaid)} />
-            <KpiCard label="Receita pendente" value={fmtBRL(shirtKpis.revPending)} />
-            <KpiCard label="Pedidos pagos" value={String(shirtKpis.paidCount)} />
-            <KpiCard label="Itens vendidos" value={String(shirtKpis.itemsSold)} />
-            <KpiCard label="Ticket médio" value={fmtBRL(shirtKpis.ticket)} />
-            <KpiCard label="Conversão" value={`${shirtKpis.conv.toFixed(1)}%`} />
-            <KpiCard label="Pendentes" value={String(shirtKpis.pendingCount)} />
-            <KpiCard label="Líquido (taxa MP)" value={fmtBRL(shirtKpis.revPaidNet)} />
+            <KpiCard label="Preço de custo" value={fmtBRL(costMetrics.costTotal)} tone="warning" />
+            <KpiCard label="Taxa de Mercado Pago" value={fmtBRL(shirtKpis.fee)} tone="warning" />
+            <KpiCard
+              label="Lucro líquido"
+              value={fmtBRL(shirtKpis.revPaid - costMetrics.costTotal - shirtKpis.fee)}
+              tone={shirtKpis.revPaid - costMetrics.costTotal - shirtKpis.fee >= 0 ? "positive" : "negative"}
+            />
+            <KpiCard label="Camisetas vendidas" value={String(shirtKpis.itemsSold)} />
+            <KpiCard label="Vendas pendentes" value={String(shirtKpis.pendingCount)} />
+            <KpiCard label="Vendas canceladas" value={String(shirtKpis.canceledCount)} />
           </div>
         </div>
 
