@@ -814,6 +814,11 @@ const Admin = () => {
             <SponsorshipsPanel />
           </TabsContent>
 
+          {/* OFERTAS */}
+          <TabsContent value="offerings" className="mt-6">
+            <OfferingsPanel />
+          </TabsContent>
+
           {/* ENTRADA — transações, estoque e preços do /entrada */}
           <TabsContent value="entrada" className="mt-6">
             <EntradaPanel />
