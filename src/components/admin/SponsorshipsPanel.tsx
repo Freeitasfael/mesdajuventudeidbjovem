@@ -154,10 +154,7 @@ export function SponsorshipsPanel() {
 
         <div className="grid gap-3 md:grid-cols-3">
           <div className="rounded-lg border border-border p-4 space-y-2">
-            <div className="flex items-center justify-between">
-              <h4 className="font-semibold text-sm uppercase tracking-wide">Cota Apoio</h4>
-              <span className="text-base font-bold text-emerald-600 dark:text-emerald-400">R$ 200</span>
-            </div>
+            <h4 className="font-semibold text-sm uppercase tracking-wide">Cota Apoio</h4>
             <p className="text-xs text-muted-foreground">
               Indicada para empresas que desejam apoiar o evento com presença institucional básica.
             </p>
@@ -170,10 +167,7 @@ export function SponsorshipsPanel() {
           </div>
 
           <div className="rounded-lg border border-border p-4 space-y-2">
-            <div className="flex items-center justify-between">
-              <h4 className="font-semibold text-sm uppercase tracking-wide">Cota Standard</h4>
-              <span className="text-base font-bold text-emerald-600 dark:text-emerald-400">R$ 500</span>
-            </div>
+            <h4 className="font-semibold text-sm uppercase tracking-wide">Cota Standard</h4>
             <ul className="space-y-1.5 text-sm">
               <li className="flex gap-2">
                 <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
@@ -194,10 +188,7 @@ export function SponsorshipsPanel() {
             <span className="absolute -top-2 right-3 inline-flex items-center gap-1 rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
               <Star className="h-3 w-3" /> Destaque
             </span>
-            <div className="flex items-center justify-between">
-              <h4 className="font-semibold text-sm uppercase tracking-wide">Cota Premium</h4>
-              <span className="text-base font-bold text-amber-600 dark:text-amber-400">R$ 800</span>
-            </div>
+            <h4 className="font-semibold text-sm uppercase tracking-wide">Cota Premium</h4>
             <ul className="space-y-1.5 text-sm">
               <li className="flex gap-2">
                 <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
