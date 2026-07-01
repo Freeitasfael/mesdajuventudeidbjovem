@@ -1035,8 +1035,7 @@ const Admin = () => {
               </p>
             </div>
 
-              </p>
-            </div>
+
 
 
             <ManualFreeNumber onDone={loadAll} />
