@@ -79,23 +79,41 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
     const camisetasTotal = camisetasAgg.net;
     const camisetasCount = camisetasOrders.length;
 
-    // Entrada (camisetas): separar por status
-    const entPaid = entrada.filter((e) => e.status === "paid");
-    const entPending = entrada.filter((e) => e.status === "pending");
-    const entCanceled = entrada.filter((e) => e.status === "canceled" || e.status === "cancelled" || e.status === "rejected");
-    const entAgg = netFromOrders(entPaid);
-    const entGross = entAgg.gross;
-    const entTotal = entAgg.net;
-    const entFee = entAgg.fee;
-    const entCount = entPaid.length;
-    const entPendingCount = entPending.length;
-    const entCanceledCount = entCanceled.length;
-    const entPendingGross = entPending.reduce((a, o) => a + o.total_cents, 0);
-    const kit = entPaid.filter((e) => e.product === "kit");
-    const kitUnits = kit.reduce((a, o) => a + (o.quantity || 1), 0);
-    const itemsSold = entPaid.reduce((a, o) => a + (o.quantity || 1), 0);
-    const shirtCost = Math.round(itemsSold * costCamiseta * 100);
-    const shirtProfit = entGross - shirtCost - entFee;
+    // Entrada: separar por produto (camiseta = kit) e (pulseira)
+    const kitOrders = entrada.filter((e) => e.product === "kit");
+    const pulOrders = entrada.filter((e) => e.product === "pulseira");
+
+    // ---- CAMISETA (kit) ----
+    const kitPaid = kitOrders.filter((e) => e.status === "paid");
+    const kitPending = kitOrders.filter((e) => e.status === "pending");
+    const kitCanceled = kitOrders.filter((e) => e.status === "canceled" || e.status === "cancelled" || e.status === "rejected");
+    const kitAgg = netFromOrders(kitPaid);
+    const kitGross = kitAgg.gross;
+    const kitFee = kitAgg.fee;
+    const kitNet = kitAgg.net;
+    const kitPendingGross = kitPending.reduce((a, o) => a + o.total_cents, 0);
+    const kitUnits = kitPaid.reduce((a, o) => a + (o.quantity || 1), 0);
+    const shirtCost = Math.round(kitUnits * costCamiseta * 100);
+    const shirtProfit = kitGross - shirtCost - kitFee;
+
+    // ---- PULSEIRA ----
+    const pulPaid = pulOrders.filter((e) => e.status === "paid");
+    const pulPending = pulOrders.filter((e) => e.status === "pending");
+    const pulCanceled = pulOrders.filter((e) => e.status === "canceled" || e.status === "cancelled" || e.status === "rejected");
+    const pulAgg = netFromOrders(pulPaid);
+    const pulGross = pulAgg.gross;
+    const pulFee = pulAgg.fee;
+    const pulNet = pulAgg.net;
+    const pulUnits = pulPaid.reduce((a, o) => a + (o.quantity || 1), 0);
+
+    // ---- TOTAIS (camiseta + pulseira) ----
+    const entGross = kitGross + pulGross;
+    const entFee = kitFee + pulFee;
+    const entTotal = kitNet + pulNet;
+    const entCount = kitPaid.length + pulPaid.length;
+    const entPendingCount = kitPending.length + pulPending.length;
+    const entCanceledCount = kitCanceled.length + pulCanceled.length;
+    const entPendingGross = kitPendingGross + pulPending.reduce((a, o) => a + o.total_cents, 0);
 
     // Patrocínios (apenas confirmados em dinheiro contam para receita)
     const sponsorsConfirmedCash = sponsors
