@@ -65,8 +65,12 @@ function ItemsCell({ o }: { o: EntradaOrder }) {
           <span className="font-medium">{MODEL_LABEL[it.model] ?? it.model}</span>
           {" · "}
           <span>Tam {it.size}</span>
-          {" · "}
-          <span className="text-muted-foreground">x{it.quantity}</span>
+          {it.quantity > 1 && (
+            <>
+              {" · "}
+              <span className="text-muted-foreground">x{it.quantity}</span>
+            </>
+          )}
         </li>
       ))}
     </ul>
