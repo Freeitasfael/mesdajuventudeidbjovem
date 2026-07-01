@@ -65,10 +65,7 @@ export function SponsorshipsPanel() {
     setLoading(false);
   };
 
-    if (error) toast.error("Erro ao carregar: " + error.message);
-    else setItems((data ?? []) as Sponsorship[]);
-    setLoading(false);
-  };
+
 
   useEffect(() => {
     load();
