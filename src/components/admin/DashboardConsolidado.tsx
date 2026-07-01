@@ -272,66 +272,6 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
         </div>
       </div>
 
-      {/* Resumo da Camiseta */}
-      <div>
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Resumo da Camiseta</h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard
-            label="Receita paga"
-            value={fmtBRL(metrics.kitGross)}
-            subtitle="Valor bruto (sem descontar taxas)"
-            tone="positive"
-          />
-          <StatCard
-            label="Preço de custo"
-            value={fmtBRL(metrics.shirtCost)}
-            subtitle="Custo × camisetas vendidas"
-            tone="warning"
-          />
-          <StatCard
-            label="Taxa de Mercado Pago"
-            value={fmtBRL(metrics.kitFee)}
-            subtitle="PIX 0,99% · Cartão 4,99%"
-            tone="warning"
-          />
-          <StatCard
-            label="Lucro líquido"
-            value={fmtBRL(metrics.shirtProfit)}
-            subtitle="Receita − (custo + taxa MP)"
-            tone={metrics.shirtProfit >= 0 ? "positive" : "negative"}
-          />
-          <StatCard label="Camisetas vendidas" value={String(metrics.kitUnits)} />
-          <StatCard label="Pedidos pagos" value={String(metrics.kitCount)} />
-          <StatCard label="Vendas pendentes" value={String(metrics.entPendingCount)} subtitle={fmtBRL(metrics.entPendingGross)} />
-          <StatCard label="Vendas canceladas" value={String(metrics.entCanceledCount)} />
-        </div>
-      </div>
-
-      {/* Resumo da Pulseira */}
-      <div>
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Resumo da Pulseira</h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard
-            label="Receita paga"
-            value={fmtBRL(metrics.pulGross)}
-            subtitle="Valor bruto (sem descontar taxas)"
-            tone="positive"
-          />
-          <StatCard
-            label="Taxa de Mercado Pago"
-            value={fmtBRL(metrics.pulFee)}
-            subtitle="PIX 0,99% · Cartão 4,99%"
-            tone="warning"
-          />
-          <StatCard
-            label="Receita líquida"
-            value={fmtBRL(metrics.pulNet)}
-            subtitle="Receita − taxa MP"
-            tone={metrics.pulNet >= 0 ? "positive" : "negative"}
-          />
-          <StatCard label="Pulseiras vendidas" value={String(metrics.pulUnits)} subtitle={`${metrics.pulCount} pedido(s)`} />
-        </div>
-      </div>
 
       {/* Total combinado (Camiseta + Pulseira) */}
       <div>

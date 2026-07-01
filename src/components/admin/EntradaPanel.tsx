@@ -578,6 +578,35 @@ export function EntradaPanel() {
           </div>
         </div>
 
+        {/* KPIs individuais da Pulseira */}
+        <div>
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">
+            Resumo da Pulseira
+          </h3>
+          <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+            <KpiCard
+              label="Receita paga"
+              value={fmtBRL(costMetrics.grossPulseira)}
+              tone="positive"
+              hint="Valor bruto recebido em pulseiras (sem descontar taxas)."
+            />
+            <KpiCard
+              label="Taxa de Mercado Pago"
+              value={fmtBRL(costMetrics.grossPulseira - costMetrics.netPulseira)}
+              tone="warning"
+              hint="PIX 0,99% · Cartão 4,99% sobre o valor bruto."
+            />
+            <KpiCard
+              label="Receita líquida"
+              value={fmtBRL(costMetrics.netPulseira)}
+              tone={costMetrics.netPulseira >= 0 ? "positive" : "negative"}
+              hint="Receita paga − Taxa MP."
+            />
+            <KpiCard label="Pulseiras vendidas" value={String(costMetrics.pulseiraUnits)} />
+          </div>
+        </div>
+
+
 
 
         <Card className="p-3">
