@@ -5,8 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Plus, Trash2, RefreshCw, CheckCircle2, Clock, Download, Star } from "lucide-react";
+import { Plus, Trash2, RefreshCw, CheckCircle2, Clock, Download, Star, Pencil } from "lucide-react";
 import cotasPdf from "@/assets/cotas-patrocinio.pdf.asset.json";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
 
