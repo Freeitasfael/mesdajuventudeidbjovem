@@ -297,6 +297,42 @@ export type Database = {
           },
         ]
       }
+      offerings: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          created_by: string | null
+          description: string
+          id: string
+          notes: string | null
+          offering_date: string
+          payment_method: string
+          updated_at: string
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string
+          created_by?: string | null
+          description: string
+          id?: string
+          notes?: string | null
+          offering_date?: string
+          payment_method?: string
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          id?: string
+          notes?: string | null
+          offering_date?: string
+          payment_method?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       order_numbers: {
         Row: {
           created_at: string
