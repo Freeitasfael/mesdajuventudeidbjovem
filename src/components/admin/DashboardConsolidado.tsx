@@ -219,10 +219,19 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
       {/* Rifa */}
       <div>
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Rifa</h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard label="Arrecadado (rifa)" value={fmtBRL(metrics.camisetasTotal)} />
           <StatCard label="Pedidos pagos" value={String(metrics.camisetasCount)} />
           <StatCard label="Ticket médio" value={fmtBRL(metrics.camisetasCount > 0 ? Math.round(metrics.camisetasTotal / metrics.camisetasCount) : 0)} />
+          {rifaStatus && (
+            <>
+              <StatCard label="Pedidos pendentes" value={String(rifaStatus.pending_orders)} />
+              <StatCard label="Números disponíveis" value={String(rifaStatus.numbers_available)} />
+              <StatCard label="Números pagos" value={String(rifaStatus.numbers_paid)} />
+              <StatCard label="Números reservados" value={String(rifaStatus.numbers_reserved)} />
+              <StatCard label="Vendedores" value={String(rifaStatus.sellers_count)} />
+            </>
+          )}
         </div>
       </div>
 
