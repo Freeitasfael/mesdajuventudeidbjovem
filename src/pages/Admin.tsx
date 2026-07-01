@@ -179,10 +179,28 @@ const Admin = () => {
   const [orderDateFrom, setOrderDateFrom] = useState("");
   const [orderDateTo, setOrderDateTo] = useState("");
 
+  // Preço de custo (sincronizado via localStorage com EntradaPanel/DashboardConsolidado)
+  const COST_STORAGE_KEY = "dashboard_costs_v1";
+  const DEFAULT_COST_RIFA_PREMIO = 500;
+  const [costRifaPremio, setCostRifaPremio] = useState<number>(() => {
+    try { const s = JSON.parse(localStorage.getItem(COST_STORAGE_KEY) || "{}"); return Number(s.rifaPremio) || DEFAULT_COST_RIFA_PREMIO; } catch { return DEFAULT_COST_RIFA_PREMIO; }
+  });
+  useEffect(() => {
+    try {
+      const s = JSON.parse(localStorage.getItem(COST_STORAGE_KEY) || "{}");
+      localStorage.setItem(COST_STORAGE_KEY, JSON.stringify({ ...s, rifaPremio: costRifaPremio }));
+    } catch {
+      localStorage.setItem(COST_STORAGE_KEY, JSON.stringify({ rifaPremio: costRifaPremio }));
+    }
+  }, [costRifaPremio]);
+  const rifaPrizeCostCents = Math.round(costRifaPremio * 100);
+  const rifaLucroLiquido = rifaKpis => rifaKpis.revPaid - (rifaPrizeCostCents + rifaKpis.revPaidFee);
+
   useEffect(() => {
     document.title = "Painel Admin";
     loadAll();
   }, []);
+
 
   useEffect(() => {
     const cents = Math.round(parseFloat(priceReais.replace(",", ".")) * 100);
