@@ -137,7 +137,11 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
     const totalExpenses = expensesTotal + fabricationCost;
 
     // Receita Total = Camisetas + Entrada + Patrocínios confirmados
-    const totalRevenue = camisetasTotal + entTotal + sponsorsConfirmedTotal;
+    // Ofertas (soma total)
+    const offeringsTotal = offerings.reduce((a, o) => a + o.amount_cents, 0);
+    const offeringsCount = offerings.length;
+
+    const totalRevenue = camisetasTotal + entTotal + sponsorsConfirmedTotal + offeringsTotal;
     const totalGross = camisetasGross + entGross;
     const totalFee = camisetasAgg.fee + entFee;
 
