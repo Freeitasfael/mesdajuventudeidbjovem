@@ -8,8 +8,12 @@ import {
   runHealthCheck,
   fetchLatestHealthRun,
   fetchHealthRunDetails,
+  INDICATOR_CATALOG,
+  labelFor,
+  groupFor,
   type HealthRun,
   type HealthStatus,
+  type IndicatorSpec,
 } from "@/services/dashboardHealth";
 
 interface LatestRunSummary {
@@ -25,6 +29,15 @@ interface LatestRunSummary {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type LogRow = any;
+
+interface Row {
+  indicator: string;
+  databaseValue: number | null;
+  serviceValue: number | null;
+  difference: number | null;
+  status: HealthStatus;
+  details?: Record<string, unknown> | null;
+}
 
 const statusColor: Record<HealthStatus, string> = {
   ok: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
@@ -42,11 +55,24 @@ const overallLabel: Record<HealthStatus, string> = {
   na: "⚪ Sem dados",
 };
 
+const GROUP_LABEL: Record<IndicatorSpec["group"], string> = {
+  receita: "Receitas",
+  totais: "Totais consolidados",
+  pedidos: "Pedidos",
+  operacional: "Operacional",
+  pagamentos: "Pagamentos & Webhooks",
+  integridade: "Integridade",
+  performance: "Performance",
+};
+
+const GROUP_ORDER: IndicatorSpec["group"][] = [
+  "totais", "receita", "pedidos", "pagamentos", "operacional", "integridade", "performance",
+];
+
 function fmtValue(v: number | null | undefined) {
   if (v === null || v === undefined) return "—";
   return new Intl.NumberFormat("pt-BR").format(v);
 }
-
 function fmtBRL(cents: number | null | undefined) {
   if (cents === null || cents === undefined) return "—";
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(cents / 100);
@@ -66,9 +92,7 @@ export const SystemHealthPanel = () => {
         const rows = await fetchHealthRunDetails(l.run_id);
         setLogs(rows);
       }
-    } catch (e: unknown) {
-      console.warn(e);
-    }
+    } catch (e) { console.warn(e); }
   }, []);
 
   useEffect(() => { loadLatest(); }, [loadLatest]);
@@ -79,29 +103,95 @@ export const SystemHealthPanel = () => {
       const result = await runHealthCheck({ from: "", to: "" });
       setRun(result);
       await loadLatest();
-      const msg = `Auditoria concluída: ${result.counts.ok}/${result.counts.total} OK`;
+      const msg = `Auditoria concluída: ${result.counts.ok}/${result.counts.implemented} OK (score ${result.healthScore})`;
       if (result.overall === "ok") toast.success(msg);
-      else if (result.overall === "warning") toast.warning(msg + ` (${result.counts.warnings} avisos)`);
-      else toast.error(msg + ` (${result.counts.errors + result.counts.criticals} problemas)`);
-    } catch (e: unknown) {
+      else if (result.overall === "warning") toast.warning(msg + ` — ${result.counts.warnings} avisos`);
+      else toast.error(msg + ` — ${result.counts.errors + result.counts.criticals} problemas`);
+    } catch (e) {
       const msg = e instanceof Error ? e.message : "Falha na auditoria";
       toast.error(msg);
-    } finally {
-      setRunning(false);
-    }
+    } finally { setRunning(false); }
   };
 
-  const currentChecks = run?.checks ?? logs.map((l) => ({
-    indicator: l.indicator as string,
-    databaseValue: l.database_value as number | null,
-    serviceValue: l.service_value as number | null,
-    difference: l.difference as number | null,
-    status: l.status as HealthStatus,
-    details: l.details as Record<string, unknown> | null,
-  }));
+  // Sempre mostra o catálogo completo. Preenche com dados do run atual OU do
+  // último run persistido; o que faltar vira N/A.
+  const dataByIndicator = new Map<string, Row>();
+  const source: Row[] = run
+    ? run.checks
+    : logs.map((l) => ({
+        indicator: l.indicator,
+        databaseValue: l.database_value,
+        serviceValue: l.service_value,
+        difference: l.difference,
+        status: l.status,
+        details: l.details,
+      }));
+  for (const c of source) dataByIndicator.set(c.indicator, c);
 
-  const overall: HealthStatus = run?.overall
-    ?? (latest?.criticals ? "critical" : latest?.errors ? "error" : latest?.warnings ? "warning" : latest ? "ok" : "na");
+  const rows: Row[] = INDICATOR_CATALOG.map((spec) => {
+    const found = dataByIndicator.get(spec.indicator);
+    if (found) return found;
+    return {
+      indicator: spec.indicator,
+      databaseValue: null,
+      serviceValue: null,
+      difference: null,
+      status: "na",
+      details: { reason: "not_implemented_yet" },
+    };
+  });
+
+  const implemented = rows.filter((r) => r.status !== "na").length;
+  const totalCatalog = rows.length;
+  const okCount = rows.filter((r) => r.status === "ok").length;
+  const warnCount = rows.filter((r) => r.status === "warning").length;
+  const errCount = rows.filter((r) => r.status === "error").length;
+  const critCount = rows.filter((r) => r.status === "critical").length;
+  const naCount = rows.filter((r) => r.status === "na").length;
+  const scoreNum = okCount + warnCount * 0.5;
+  const healthScore = run?.healthScore ?? (implemented > 0 ? Math.round((scoreNum / implemented) * 100) : 0);
+
+  const overall: HealthStatus =
+    run?.overall
+    ?? (critCount ? "critical"
+      : errCount ? "error"
+      : warnCount ? "warning"
+      : implemented > 0 ? "ok" : "na");
+
+  // Agrupar por grupo
+  const grouped = new Map<IndicatorSpec["group"], Row[]>();
+  for (const r of rows) {
+    const g = groupFor(r.indicator);
+    if (!grouped.has(g)) grouped.set(g, []);
+    grouped.get(g)!.push(r);
+  }
+
+  const renderRow = (r: Row) => {
+    const isBRL = r.indicator.endsWith("_cents");
+    const fmt = isBRL ? fmtBRL : fmtValue;
+    return (
+      <tr key={r.indicator} className="border-t">
+        <td className="px-3 py-2">
+          <div className="text-sm">{labelFor(r.indicator)}</div>
+          <div className="font-mono text-[11px] text-muted-foreground">{r.indicator}</div>
+        </td>
+        <td className="px-3 py-2 text-right tabular-nums">{fmt(r.databaseValue)}</td>
+        <td className="px-3 py-2 text-right tabular-nums">{fmt(r.serviceValue)}</td>
+        <td className="px-3 py-2 text-right tabular-nums">
+          {r.difference === null ? "—" : isBRL ? fmtBRL(r.difference) : fmtValue(r.difference)}
+        </td>
+        <td className="px-3 py-2">
+          <Badge className={statusColor[r.status]}>
+            {r.status === "ok" && <ShieldCheck className="h-3 w-3 mr-1" />}
+            {r.status === "warning" && <AlertTriangle className="h-3 w-3 mr-1" />}
+            {(r.status === "error" || r.status === "critical") && <XCircle className="h-3 w-3 mr-1" />}
+            {r.status === "na" && <Info className="h-3 w-3 mr-1" />}
+            {r.status === "na" ? "N/A – Não implementado" : r.status.toUpperCase()}
+          </Badge>
+        </td>
+      </tr>
+    );
+  };
 
   return (
     <div className="space-y-4">
@@ -126,23 +216,33 @@ export const SystemHealthPanel = () => {
           <div className="text-lg font-semibold mt-1">{overallLabel[overall]}</div>
         </Card>
         <Card className="p-4">
+          <div className="text-xs text-muted-foreground">Health Score</div>
+          <div className="text-2xl font-bold mt-1 tabular-nums">
+            {healthScore}<span className="text-sm text-muted-foreground">/100</span>
+          </div>
+          <div className="text-[11px] text-muted-foreground mt-1">
+            calculado sobre os {implemented} indicadores implementados
+          </div>
+        </Card>
+        <Card className="p-4">
+          <div className="text-xs text-muted-foreground">Cobertura</div>
+          <div className="text-lg font-semibold mt-1 tabular-nums">
+            {implemented} de {totalCatalog} indicadores monitorados
+          </div>
+          <div className="text-[11px] text-muted-foreground mt-1">
+            {naCount} pendentes de implementação
+          </div>
+        </Card>
+        <Card className="p-4">
           <div className="text-xs text-muted-foreground">Última auditoria</div>
           <div className="text-sm mt-1">
             {latest ? new Date(latest.created_at).toLocaleString("pt-BR") : "—"}
           </div>
-        </Card>
-        <Card className="p-4">
-          <div className="text-xs text-muted-foreground">Indicadores</div>
-          <div className="text-lg font-semibold mt-1">{latest?.indicators ?? currentChecks.length ?? 0}</div>
-        </Card>
-        <Card className="p-4">
-          <div className="text-xs text-muted-foreground">Erros / Warnings / Críticos</div>
-          <div className="text-lg font-semibold mt-1 flex gap-2 items-center">
-            <span className="text-red-600">{latest?.errors ?? run?.counts.errors ?? 0}</span>
-            <span className="text-muted-foreground">/</span>
-            <span className="text-amber-600">{latest?.warnings ?? run?.counts.warnings ?? 0}</span>
-            <span className="text-muted-foreground">/</span>
-            <span className="text-red-700">{latest?.criticals ?? run?.counts.criticals ?? 0}</span>
+          <div className="text-[11px] text-muted-foreground mt-1 flex gap-2">
+            <span className="text-emerald-600">{okCount} OK</span>
+            <span className="text-amber-600">{warnCount} warn</span>
+            <span className="text-red-600">{errCount} err</span>
+            <span className="text-red-700">{critCount} crit</span>
           </div>
         </Card>
       </div>
@@ -164,59 +264,35 @@ export const SystemHealthPanel = () => {
         </div>
       )}
 
-      <Card className="p-0 overflow-hidden">
-        <div className="p-3 border-b bg-muted/30 flex items-center justify-between">
-          <div className="text-sm font-medium">Indicadores</div>
-          <div className="text-xs text-muted-foreground">
-            Run {latest?.run_id?.slice(0, 8) ?? run?.runId.slice(0, 8) ?? "—"}
-          </div>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
-              <tr>
-                <th className="text-left px-3 py-2">Indicador</th>
-                <th className="text-right px-3 py-2">Banco</th>
-                <th className="text-right px-3 py-2">Serviço</th>
-                <th className="text-right px-3 py-2">Δ</th>
-                <th className="text-left px-3 py-2">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentChecks.map((c) => {
-                const isBRL = c.indicator.endsWith("_cents");
-                const fmt = isBRL ? fmtBRL : fmtValue;
-                return (
-                  <tr key={c.indicator} className="border-t">
-                    <td className="px-3 py-2 font-mono text-xs">{c.indicator}</td>
-                    <td className="px-3 py-2 text-right tabular-nums">{fmt(c.databaseValue)}</td>
-                    <td className="px-3 py-2 text-right tabular-nums">{fmt(c.serviceValue)}</td>
-                    <td className="px-3 py-2 text-right tabular-nums">
-                      {c.difference === null ? "—" : isBRL ? fmtBRL(c.difference) : fmtValue(c.difference)}
-                    </td>
-                    <td className="px-3 py-2">
-                      <Badge className={statusColor[c.status]}>
-                        {c.status === "ok" && <ShieldCheck className="h-3 w-3 mr-1" />}
-                        {c.status === "warning" && <AlertTriangle className="h-3 w-3 mr-1" />}
-                        {(c.status === "error" || c.status === "critical") && <XCircle className="h-3 w-3 mr-1" />}
-                        {c.status === "na" && <Info className="h-3 w-3 mr-1" />}
-                        {c.status.toUpperCase()}
-                      </Badge>
-                    </td>
+      {/* Grupos por categoria */}
+      {GROUP_ORDER.filter((g) => grouped.has(g)).map((g) => {
+        const list = grouped.get(g)!;
+        const gImpl = list.filter((r) => r.status !== "na").length;
+        return (
+          <Card key={g} className="p-0 overflow-hidden">
+            <div className="p-3 border-b bg-muted/30 flex items-center justify-between">
+              <div className="text-sm font-medium">{GROUP_LABEL[g]}</div>
+              <div className="text-xs text-muted-foreground">
+                {gImpl}/{list.length} monitorados
+              </div>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
+                  <tr>
+                    <th className="text-left px-3 py-2">Indicador</th>
+                    <th className="text-right px-3 py-2">Banco</th>
+                    <th className="text-right px-3 py-2">Serviço</th>
+                    <th className="text-right px-3 py-2">Δ</th>
+                    <th className="text-left px-3 py-2">Status</th>
                   </tr>
-                );
-              })}
-              {currentChecks.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="px-3 py-6 text-center text-muted-foreground">
-                    Nenhuma auditoria executada ainda. Clique em "Executar auditoria".
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </Card>
+                </thead>
+                <tbody>{list.map(renderRow)}</tbody>
+              </table>
+            </div>
+          </Card>
+        );
+      })}
     </div>
   );
 };

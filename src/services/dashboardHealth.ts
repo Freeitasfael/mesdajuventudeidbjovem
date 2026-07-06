@@ -41,24 +41,100 @@ export interface HealthRun {
   serviceMs: number;
   counts: {
     total: number;
+    implemented: number;
     ok: number;
     warnings: number;
     errors: number;
     criticals: number;
     na: number;
   };
+  healthScore: number; // 0..100 sobre os IMPLEMENTADOS
   overall: HealthStatus;
   version: string;
   environment: string;
 }
 
-// Indicadores listados no briefing mas ainda não modelados no domínio.
-const NOT_IMPLEMENTED: string[] = [
-  "clientes",
-  "producao",
-  "entregas",
-  "conversao",
+// -----------------------------------------------------------------------------
+// Catálogo canônico de indicadores esperados no sistema. Cada item aqui é
+// exibido no painel. Se `metricsPath` estiver ausente, é marcado como
+// N/A – Não implementado e NÃO afeta o Health Score.
+// Novos indicadores adicionados ao dashboardMetrics.ts entram automaticamente
+// no grupo "Implementados" ao serem incluídos abaixo com `metricsPath` preenchido.
+// -----------------------------------------------------------------------------
+export interface IndicatorSpec {
+  indicator: string;
+  label: string;
+  group: "receita" | "pedidos" | "operacional" | "pagamentos" | "totais" | "performance" | "integridade";
+  metricsPath?: string; // se ausente → N/A
+}
+
+export const INDICATOR_CATALOG: IndicatorSpec[] = [
+  // Receitas
+  { indicator: "rifa.gross_cents", label: "Receita da Rifa (bruto)", group: "receita", metricsPath: "rifa.gross" },
+  { indicator: "entrada.kit_gross_cents", label: "Receita das Camisetas (bruto)", group: "receita", metricsPath: "entrada.kit.gross" },
+  { indicator: "entrada.pulseira_gross_cents", label: "Receita das Pulseiras (bruto)", group: "receita", metricsPath: "entrada.pulseira.gross" },
+  { indicator: "sponsors.total_cents", label: "Receita dos Patrocínios", group: "receita", metricsPath: "sponsors.total" },
+  { indicator: "offerings.total_cents", label: "Receita das Ofertas", group: "receita", metricsPath: "offerings.total" },
+  { indicator: "totals.revenue_gross_cents", label: "Receita Total (bruto)", group: "totais", metricsPath: "totals.revenueGross" },
+  { indicator: "totals.revenue_net_cents", label: "Receita Total (líquido)", group: "totais", metricsPath: "totals.revenueNet" },
+  { indicator: "totals.fees_mp_cents", label: "Taxas Mercado Pago", group: "totais", metricsPath: "totals.feesMP" },
+
+  // Pedidos (Rifa)
+  { indicator: "rifa.paid_orders", label: "Pedidos pagos (Rifa)", group: "pedidos", metricsPath: "rifa.count" },
+  { indicator: "rifa.pending_orders", label: "Pedidos pendentes (Rifa)", group: "pedidos", metricsPath: "rifa.pendingCount" },
+  { indicator: "rifa.cancelled_like", label: "Pedidos cancelados/expirados/reembolsados (Rifa)", group: "pedidos", metricsPath: "rifa.cancelledCount" },
+  { indicator: "rifa.refunded_orders", label: "Pedidos reembolsados (Rifa)", group: "pedidos", metricsPath: "rifa.refundedCount" },
+  { indicator: "rifa.chargeback_orders", label: "Chargebacks (Rifa)", group: "pedidos" }, // N/A no serviço
+
+  // Pedidos (Entrada)
+  { indicator: "entrada.paid_orders", label: "Pedidos pagos (Camiseta/Pulseira)", group: "pedidos", metricsPath: "entrada.count" },
+  { indicator: "entrada.pending_orders", label: "Pedidos pendentes (Entrada)", group: "pedidos", metricsPath: "entrada.pendingCount" },
+  { indicator: "entrada.cancelled_like", label: "Cancelados/expirados/reembolsados (Entrada)", group: "pedidos", metricsPath: "entrada.cancelledCount" },
+  { indicator: "entrada.refunded_orders", label: "Reembolsados (Entrada)", group: "pedidos", metricsPath: "entrada.refundedCount" },
+
+  // Totais operacionais
+  { indicator: "totals.orders_paid", label: "Total de pedidos pagos", group: "totais", metricsPath: "totals.ordersPaid" },
+  { indicator: "totals.ticket_net_cents", label: "Ticket médio (líquido)", group: "totais", metricsPath: "totals.ticketNet" },
+
+  // Patrocínios / ofertas / despesas
+  { indicator: "sponsors.confirmed_count", label: "Patrocínios confirmados", group: "operacional", metricsPath: "sponsors.count" },
+  { indicator: "sponsors.pending_count", label: "Patrocínios pendentes", group: "operacional", metricsPath: "sponsors.pendingCount" },
+  { indicator: "offerings.count", label: "Quantidade de ofertas", group: "operacional", metricsPath: "offerings.count" },
+  { indicator: "expenses.paid_cents", label: "Despesas realizadas", group: "operacional", metricsPath: "expenses.paid" },
+  { indicator: "expenses.scheduled_cents", label: "Despesas previstas", group: "operacional", metricsPath: "expenses.scheduled" },
+  { indicator: "expenses.count", label: "Quantidade de despesas", group: "operacional", metricsPath: "expenses.count" },
+
+  // Pagamentos / webhooks
+  { indicator: "payments.raw_count", label: "Quantidade de pagamentos", group: "pagamentos", metricsPath: "db.payments.raw_count" },
+  { indicator: "payments.duplicated_orders", label: "Pedidos com pagamento duplicado", group: "pagamentos", metricsPath: "db.duplicates" },
+  { indicator: "payments.orphan", label: "Pagamentos órfãos", group: "pagamentos", metricsPath: "db.payments.orphan" },
+  { indicator: "webhooks.count", label: "Quantidade de webhooks", group: "pagamentos", metricsPath: "db.webhooks" },
+
+  // Integridade
+  { indicator: "identity.revenue_net", label: "Identidade da Receita Líquida", group: "integridade", metricsPath: "sum(components) == totals.revenueNet" },
+
+  // Performance
+  { indicator: "perf.snapshot_rpc_ms", label: "Tempo da RPC de snapshot", group: "performance", metricsPath: "runtime" },
+  { indicator: "perf.service_load_ms", label: "Tempo do loadDashboardMetrics", group: "performance", metricsPath: "runtime" },
+
+  // ---------- Não implementados (ficam N/A automaticamente) ----------
+  { indicator: "clientes", label: "Clientes", group: "operacional" },
+  { indicator: "producao", label: "Produção", group: "operacional" },
+  { indicator: "entregas", label: "Entregas", group: "operacional" },
+  { indicator: "conversao", label: "Taxa de Conversão", group: "operacional" },
+  { indicator: "saldo", label: "Saldo em caixa", group: "totais" },
 ];
+
+const CATALOG_INDEX = new Map(INDICATOR_CATALOG.map((s) => [s.indicator, s]));
+export function isImplemented(indicator: string): boolean {
+  return !!CATALOG_INDEX.get(indicator)?.metricsPath;
+}
+export function labelFor(indicator: string): string {
+  return CATALOG_INDEX.get(indicator)?.label ?? indicator;
+}
+export function groupFor(indicator: string): IndicatorSpec["group"] {
+  return CATALOG_INDEX.get(indicator)?.group ?? "operacional";
+}
 
 const SLOW_QUERY_MS = 500;
 
@@ -198,50 +274,61 @@ export async function runHealthCheck(range: DateRange = EMPTY_RANGE): Promise<He
   checks.push(makeCheck("totals.orders_paid", metrics.totals.ordersPaid, metrics.totals.ordersPaid));
   checks.push(makeCheck("totals.ticket_net_cents", metrics.totals.ticketNet, metrics.totals.ticketNet));
 
-  // ---------- N/A ----------
-  for (const ind of NOT_IMPLEMENTED) pushNA(checks, ind);
+  // ---------- PERFORMANCE (sempre emite; warning se acima do limite) ----------
+  checks.push({
+    indicator: "perf.snapshot_rpc_ms",
+    databaseValue: snapshotMs,
+    serviceValue: SLOW_QUERY_MS,
+    difference: Math.max(0, snapshotMs - SLOW_QUERY_MS),
+    status: snapshotMs > SLOW_QUERY_MS ? "warning" : "ok",
+    details: { threshold_ms: SLOW_QUERY_MS },
+  });
+  checks.push({
+    indicator: "perf.service_load_ms",
+    databaseValue: serviceMs,
+    serviceValue: SLOW_QUERY_MS,
+    difference: Math.max(0, serviceMs - SLOW_QUERY_MS),
+    status: serviceMs > SLOW_QUERY_MS ? "warning" : "ok",
+    details: { threshold_ms: SLOW_QUERY_MS },
+  });
 
-  // ---------- PERFORMANCE ----------
-  if (snapshotMs > SLOW_QUERY_MS) {
-    checks.push({
-      indicator: "perf.snapshot_rpc_ms",
-      databaseValue: snapshotMs,
-      serviceValue: SLOW_QUERY_MS,
-      difference: snapshotMs - SLOW_QUERY_MS,
-      status: "warning",
-      details: { threshold_ms: SLOW_QUERY_MS },
-    });
-  }
-  if (serviceMs > SLOW_QUERY_MS) {
-    checks.push({
-      indicator: "perf.service_load_ms",
-      databaseValue: serviceMs,
-      serviceValue: SLOW_QUERY_MS,
-      difference: serviceMs - SLOW_QUERY_MS,
-      status: "warning",
-      details: { threshold_ms: SLOW_QUERY_MS },
-    });
+  // ---------- N/A: qualquer indicador do catálogo sem metricsPath e ainda
+  // não presente na lista de checks entra automaticamente como N/A. Assim,
+  // basta preencher metricsPath no catálogo (quando implementado) para o
+  // indicador migrar de N/A → auditado, sem mudar a UI.
+  const emitted = new Set(checks.map((c) => c.indicator));
+  for (const spec of INDICATOR_CATALOG) {
+    if (emitted.has(spec.indicator)) continue;
+    if (!spec.metricsPath) {
+      pushNA(checks, spec.indicator);
+    }
   }
 
   const totalMs = Math.round(performance.now() - t0);
   const { version, environment } = envInfo();
   const createdAt = new Date().toISOString();
 
-  const counts = {
-    total: checks.length,
-    ok: checks.filter((c) => c.status === "ok").length,
-    warnings: checks.filter((c) => c.status === "warning").length,
-    errors: checks.filter((c) => c.status === "error").length,
-    criticals: checks.filter((c) => c.status === "critical").length,
-    na: checks.filter((c) => c.status === "na").length,
-  };
+  const na = checks.filter((c) => c.status === "na").length;
+  const ok = checks.filter((c) => c.status === "ok").length;
+  const warnings = checks.filter((c) => c.status === "warning").length;
+  const errors = checks.filter((c) => c.status === "error").length;
+  const criticals = checks.filter((c) => c.status === "critical").length;
+  const total = checks.length;
+  const implemented = total - na;
+  const counts = { total, implemented, ok, warnings, errors, criticals, na };
+
+  // Health Score APENAS sobre implementados. warning conta 0.5, error 0, critical 0.
+  const scoreNumerator = ok + warnings * 0.5;
+  const healthScore = implemented > 0 ? Math.round((scoreNumerator / implemented) * 100) : 0;
+
   const overall: HealthStatus =
-    counts.criticals > 0 ? "critical" :
-    counts.errors > 0 ? "error" :
-    counts.warnings > 0 ? "warning" : "ok";
+    criticals > 0 ? "critical" :
+    errors > 0 ? "error" :
+    warnings > 0 ? "warning" :
+    implemented > 0 ? "ok" : "na";
 
   const run: HealthRun = {
-    runId, createdAt, range, checks, totalMs, snapshotMs, serviceMs, counts, overall, version, environment,
+    runId, createdAt, range, checks, totalMs, snapshotMs, serviceMs, counts, healthScore, overall, version, environment,
   };
 
   // ---------- Persistir ----------
