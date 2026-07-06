@@ -97,14 +97,16 @@ function pushNA(list: HealthCheck[], indicator: string) {
 }
 
 /** Executa a auditoria completa. Requer sessão admin (RLS + SECURITY DEFINER). */
-export async function runHealthCheck(range: DateRange = {}): Promise<HealthRun> {
+const EMPTY_RANGE: DateRange = { from: "", to: "" };
+
+export async function runHealthCheck(range: DateRange = EMPTY_RANGE): Promise<HealthRun> {
   const runId = crypto.randomUUID();
   const t0 = performance.now();
 
   const snapshotStart = performance.now();
   const { data: snapRaw, error: snapErr } = await supabase.rpc("admin_health_snapshot", {
-    _from: range.from ?? null,
-    _to: range.to ?? null,
+    _from: range.from || null,
+    _to: range.to || null,
   });
   const snapshotMs = Math.round(performance.now() - snapshotStart);
   if (snapErr) throw new Error(`admin_health_snapshot failed: ${snapErr.message}`);
