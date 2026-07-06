@@ -93,6 +93,7 @@ const fmtDate = (s: string) => new Date(s).toLocaleString("pt-BR");
 
 // Taxa de transação Mercado Pago aplicada por método (PIX 0,99% · Cartão 4,99%).
 import { netFromOrders } from "@/lib/fees";
+import { isPaid, isPending, isRefunded, isCancelledLike } from "@/lib/orderStatus";
 
 // Custos unitários de fabricação (R$) — sincronizados com a Dashboard
 const DEFAULT_COST_CAMISETA = 38;
