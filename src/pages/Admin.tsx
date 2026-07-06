@@ -27,6 +27,7 @@ import { SponsorshipsPanel } from "@/components/admin/SponsorshipsPanel";
 import { OfferingsPanel } from "@/components/admin/OfferingsPanel";
 import { RecapPanel } from "@/components/admin/RecapPanel";
 import { AboutPanel } from "@/components/admin/AboutPanel";
+import { SystemHealthPanel } from "@/components/admin/SystemHealthPanel";
 
 import { WhatsAppLink } from "@/components/WhatsAppLink";
 
