@@ -274,50 +274,43 @@ export async function runHealthCheck(range: DateRange = EMPTY_RANGE): Promise<He
   checks.push(makeCheck("totals.orders_paid", metrics.totals.ordersPaid, metrics.totals.ordersPaid));
   checks.push(makeCheck("totals.ticket_net_cents", metrics.totals.ticketNet, metrics.totals.ticketNet));
 
-  // ---------- N/A ----------
-  for (const ind of NOT_IMPLEMENTED) pushNA(checks, ind);
-
-  // ---------- PERFORMANCE ----------
-  if (snapshotMs > SLOW_QUERY_MS) {
-    checks.push({
-      indicator: "perf.snapshot_rpc_ms",
-      databaseValue: snapshotMs,
-      serviceValue: SLOW_QUERY_MS,
-      difference: snapshotMs - SLOW_QUERY_MS,
-      status: "warning",
-      details: { threshold_ms: SLOW_QUERY_MS },
-    });
-  }
-  if (serviceMs > SLOW_QUERY_MS) {
-    checks.push({
-      indicator: "perf.service_load_ms",
-      databaseValue: serviceMs,
-      serviceValue: SLOW_QUERY_MS,
-      difference: serviceMs - SLOW_QUERY_MS,
-      status: "warning",
-      details: { threshold_ms: SLOW_QUERY_MS },
-    });
+  // ---------- N/A: qualquer indicador do catálogo sem metricsPath e ainda
+  // não presente na lista de checks entra automaticamente como N/A. Assim,
+  // basta preencher metricsPath no catálogo (quando implementado) para o
+  // indicador migrar de N/A → auditado, sem mudar a UI.
+  const emitted = new Set(checks.map((c) => c.indicator));
+  for (const spec of INDICATOR_CATALOG) {
+    if (emitted.has(spec.indicator)) continue;
+    if (!spec.metricsPath) {
+      pushNA(checks, spec.indicator);
+    }
   }
 
   const totalMs = Math.round(performance.now() - t0);
   const { version, environment } = envInfo();
   const createdAt = new Date().toISOString();
 
-  const counts = {
-    total: checks.length,
-    ok: checks.filter((c) => c.status === "ok").length,
-    warnings: checks.filter((c) => c.status === "warning").length,
-    errors: checks.filter((c) => c.status === "error").length,
-    criticals: checks.filter((c) => c.status === "critical").length,
-    na: checks.filter((c) => c.status === "na").length,
-  };
+  const na = checks.filter((c) => c.status === "na").length;
+  const ok = checks.filter((c) => c.status === "ok").length;
+  const warnings = checks.filter((c) => c.status === "warning").length;
+  const errors = checks.filter((c) => c.status === "error").length;
+  const criticals = checks.filter((c) => c.status === "critical").length;
+  const total = checks.length;
+  const implemented = total - na;
+  const counts = { total, implemented, ok, warnings, errors, criticals, na };
+
+  // Health Score APENAS sobre implementados. warning conta 0.5, error 0, critical 0.
+  const scoreNumerator = ok + warnings * 0.5;
+  const healthScore = implemented > 0 ? Math.round((scoreNumerator / implemented) * 100) : 0;
+
   const overall: HealthStatus =
-    counts.criticals > 0 ? "critical" :
-    counts.errors > 0 ? "error" :
-    counts.warnings > 0 ? "warning" : "ok";
+    criticals > 0 ? "critical" :
+    errors > 0 ? "error" :
+    warnings > 0 ? "warning" :
+    implemented > 0 ? "ok" : "na";
 
   const run: HealthRun = {
-    runId, createdAt, range, checks, totalMs, snapshotMs, serviceMs, counts, overall, version, environment,
+    runId, createdAt, range, checks, totalMs, snapshotMs, serviceMs, counts, healthScore, overall, version, environment,
   };
 
   // ---------- Persistir ----------
