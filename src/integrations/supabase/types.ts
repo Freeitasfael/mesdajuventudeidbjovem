@@ -89,6 +89,51 @@ export type Database = {
         }
         Relationships: []
       }
+      dashboard_health_logs: {
+        Row: {
+          created_at: string
+          database_value: number | null
+          details: Json | null
+          difference: number | null
+          environment: string | null
+          execution_time_ms: number | null
+          id: string
+          indicator: string
+          run_id: string
+          service_value: number | null
+          status: string
+          version: string | null
+        }
+        Insert: {
+          created_at?: string
+          database_value?: number | null
+          details?: Json | null
+          difference?: number | null
+          environment?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          indicator: string
+          run_id: string
+          service_value?: number | null
+          status: string
+          version?: string | null
+        }
+        Update: {
+          created_at?: string
+          database_value?: number | null
+          details?: Json | null
+          difference?: number | null
+          environment?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          indicator?: string
+          run_id?: string
+          service_value?: number | null
+          status?: string
+          version?: string | null
+        }
+        Relationships: []
+      }
       entrada_orders: {
         Row: {
           buyer_email: string | null
@@ -727,6 +772,23 @@ export type Database = {
         }[]
       }
       admin_free_number: { Args: { _number: number }; Returns: undefined }
+      admin_health_snapshot: {
+        Args: { _from?: string; _to?: string }
+        Returns: Json
+      }
+      admin_latest_health_run: {
+        Args: never
+        Returns: {
+          created_at: string
+          criticals: number
+          errors: number
+          indicators: number
+          max_ms: number
+          run_id: string
+          total_ms: number
+          warnings: number
+        }[]
+      }
       admin_list_admins: {
         Args: never
         Returns: {
