@@ -14,6 +14,34 @@ interface ExpenseLite { amount_cents: number; expense_date: string; category: st
 interface SponsorLite { amount_cents: number; kind: "cash" | "permuta"; status: "confirmed" | "pending"; created_at: string; }
 interface OfferingLite { amount_cents: number; offering_date: string; payment_method: string; }
 
+interface ConsistencyReport {
+  generated_at: string;
+  rifa: {
+    paid_orders: number;
+    paid_revenue_cents: number;
+    refunded_orders: number;
+    refunded_revenue_cents: number;
+    numbers_status_paid: number;
+    numbers_linked_to_paid_orders: number;
+    refunded_orders_still_holding_numbers: number;
+    payments_status_mismatch: number;
+    payments_amount_mismatch: number;
+  };
+  entrada: {
+    paid_orders: number;
+    paid_revenue_cents: number;
+    refunded_orders: number;
+    refunded_revenue_cents: number;
+  };
+  divergences: {
+    numbers_vs_paid_orders: boolean;
+    refunded_holding_numbers: boolean;
+    payments_status_mismatch: boolean;
+    payments_amount_mismatch: boolean;
+  };
+}
+
+
 // Custos unitários de fabricação (R$)
 const DEFAULT_COST_CAMISETA = 38;
 const DEFAULT_COST_PULSEIRA = 1.05;
