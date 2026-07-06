@@ -5,12 +5,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger,
+} from "@/components/ui/dialog";
 
 import { toast } from "sonner";
-import { Download, FileSpreadsheet, RefreshCw, Save, Undo2, UserPlus } from "lucide-react";
+import { Download, FileSpreadsheet, Plus, RefreshCw, Save, Undo2, UserPlus } from "lucide-react";
 import { buildCsv, downloadCsv } from "@/lib/csv";
 import ExcelJS from "exceljs";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
+
 
 interface EntradaOrderItem {
   model: string;
