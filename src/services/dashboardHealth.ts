@@ -259,12 +259,12 @@ async function persistRun(run: HealthRun) {
     service_value: c.serviceValue,
     difference: c.difference,
     status: c.status,
-    details: c.details ?? null,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    details: (c.details ?? null) as any,
     execution_time_ms: c.executionTimeMs ?? null,
     version: run.version,
     environment: run.environment,
   }));
-  // Batch em uma única chamada; falha silenciosa não pode quebrar a UI.
   const { error } = await supabase.from("dashboard_health_logs").insert(rows);
   if (error) console.warn("[health] persist failed:", error.message);
 }
