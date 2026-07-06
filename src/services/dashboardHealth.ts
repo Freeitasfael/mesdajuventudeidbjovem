@@ -274,6 +274,24 @@ export async function runHealthCheck(range: DateRange = EMPTY_RANGE): Promise<He
   checks.push(makeCheck("totals.orders_paid", metrics.totals.ordersPaid, metrics.totals.ordersPaid));
   checks.push(makeCheck("totals.ticket_net_cents", metrics.totals.ticketNet, metrics.totals.ticketNet));
 
+  // ---------- PERFORMANCE (sempre emite; warning se acima do limite) ----------
+  checks.push({
+    indicator: "perf.snapshot_rpc_ms",
+    databaseValue: snapshotMs,
+    serviceValue: SLOW_QUERY_MS,
+    difference: Math.max(0, snapshotMs - SLOW_QUERY_MS),
+    status: snapshotMs > SLOW_QUERY_MS ? "warning" : "ok",
+    details: { threshold_ms: SLOW_QUERY_MS },
+  });
+  checks.push({
+    indicator: "perf.service_load_ms",
+    databaseValue: serviceMs,
+    serviceValue: SLOW_QUERY_MS,
+    difference: Math.max(0, serviceMs - SLOW_QUERY_MS),
+    status: serviceMs > SLOW_QUERY_MS ? "warning" : "ok",
+    details: { threshold_ms: SLOW_QUERY_MS },
+  });
+
   // ---------- N/A: qualquer indicador do catálogo sem metricsPath e ainda
   // não presente na lista de checks entra automaticamente como N/A. Assim,
   // basta preencher metricsPath no catálogo (quando implementado) para o
