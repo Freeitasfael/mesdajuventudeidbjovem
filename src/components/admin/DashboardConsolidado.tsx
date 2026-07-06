@@ -393,3 +393,113 @@ function StatCard({
     </Card>
   );
 }
+
+function ConsistencyPanel({
+  report, loading, onRefresh,
+}: {
+  report: ConsistencyReport | null;
+  loading: boolean;
+  onRefresh: () => void;
+}) {
+  const divs = report?.divergences;
+  const issues: { key: string; label: string; detail: string }[] = [];
+  if (report && divs) {
+    if (divs.numbers_vs_paid_orders) {
+      issues.push({
+        key: "numbers_vs_paid_orders",
+        label: "Números pagos ≠ números em pedidos pagos",
+        detail: `Rifa: ${report.rifa.numbers_status_paid} número(s) marcados como pagos, mas ${report.rifa.numbers_linked_to_paid_orders} estão vinculados a pedidos pagos.`,
+      });
+    }
+    if (divs.refunded_holding_numbers) {
+      issues.push({
+        key: "refunded_holding_numbers",
+        label: "Pedidos reembolsados ainda seguram números",
+        detail: `${report.rifa.refunded_orders_still_holding_numbers} número(s) presos a pedidos com status 'refunded' — precisam voltar para 'available'.`,
+      });
+    }
+    if (divs.payments_status_mismatch) {
+      issues.push({
+        key: "payments_status_mismatch",
+        label: "Status do pagamento não bate com o do pedido",
+        detail: `${report.rifa.payments_status_mismatch} pedido(s) pago/reembolsado com status divergente no último pagamento registrado.`,
+      });
+    }
+    if (divs.payments_amount_mismatch) {
+      issues.push({
+        key: "payments_amount_mismatch",
+        label: "Valor do pagamento diverge do pedido",
+        detail: `${report.rifa.payments_amount_mismatch} pedido(s) com valor cobrado diferente do total do pedido.`,
+      });
+    }
+  }
+
+  const hasIssues = issues.length > 0;
+  const generated = report?.generated_at
+    ? new Date(report.generated_at).toLocaleString("pt-BR")
+    : "—";
+
+  return (
+    <Card className={`p-4 border ${hasIssues ? "border-amber-400/50 bg-amber-400/5" : "border-emerald-500/40 bg-emerald-500/5"}`}>
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div className="flex items-start gap-2">
+          {hasIssues ? (
+            <ShieldAlert className="mt-0.5 h-5 w-5 text-amber-600 dark:text-amber-400" />
+          ) : (
+            <CheckCircle2 className="mt-0.5 h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+          )}
+          <div>
+            <h3 className="font-semibold text-sm">
+              {report
+                ? hasIssues
+                  ? `${issues.length} divergência(s) detectada(s)`
+                  : "Tudo consistente entre Pago × Reembolsado"
+                : "Verificando consistência…"}
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              Última verificação: {generated} · atualizada a cada 5 min automaticamente.
+            </p>
+          </div>
+        </div>
+        <Button variant="ghost" size="sm" onClick={onRefresh} disabled={loading}>
+          <RefreshCw className={`mr-2 h-3 w-3 ${loading ? "animate-spin" : ""}`} /> Verificar agora
+        </Button>
+      </div>
+
+      {report && (
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <div className="rounded-md border border-border bg-background/60 p-3 text-xs">
+            <p className="font-semibold uppercase tracking-wide text-muted-foreground mb-2">Rifa</p>
+            <div className="grid grid-cols-2 gap-y-1">
+              <span>Pagos</span><span className="text-right font-medium">{report.rifa.paid_orders} · {fmtBRL(report.rifa.paid_revenue_cents)}</span>
+              <span>Reembolsados</span><span className="text-right font-medium text-amber-700 dark:text-amber-400">{report.rifa.refunded_orders} · {fmtBRL(report.rifa.refunded_revenue_cents)}</span>
+              <span>Nºs pagos</span><span className="text-right">{report.rifa.numbers_status_paid} / {report.rifa.numbers_linked_to_paid_orders}</span>
+            </div>
+          </div>
+          <div className="rounded-md border border-border bg-background/60 p-3 text-xs">
+            <p className="font-semibold uppercase tracking-wide text-muted-foreground mb-2">Camiseta + Pulseira</p>
+            <div className="grid grid-cols-2 gap-y-1">
+              <span>Pagos</span><span className="text-right font-medium">{report.entrada.paid_orders} · {fmtBRL(report.entrada.paid_revenue_cents)}</span>
+              <span>Reembolsados</span><span className="text-right font-medium text-amber-700 dark:text-amber-400">{report.entrada.refunded_orders} · {fmtBRL(report.entrada.refunded_revenue_cents)}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {hasIssues && (
+        <ul className="mt-4 space-y-2">
+          {issues.map((it) => (
+            <li key={it.key} className="flex items-start gap-2 rounded-md border border-amber-400/40 bg-amber-400/10 p-2 text-sm">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+              <div>
+                <p className="font-medium text-amber-800 dark:text-amber-300">{it.label}</p>
+                <p className="text-xs text-amber-700/90 dark:text-amber-400/90">{it.detail}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Card>
+  );
+}
+
