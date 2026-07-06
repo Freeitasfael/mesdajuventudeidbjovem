@@ -111,6 +111,25 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [from, to]);
 
+  const runConsistencyCheck = useCallback(async () => {
+    setCheckingConsistency(true);
+    const { data, error } = await supabase.rpc("admin_dashboard_consistency_check" as never);
+    setCheckingConsistency(false);
+    if (error) {
+      console.error("consistency check failed", error);
+      return;
+    }
+    setConsistency(data as unknown as ConsistencyReport);
+  }, []);
+
+  // Auto-run on mount and refresh every 5min
+  useEffect(() => {
+    runConsistencyCheck();
+    const iv = setInterval(runConsistencyCheck, 5 * 60 * 1000);
+    return () => clearInterval(iv);
+  }, [runConsistencyCheck]);
+
+
   const metrics = useMemo(() => {
     const camisetasAgg = netFromOrders(camisetasOrders);
     const camisetasGross = camisetasAgg.gross;
