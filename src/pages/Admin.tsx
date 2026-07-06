@@ -16,6 +16,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { HeroRifa } from "@/components/HeroRifa";
 import { buildCsv, downloadCsv } from "@/lib/csv";
 import { netFromOrders } from "@/lib/fees";
+import { computePaymentKpis } from "@/services/dashboardMetrics";
+import { isPaid, isPending, isCancelledLike } from "@/lib/orderStatus";
 import { EntradaPanel } from "@/components/admin/EntradaPanel";
 import { VSLPanel } from "@/components/admin/VSLPanel";
 import { AdminsPanel } from "@/components/admin/AdminsPanel";
@@ -241,9 +243,9 @@ const Admin = () => {
 
   // KPIs da Rifa (aba "Rifa") — líquido considera taxa MP por método (PIX 0,99% · Cartão 4,99%)
   const rifaKpis = useMemo(() => {
-    const paid = orders.filter((o) => o.status === "paid");
-    const pending = orders.filter((o) => o.status === "pending");
-    const canceled = orders.filter((o) => o.status === "cancelled" || o.status === "canceled" || o.status === "expired" || o.status === "refunded" || o.status === "rejected");
+    const paid = orders.filter((o) => isPaid(o.status));
+    const pending = orders.filter((o) => isPending(o.status));
+    const canceled = orders.filter((o) => isCancelledLike(o.status));
     const paidAgg = netFromOrders(paid);
     const revPaid = paidAgg.gross;
     const revPaidNet = paidAgg.net;
@@ -256,24 +258,26 @@ const Admin = () => {
   }, [orders]);
 
 
-  // KPIs do Pagamentos — usa payment_method do pedido vinculado para calcular taxa correta
+  // KPIs do Pagamentos — deduplica pagamentos por order_id (D5) e usa o
+  // método do pedido vinculado para calcular a taxa correta.
   const paymentKpis = useMemo(() => {
     const orderById = new Map(orders.map((o) => [o.id, o] as const));
-    const withMethod = payments.map((p) => ({
-      total_cents: p.amount_cents,
-      payment_method: orderById.get(p.order_id)?.payment_method ?? null,
-      status: p.status,
-    }));
-    const approved = withMethod.filter((p) => p.status === "approved" || p.status === "paid");
-    const pending = withMethod.filter((p) => p.status === "pending");
-    const approvedAgg = netFromOrders(approved);
+    const k = computePaymentKpis(
+      payments.map((p) => ({
+        order_id: p.order_id,
+        amount_cents: p.amount_cents,
+        status: p.status,
+        created_at: p.created_at,
+      })),
+      new Map([...orderById].map(([id, o]) => [id, { payment_method: o.payment_method ?? null }])),
+    );
     return {
-      revPaid: approvedAgg.gross,
-      revPaidNet: approvedAgg.net,
-      revPaidFee: approvedAgg.fee,
-      revPending: pending.reduce((a, p) => a + p.total_cents, 0),
-      approvedCount: approved.length,
-      pendingCount: pending.length,
+      revPaid: k.revPaidGross,
+      revPaidNet: k.revPaidNet,
+      revPaidFee: k.revPaidFee,
+      revPending: k.revPendingGross,
+      approvedCount: k.approvedCount,
+      pendingCount: k.pendingCount,
     };
   }, [payments, orders]);
 

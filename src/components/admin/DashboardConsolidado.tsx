@@ -6,13 +6,11 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, AlertTriangle, TrendingUp, TrendingDown, CheckCircle2, ShieldAlert } from "lucide-react";
 
-import { netFromOrders } from "@/lib/fees";
-
-interface OrderLite { total_cents: number; created_at: string; status: string; payment_method: string | null; }
-interface EntradaLite { total_cents: number; created_at: string; status: string; product: string; quantity: number; payment_method: string | null; }
-interface ExpenseLite { amount_cents: number; expense_date: string; category: string; }
-interface SponsorLite { amount_cents: number; kind: "cash" | "permuta"; status: "confirmed" | "pending"; created_at: string; }
-interface OfferingLite { amount_cents: number; offering_date: string; payment_method: string; }
+import {
+  loadDashboardMetrics,
+  type DashboardMetrics,
+} from "@/services/dashboardMetrics";
+import type { DateRange } from "@/lib/dateUtils";
 
 interface ConsistencyReport {
   generated_at: string;
@@ -41,7 +39,6 @@ interface ConsistencyReport {
   };
 }
 
-
 // Custos unitários de fabricação (R$)
 const DEFAULT_COST_CAMISETA = 38;
 const DEFAULT_COST_PULSEIRA = 1.05;
@@ -56,14 +53,11 @@ interface RifaStatusStats {
   numbers_reserved: number;
   sellers_count: number;
 }
+
 export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusStats } = {}) {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
-  const [camisetasOrders, setCamisetasOrders] = useState<OrderLite[]>([]);
-  const [entrada, setEntrada] = useState<EntradaLite[]>([]);
-  const [expenses, setExpenses] = useState<ExpenseLite[]>([]);
-  const [sponsors, setSponsors] = useState<SponsorLite[]>([]);
-  const [offerings, setOfferings] = useState<OfferingLite[]>([]);
+  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [loading, setLoading] = useState(false);
   const [consistency, setConsistency] = useState<ConsistencyReport | null>(null);
   const [checkingConsistency, setCheckingConsistency] = useState(false);
@@ -78,38 +72,19 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
     localStorage.setItem(COST_STORAGE_KEY, JSON.stringify({ camiseta: costCamiseta, pulseira: costPulseira }));
   }, [costCamiseta, costPulseira]);
 
-  const load = async () => {
+  const range = useMemo<DateRange>(() => ({ from, to }), [from, to]);
+
+  const load = useCallback(async () => {
     setLoading(true);
-    let camisetasQ = supabase.from("orders").select("total_cents, created_at, status, payment_method").eq("status", "paid").limit(5000);
-    let entQ = supabase.from("entrada_orders").select("total_cents, created_at, status, product, quantity, payment_method").limit(5000);
-    let expQ = supabase.from("expenses").select("amount_cents, expense_date, category").limit(5000);
-    const sponsorsQ = supabase.from("sponsorships").select("amount_cents, kind, status, created_at").limit(5000);
-    let offeringsQ = supabase.from("offerings").select("amount_cents, offering_date, payment_method").limit(5000);
-
-    if (from) {
-      const f = new Date(from + "T00:00:00").toISOString();
-      camisetasQ = camisetasQ.gte("created_at", f);
-      entQ = entQ.gte("created_at", f);
-      expQ = expQ.gte("expense_date", from);
-      offeringsQ = offeringsQ.gte("offering_date", from);
+    try {
+      const m = await loadDashboardMetrics(range);
+      setMetrics(m);
+    } finally {
+      setLoading(false);
     }
-    if (to) {
-      const t = new Date(to + "T23:59:59").toISOString();
-      camisetasQ = camisetasQ.lte("created_at", t);
-      entQ = entQ.lte("created_at", t);
-      expQ = expQ.lte("expense_date", to);
-      offeringsQ = offeringsQ.lte("offering_date", to);
-    }
-    const [r, e, x, s, o] = await Promise.all([camisetasQ, entQ, expQ, sponsorsQ, offeringsQ]);
-    if (r.data) setCamisetasOrders(r.data as OrderLite[]);
-    if (e.data) setEntrada(e.data as EntradaLite[]);
-    if (x.data) setExpenses(x.data as ExpenseLite[]);
-    if (s.data) setSponsors(s.data as SponsorLite[]);
-    if (o.data) setOfferings(o.data as OfferingLite[]);
-    setLoading(false);
-  };
+  }, [range]);
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [from, to]);
+  useEffect(() => { load(); }, [load]);
 
   const runConsistencyCheck = useCallback(async () => {
     setCheckingConsistency(true);
@@ -122,122 +97,58 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
     setConsistency(data as unknown as ConsistencyReport);
   }, []);
 
-  // Auto-run on mount and refresh every 5min
   useEffect(() => {
     runConsistencyCheck();
     const iv = setInterval(runConsistencyCheck, 5 * 60 * 1000);
     return () => clearInterval(iv);
   }, [runConsistencyCheck]);
 
-
-  const metrics = useMemo(() => {
-    const camisetasAgg = netFromOrders(camisetasOrders);
-    const camisetasGross = camisetasAgg.gross;
-    const camisetasTotal = camisetasAgg.net;
-    const camisetasCount = camisetasOrders.length;
-
-    // Entrada: separar por produto (camiseta = kit) e (pulseira)
-    const kitOrders = entrada.filter((e) => e.product === "kit");
-    const pulOrders = entrada.filter((e) => e.product === "pulseira");
-
-    // ---- CAMISETA (kit) ----
-    const kitPaid = kitOrders.filter((e) => e.status === "paid");
-    const kitPending = kitOrders.filter((e) => e.status === "pending");
-    const kitCanceled = kitOrders.filter((e) => e.status === "canceled" || e.status === "cancelled" || e.status === "rejected");
-    const kitAgg = netFromOrders(kitPaid);
-    const kitGross = kitAgg.gross;
-    const kitFee = kitAgg.fee;
-    const kitNet = kitAgg.net;
-    const kitPendingGross = kitPending.reduce((a, o) => a + o.total_cents, 0);
-    const kitUnits = kitPaid.reduce((a, o) => a + (o.quantity || 1), 0);
-    const shirtCost = Math.round(kitUnits * costCamiseta * 100);
-    const shirtProfit = kitGross - shirtCost - kitFee;
-
-    // ---- PULSEIRA ----
-    const pulPaid = pulOrders.filter((e) => e.status === "paid");
-    const pulPending = pulOrders.filter((e) => e.status === "pending");
-    const pulCanceled = pulOrders.filter((e) => e.status === "canceled" || e.status === "cancelled" || e.status === "rejected");
-    const pulAgg = netFromOrders(pulPaid);
-    const pulGross = pulAgg.gross;
-    const pulFee = pulAgg.fee;
-    const pulNet = pulAgg.net;
-    const pulUnits = pulPaid.reduce((a, o) => a + (o.quantity || 1), 0);
-
-    // ---- TOTAIS (camiseta + pulseira) ----
-    const entGross = kitGross + pulGross;
-    const entFee = kitFee + pulFee;
-    const entTotal = kitNet + pulNet;
-    const entCount = kitPaid.length + pulPaid.length;
-    const entPendingCount = kitPending.length + pulPending.length;
-    const entCanceledCount = kitCanceled.length + pulCanceled.length;
-    const entPendingGross = kitPendingGross + pulPending.reduce((a, o) => a + o.total_cents, 0);
-
-    // Patrocínios (apenas confirmados em dinheiro contam para receita)
-    const sponsorsConfirmedCash = sponsors
-      .filter((s) => s.status === "confirmed" && s.kind === "cash")
-      .reduce((a, s) => a + s.amount_cents, 0);
-    const sponsorsConfirmedPermuta = sponsors
-      .filter((s) => s.status === "confirmed" && s.kind === "permuta")
-      .reduce((a, s) => a + s.amount_cents, 0);
-    const sponsorsConfirmedTotal = sponsorsConfirmedCash + sponsorsConfirmedPermuta;
-    const sponsorsCount = sponsors.filter((s) => s.status === "confirmed").length;
-
-    // Gastos
-    const expensesTotal = expenses.reduce((a, e) => a + e.amount_cents, 0);
-    const fabricationCost = shirtCost;
-    const totalExpenses = expensesTotal + fabricationCost;
-
-    // Receita Total = Camisetas + Entrada + Patrocínios confirmados
-    // Ofertas (soma total)
-    const offeringsTotal = offerings.reduce((a, o) => a + o.amount_cents, 0);
-    const offeringsCount = offerings.length;
-
-    const totalRevenue = camisetasTotal + entTotal + sponsorsConfirmedTotal + offeringsTotal;
-    const totalGross = camisetasGross + entGross;
-    const totalFee = camisetasAgg.fee + entFee;
-
-    // Lucro líquido & margem
-    const netProfit = totalRevenue - totalExpenses;
-    const margin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
-
-    const totalCount = camisetasCount + entCount;
-    const ticket = totalCount > 0 ? Math.round((camisetasTotal + entTotal) / totalCount) : 0;
-
-    return {
-      camisetasTotal, camisetasGross, camisetasCount,
-      entTotal, entGross, entCount, entFee, entPendingCount, entCanceledCount, entPendingGross,
-      // camiseta (kit)
-      kitCount: kitPaid.length, kitGross, kitFee, kitNet, kitUnits, shirtCost, shirtProfit,
-      // pulseira
-      pulCount: pulPaid.length, pulGross, pulFee, pulNet, pulUnits,
-      sponsorsConfirmedCash, sponsorsConfirmedPermuta, sponsorsConfirmedTotal, sponsorsCount,
-      offeringsTotal, offeringsCount,
-      expensesTotal, fabricationCost, totalExpenses,
-      totalRevenue, totalGross, feeCents: totalFee,
-      netProfit, margin, totalCount, ticket,
-    };
-  }, [camisetasOrders, entrada, expenses, sponsors, offerings, costCamiseta]);
+  // Derivados de UX (custo fabricação, lucro, margem) — não são "métricas de venda"
+  const derived = useMemo(() => {
+    if (!metrics) return null;
+    const shirtCost = Math.round(metrics.entrada.kit.units * costCamiseta * 100);
+    const pulseiraCost = Math.round(
+      (metrics.entrada.kit.units + metrics.entrada.pulseira.units) * costPulseira * 100
+    );
+    const fabricationCost = shirtCost + pulseiraCost;
+    const totalExpenses = metrics.expenses.paid + fabricationCost;
+    const revenueNet = metrics.totals.revenueNet;
+    const netProfit = revenueNet - totalExpenses;
+    const margin = revenueNet > 0 ? (netProfit / revenueNet) * 100 : 0;
+    return { shirtCost, pulseiraCost, fabricationCost, totalExpenses, netProfit, margin };
+  }, [metrics, costCamiseta, costPulseira]);
 
   // Alertas inteligentes
   const alerts: { level: "warn" | "danger"; msg: string }[] = [];
-  if (metrics.totalRevenue > 0 && metrics.margin < 20) {
-    alerts.push({
-      level: metrics.margin < 0 ? "danger" : "warn",
-      msg: `Margem ${metrics.margin.toFixed(1)}% — abaixo do mínimo saudável (20%).`,
-    });
-  }
-  if (metrics.sponsorsCount === 0) {
-    alerts.push({ level: "warn", msg: "Nenhum patrocinador confirmado ainda." });
-  }
-  if (metrics.totalExpenses > metrics.totalRevenue * 0.7 && metrics.totalRevenue > 0) {
-    alerts.push({
-      level: "warn",
-      msg: "Gastos representam mais de 70% da receita — atenção ao orçamento.",
-    });
+  if (metrics && derived) {
+    if (metrics.totals.revenueNet > 0 && derived.margin < 20) {
+      alerts.push({
+        level: derived.margin < 0 ? "danger" : "warn",
+        msg: `Margem ${derived.margin.toFixed(1)}% — abaixo do mínimo saudável (20%).`,
+      });
+    }
+    if (metrics.sponsors.count === 0) {
+      alerts.push({ level: "warn", msg: "Nenhum patrocinador confirmado no período." });
+    }
+    if (derived.totalExpenses > metrics.totals.revenueNet * 0.7 && metrics.totals.revenueNet > 0) {
+      alerts.push({ level: "warn", msg: "Gastos representam mais de 70% da receita — atenção ao orçamento." });
+    }
+    if (metrics.expenses.scheduled > 0) {
+      alerts.push({
+        level: "warn",
+        msg: `Despesas previstas (não pagas): ${fmtBRL(metrics.expenses.scheduled)} — não estão no lucro realizado.`,
+      });
+    }
   }
 
-  const profitTone = metrics.netProfit > 0 ? "positive" : metrics.netProfit < 0 ? "negative" : "neutral";
-  const marginTone = metrics.margin >= 20 ? "positive" : metrics.margin >= 0 ? "warning" : "negative";
+  if (!metrics || !derived) {
+    return (
+      <div className="p-6 text-sm text-muted-foreground">Carregando métricas…</div>
+    );
+  }
+
+  const profitTone = derived.netProfit > 0 ? "positive" : derived.netProfit < 0 ? "negative" : "neutral";
+  const marginTone = derived.margin >= 20 ? "positive" : derived.margin >= 0 ? "warning" : "negative";
 
   return (
     <div className="space-y-6">
@@ -260,7 +171,7 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
           </div>
         </div>
         <p className="text-xs text-muted-foreground mt-3">
-          Considera pedidos pagos (taxa do Mercado Pago descontada conforme o método: PIX 0,99% · Cartão 4,99%), patrocínios confirmados e ofertas registradas. Sem filtro = histórico completo.
+          Fonte única de métricas — <code>src/services/dashboardMetrics.ts</code>. Todas as categorias respeitam o mesmo filtro de período (America/Sao_Paulo). Taxa MP descontada por método (PIX 0,99% · Cartão 4,99%). Reembolsados/expirados/cancelados nunca entram em receita.
         </p>
       </Card>
 
@@ -290,39 +201,48 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
         onRefresh={runConsistencyCheck}
       />
 
+      {/* Visão estratégica — Receita Total por categoria (D2) */}
+      <div>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Receita por categoria (líquida)</h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          <StatCard label="Rifa" value={fmtBRL(metrics.rifa.net)} subtitle={`bruto ${fmtBRL(metrics.rifa.gross)} · ${metrics.rifa.count} ped.`} tone="positive" />
+          <StatCard label="Camisetas (kit)" value={fmtBRL(metrics.entrada.kit.net)} subtitle={`bruto ${fmtBRL(metrics.entrada.kit.gross)} · ${metrics.entrada.kit.count} ped. · ${metrics.entrada.kit.units} un.`} tone="positive" />
+          <StatCard label="Pulseiras" value={fmtBRL(metrics.entrada.pulseira.net)} subtitle={`bruto ${fmtBRL(metrics.entrada.pulseira.gross)} · ${metrics.entrada.pulseira.count} ped. · ${metrics.entrada.pulseira.units} un.`} tone="positive" />
+          <StatCard label="Patrocínios" value={fmtBRL(metrics.sponsors.total)} subtitle={`${metrics.sponsors.count} confirmado(s)`} />
+          <StatCard label="Ofertas" value={fmtBRL(metrics.offerings.total)} subtitle={`${metrics.offerings.count} oferta(s)`} tone="positive" />
+        </div>
+      </div>
 
-
-      {/* Visão estratégica */}
+      {/* Totais e lucro */}
       <div>
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Visão financeira</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-          <StatCard label="Receita Total" value={fmtBRL(metrics.totalRevenue)} highlight tone="positive" />
-          <StatCard label="Gastos Totais" value={fmtBRL(metrics.totalExpenses)} tone="negative" />
-          <StatCard label="Patrocínios (confirmados)" value={fmtBRL(metrics.sponsorsConfirmedTotal)} tone="neutral" subtitle={`${metrics.sponsorsCount} patrocinador(es)`} />
-          <StatCard label="Ofertas" value={fmtBRL(metrics.offeringsTotal)} tone="positive" subtitle={`${metrics.offeringsCount} oferta(s)`} />
+          <StatCard label="Receita Total (bruta)" value={fmtBRL(metrics.totals.revenueGross)} tone="neutral" />
+          <StatCard label="Receita Total (líquida)" value={fmtBRL(metrics.totals.revenueNet)} highlight tone="positive" />
+          <StatCard label="Gastos realizados" value={fmtBRL(derived.totalExpenses)} tone="negative" subtitle={`${fmtBRL(metrics.expenses.paid)} + ${fmtBRL(derived.fabricationCost)} fabricação`} />
           <StatCard
             label="Lucro Líquido"
-            value={fmtBRL(metrics.netProfit)}
+            value={fmtBRL(derived.netProfit)}
             tone={profitTone}
-            icon={metrics.netProfit >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
+            icon={derived.netProfit >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
           />
-          <StatCard label="Margem Total" value={`${metrics.margin.toFixed(1)}%`} tone={marginTone} />
+          <StatCard label="Margem" value={`${derived.margin.toFixed(1)}%`} tone={marginTone} />
         </div>
         <p className="text-xs text-muted-foreground mt-2">
-          Bruto vendas: {fmtBRL(metrics.totalGross)} · Taxa PIX descontada: {fmtBRL(metrics.feeCents)} · Custo fabricação: {fmtBRL(metrics.fabricationCost)} · Outros gastos: {fmtBRL(metrics.expensesTotal)}
+          Taxa MP total: {fmtBRL(metrics.totals.feesMP)} · Ticket líquido médio (rifa+entrada): {fmtBRL(metrics.totals.ticketNet)} · Despesas previstas: {fmtBRL(metrics.expenses.scheduled)}
         </p>
       </div>
 
-      {/* Rifa */}
+      {/* Detalhamento Rifa */}
       <div>
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Rifa</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Rifa (detalhe)</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard label="Arrecadado (rifa)" value={fmtBRL(metrics.camisetasTotal)} />
-          <StatCard label="Pedidos pagos" value={String(metrics.camisetasCount)} />
-          <StatCard label="Ticket médio" value={fmtBRL(metrics.camisetasCount > 0 ? Math.round(metrics.camisetasTotal / metrics.camisetasCount) : 0)} />
+          <StatCard label="Pedidos pagos" value={String(metrics.rifa.count)} />
+          <StatCard label="Pendentes" value={String(metrics.rifa.pendingCount)} subtitle={fmtBRL(metrics.rifa.pendingGross)} />
+          <StatCard label="Reembolsados" value={String(metrics.rifa.refundedCount)} tone="warning" />
+          <StatCard label="Cancelados (total)" value={String(metrics.rifa.cancelledCount)} />
           {rifaStatus && (
             <>
-              <StatCard label="Pedidos pendentes" value={String(rifaStatus.pending_orders)} />
               <StatCard label="Números disponíveis" value={String(rifaStatus.numbers_available)} />
               <StatCard label="Números pagos" value={String(rifaStatus.numbers_paid)} />
               <StatCard label="Números reservados" value={String(rifaStatus.numbers_reserved)} />
@@ -332,28 +252,26 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
         </div>
       </div>
 
-
-      {/* Total combinado (Camiseta + Pulseira) */}
+      {/* Detalhamento Camiseta + Pulseira */}
       <div>
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Total (Camiseta + Pulseira)</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Camiseta + Pulseira (detalhe)</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard label="Receita paga (bruto)" value={fmtBRL(metrics.entGross)} tone="positive" />
-          <StatCard label="Taxa MP total" value={fmtBRL(metrics.entFee)} tone="warning" />
-          <StatCard label="Receita líquida" value={fmtBRL(metrics.entTotal)} tone="positive" />
-          <StatCard label="Pedidos pagos" value={String(metrics.entCount)} />
+          <StatCard label="Receita bruta" value={fmtBRL(metrics.entrada.gross)} tone="positive" />
+          <StatCard label="Taxa MP" value={fmtBRL(metrics.entrada.fee)} tone="warning" />
+          <StatCard label="Receita líquida" value={fmtBRL(metrics.entrada.net)} tone="positive" />
+          <StatCard label="Pedidos pagos" value={String(metrics.entrada.count)} subtitle={`${metrics.entrada.pendingCount} pend. · ${metrics.entrada.refundedCount} reemb.`} />
         </div>
       </div>
 
       {/* Patrocínios resumo */}
       <div>
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Patrocínios</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Patrocínios (detalhe)</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <StatCard label="Em dinheiro (confirmado)" value={fmtBRL(metrics.sponsorsConfirmedCash)} tone="positive" />
-          <StatCard label="Em permuta (confirmado)" value={fmtBRL(metrics.sponsorsConfirmedPermuta)} />
-          <StatCard label="Patrocinadores ativos" value={String(metrics.sponsorsCount)} />
+          <StatCard label="Em dinheiro (confirmado)" value={fmtBRL(metrics.sponsors.cash)} tone="positive" />
+          <StatCard label="Em permuta (confirmado)" value={fmtBRL(metrics.sponsors.permuta)} />
+          <StatCard label="Patrocinadores confirmados" value={String(metrics.sponsors.count)} subtitle={`${metrics.sponsors.pendingCount} pendente(s)`} />
         </div>
       </div>
-
     </div>
   );
 }
@@ -415,14 +333,14 @@ function ConsistencyPanel({
       issues.push({
         key: "refunded_holding_numbers",
         label: "Pedidos reembolsados ainda seguram números",
-        detail: `${report.rifa.refunded_orders_still_holding_numbers} número(s) presos a pedidos com status 'refunded' — precisam voltar para 'available'.`,
+        detail: `${report.rifa.refunded_orders_still_holding_numbers} número(s) presos a pedidos com status 'refunded'.`,
       });
     }
     if (divs.payments_status_mismatch) {
       issues.push({
         key: "payments_status_mismatch",
         label: "Status do pagamento não bate com o do pedido",
-        detail: `${report.rifa.payments_status_mismatch} pedido(s) pago/reembolsado com status divergente no último pagamento registrado.`,
+        detail: `${report.rifa.payments_status_mismatch} pedido(s) com status divergente no último pagamento.`,
       });
     }
     if (divs.payments_amount_mismatch) {
@@ -435,9 +353,7 @@ function ConsistencyPanel({
   }
 
   const hasIssues = issues.length > 0;
-  const generated = report?.generated_at
-    ? new Date(report.generated_at).toLocaleString("pt-BR")
-    : "—";
+  const generated = report?.generated_at ? new Date(report.generated_at).toLocaleString("pt-BR") : "—";
 
   return (
     <Card className={`p-4 border ${hasIssues ? "border-amber-400/50 bg-amber-400/5" : "border-emerald-500/40 bg-emerald-500/5"}`}>
@@ -502,4 +418,3 @@ function ConsistencyPanel({
     </Card>
   );
 }
-

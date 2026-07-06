@@ -93,6 +93,7 @@ const fmtDate = (s: string) => new Date(s).toLocaleString("pt-BR");
 
 // Taxa de transação Mercado Pago aplicada por método (PIX 0,99% · Cartão 4,99%).
 import { netFromOrders } from "@/lib/fees";
+import { isPaid, isPending, isRefunded, isCancelledLike } from "@/lib/orderStatus";
 
 // Custos unitários de fabricação (R$) — sincronizados com a Dashboard
 const DEFAULT_COST_CAMISETA = 38;
@@ -284,7 +285,7 @@ export function EntradaPanel() {
     });
   }, [orders, statusFilter, productFilter, dateFrom, dateTo, search]);
 
-  const paidFiltered = filteredOrders.filter((o) => o.status === "paid");
+  const paidFiltered = filteredOrders.filter((o) => isPaid(o.status));
   const totalAgg = netFromOrders(paidFiltered);
   const totalReceivedGross = totalAgg.gross;
   const totalReceived = totalAgg.net;
@@ -293,10 +294,10 @@ export function EntradaPanel() {
   // KPIs individuais da Camiseta — considera SOMENTE pedidos pagos (kit).
   // Reembolsos, cancelamentos, pendentes e expirados NÃO entram na receita nem na contagem de vendas.
   const shirtKpis = (() => {
-    const kitPaid = orders.filter((o) => o.status === "paid" && o.product === "kit");
-    const kitPending = orders.filter((o) => o.status === "pending" && o.product === "kit");
-    const kitCanceled = orders.filter((o) => o.product === "kit" && (o.status === "canceled" || o.status === "cancelled" || o.status === "rejected" || o.status === "expired"));
-    const kitRefunded = orders.filter((o) => o.status === "refunded" && o.product === "kit");
+    const kitPaid = orders.filter((o) => isPaid(o.status) && o.product === "kit");
+    const kitPending = orders.filter((o) => isPending(o.status) && o.product === "kit");
+    const kitCanceled = orders.filter((o) => o.product === "kit" && isCancelledLike(o.status) && !isRefunded(o.status));
+    const kitRefunded = orders.filter((o) => isRefunded(o.status) && o.product === "kit");
     const paidAgg = netFromOrders(kitPaid);
     const revPaid = paidAgg.gross;
     const revPaidNet = paidAgg.net;
@@ -317,7 +318,7 @@ export function EntradaPanel() {
 
   // Custos & Lucro (baseado em pedidos pagos)
   const costMetrics = useMemo(() => {
-    const paid = orders.filter((o) => o.status === "paid");
+    const paid = orders.filter((o) => isPaid(o.status));
     const pulseiraOrders = paid.filter((o) => o.product === "pulseira");
     const kitOrders = paid.filter((o) => o.product === "kit");
     const pulseiraUnits = pulseiraOrders.reduce((a, o) => a + (o.quantity || 0), 0);
@@ -384,7 +385,7 @@ export function EntradaPanel() {
 
   const exportSizesXlsx = async () => {
     // Consolida apenas pedidos PAGOS (camisetas efetivamente vendidas)
-    const paidOrders = filteredOrders.filter((o) => o.status === "paid");
+    const paidOrders = filteredOrders.filter((o) => isPaid(o.status));
     if (paidOrders.length === 0) {
       toast.info("Sem pedidos pagos para exportar nesse filtro");
       return;
