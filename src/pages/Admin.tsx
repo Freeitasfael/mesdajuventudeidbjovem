@@ -27,6 +27,7 @@ import { SponsorshipsPanel } from "@/components/admin/SponsorshipsPanel";
 import { OfferingsPanel } from "@/components/admin/OfferingsPanel";
 import { RecapPanel } from "@/components/admin/RecapPanel";
 import { AboutPanel } from "@/components/admin/AboutPanel";
+import { SystemHealthPanel } from "@/components/admin/SystemHealthPanel";
 
 import { WhatsAppLink } from "@/components/WhatsAppLink";
 
@@ -803,6 +804,7 @@ const Admin = () => {
               <TabsTrigger value="recap">Novidades</TabsTrigger>
               <TabsTrigger value="about">Sobre</TabsTrigger>
               <TabsTrigger value="admins">Admins</TabsTrigger>
+              <TabsTrigger value="health">Saúde</TabsTrigger>
 
             </TabsList>
           </div>
@@ -848,6 +850,11 @@ const Admin = () => {
           {/* ADMINS */}
           <TabsContent value="admins" className="mt-6">
             <AdminsPanel />
+          </TabsContent>
+
+          {/* SAÚDE DO SISTEMA — health check das métricas */}
+          <TabsContent value="health" className="mt-6">
+            <SystemHealthPanel />
           </TabsContent>
 
           {/* DASHBOARD — consolidado (rifa + entrada) com filtro por período */}
