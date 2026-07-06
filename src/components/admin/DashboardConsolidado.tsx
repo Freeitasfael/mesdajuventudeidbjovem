@@ -283,6 +283,15 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
         </div>
       )}
 
+      {/* Verificação automática de consistência (pago vs reembolsado) */}
+      <ConsistencyPanel
+        report={consistency}
+        loading={checkingConsistency}
+        onRefresh={runConsistencyCheck}
+      />
+
+
+
       {/* Visão estratégica */}
       <div>
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Visão financeira</h2>
