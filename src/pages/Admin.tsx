@@ -851,6 +851,11 @@ const Admin = () => {
             <AdminsPanel />
           </TabsContent>
 
+          {/* SAÚDE DO SISTEMA — health check das métricas */}
+          <TabsContent value="health" className="mt-6">
+            <SystemHealthPanel />
+          </TabsContent>
+
           {/* DASHBOARD — consolidado (rifa + entrada) com filtro por período */}
           <TabsContent value="dashboard" className="mt-6 space-y-4">
             <div className="flex items-center gap-2 text-xs">
