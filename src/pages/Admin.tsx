@@ -243,9 +243,9 @@ const Admin = () => {
 
   // KPIs da Rifa (aba "Rifa") — líquido considera taxa MP por método (PIX 0,99% · Cartão 4,99%)
   const rifaKpis = useMemo(() => {
-    const paid = orders.filter((o) => o.status === "paid");
-    const pending = orders.filter((o) => o.status === "pending");
-    const canceled = orders.filter((o) => o.status === "cancelled" || o.status === "canceled" || o.status === "expired" || o.status === "refunded" || o.status === "rejected");
+    const paid = orders.filter((o) => isPaid(o.status));
+    const pending = orders.filter((o) => isPending(o.status));
+    const canceled = orders.filter((o) => isCancelledLike(o.status));
     const paidAgg = netFromOrders(paid);
     const revPaid = paidAgg.gross;
     const revPaidNet = paidAgg.net;
