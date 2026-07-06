@@ -5,12 +5,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger,
+} from "@/components/ui/dialog";
 
 import { toast } from "sonner";
-import { Download, FileSpreadsheet, RefreshCw, Save, Undo2, UserPlus } from "lucide-react";
+import { Download, FileSpreadsheet, Plus, RefreshCw, Save, Undo2, UserPlus } from "lucide-react";
 import { buildCsv, downloadCsv } from "@/lib/csv";
 import ExcelJS from "exceljs";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
+
 
 interface EntradaOrderItem {
   model: string;
@@ -657,7 +661,8 @@ export function EntradaPanel() {
           <p className="text-sm text-muted-foreground">
             {filteredOrders.length} de {orders.length} pedidos · {fmtBRL(totalReceived)} líquido <span className="text-xs">(bruto {fmtBRL(totalReceivedGross)} – taxa MP {fmtBRL(totalReceivedFee)})</span>
           </p>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
+            <ManualSaleDialog onCreated={load} />
             <Button variant="outline" size="sm" onClick={exportCsv} disabled={filteredOrders.length === 0}>
               <Download className="mr-2 h-3 w-3" /> Exportar CSV
             </Button>
@@ -668,6 +673,7 @@ export function EntradaPanel() {
               <RefreshCw className={`mr-2 h-3 w-3 ${loading ? "animate-spin" : ""}`} /> Recarregar
             </Button>
           </div>
+
         </div>
 
         <Card className="overflow-x-auto">
@@ -824,3 +830,180 @@ function KpiCard({ label, value, tone = "neutral", hint }: { label: string; valu
     </Card>
   );
 }
+
+const SIZE_OPTIONS_BY_MODEL: Record<string, string[]> = {
+  adulto: ["PP", "P", "M", "G", "GG", "XG", "XGG"],
+  baby: ["PP", "P", "M", "G", "GG"],
+  infantil: ["2", "4", "6", "8", "10", "12", "14"],
+};
+
+function ManualSaleDialog({ onCreated }: { onCreated: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [buyerName, setBuyerName] = useState("");
+  const [buyerPhone, setBuyerPhone] = useState("");
+  const [product, setProduct] = useState<"pulseira" | "kit">("pulseira");
+  const [quantity, setQuantity] = useState("1");
+  const [model, setModel] = useState<"adulto" | "baby" | "infantil">("adulto");
+  const [size, setSize] = useState("M");
+  const [totalReais, setTotalReais] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("pix");
+  const [refCode, setRefCode] = useState("");
+
+  const reset = () => {
+    setBuyerName(""); setBuyerPhone(""); setProduct("pulseira"); setQuantity("1");
+    setModel("adulto"); setSize("M"); setTotalReais(""); setPaymentMethod("pix"); setRefCode("");
+  };
+
+  const submit = async () => {
+    const qty = parseInt(quantity, 10);
+    const cents = Math.round(parseFloat(totalReais.replace(",", ".")) * 100);
+    if (!buyerName.trim() || buyerName.trim().length < 2) return toast.error("Informe o nome do comprador");
+    if (!Number.isFinite(qty) || qty <= 0) return toast.error("Quantidade inválida");
+    if (!Number.isFinite(cents) || cents <= 0) return toast.error("Valor total inválido");
+    if (product === "kit" && !size) return toast.error("Selecione o tamanho da camiseta");
+
+    const items = product === "kit"
+      ? [{ model, size, quantity: qty }]
+      : null;
+
+    setSaving(true);
+    const { error } = await supabase.rpc("admin_add_manual_entrada_order" as never, {
+      _buyer_name: buyerName.trim(),
+      _buyer_phone: buyerPhone.trim(),
+      _product: product,
+      _items: items as never,
+      _quantity: qty,
+      _total_cents: cents,
+      _payment_method: paymentMethod,
+      _seller_ref_code: refCode.trim() || null,
+      _model: product === "kit" ? model : null,
+      _size: product === "kit" ? size : null,
+    } as never);
+    setSaving(false);
+    if (error) {
+      const msg = error.message.includes("seller_not_found")
+        ? "Código de revendedor não encontrado"
+        : "Erro: " + error.message;
+      toast.error(msg);
+      return;
+    }
+    toast.success("Venda manual registrada!");
+    reset();
+    setOpen(false);
+    onCreated();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
+      <DialogTrigger asChild>
+        <Button size="sm" variant="secondary">
+          <Plus className="mr-2 h-3 w-3" /> Venda manual
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Adicionar venda manual</DialogTitle>
+        </DialogHeader>
+        <div className="grid gap-3">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1">
+              <Label>Nome do comprador *</Label>
+              <Input value={buyerName} onChange={(e) => setBuyerName(e.target.value)} maxLength={120} />
+            </div>
+            <div className="space-y-1">
+              <Label>Telefone (opcional)</Label>
+              <Input value={buyerPhone} inputMode="numeric" onChange={(e) => setBuyerPhone(e.target.value)} placeholder="11987654321" />
+            </div>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="space-y-1">
+              <Label>Produto *</Label>
+              <select
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                value={product}
+                onChange={(e) => setProduct(e.target.value as "pulseira" | "kit")}
+              >
+                <option value="pulseira">Pulseira</option>
+                <option value="kit">Kit (camiseta + pulseira)</option>
+              </select>
+            </div>
+            <div className="space-y-1">
+              <Label>Quantidade *</Label>
+              <Input type="number" min={1} value={quantity} onChange={(e) => setQuantity(e.target.value)} />
+            </div>
+            <div className="space-y-1">
+              <Label>Valor total (R$) *</Label>
+              <Input type="number" step="0.01" min="0.01" placeholder="60,00" value={totalReais} onChange={(e) => setTotalReais(e.target.value)} />
+            </div>
+          </div>
+
+          {product === "kit" && (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1">
+                <Label>Modelo camiseta *</Label>
+                <select
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                  value={model}
+                  onChange={(e) => {
+                    const m = e.target.value as "adulto" | "baby" | "infantil";
+                    setModel(m);
+                    setSize(SIZE_OPTIONS_BY_MODEL[m][0]);
+                  }}
+                >
+                  <option value="adulto">Adulto</option>
+                  <option value="baby">Babylook</option>
+                  <option value="infantil">Infantil</option>
+                </select>
+              </div>
+              <div className="space-y-1">
+                <Label>Tamanho *</Label>
+                <select
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                  value={size}
+                  onChange={(e) => setSize(e.target.value)}
+                >
+                  {SIZE_OPTIONS_BY_MODEL[model].map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          )}
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1">
+              <Label>Forma de pagamento</Label>
+              <select
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                value={paymentMethod}
+                onChange={(e) => setPaymentMethod(e.target.value)}
+              >
+                <option value="pix">PIX</option>
+                <option value="cash">Dinheiro</option>
+                <option value="card">Cartão</option>
+                <option value="other">Outro</option>
+              </select>
+            </div>
+            <div className="space-y-1">
+              <Label>Revendedor (código, opcional)</Label>
+              <Input value={refCode} onChange={(e) => setRefCode(e.target.value.toUpperCase())} placeholder="IDB123" />
+            </div>
+          </div>
+
+          <p className="text-xs text-muted-foreground">
+            A venda é registrada como <strong>paga</strong> e o estoque é abatido automaticamente.
+          </p>
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => setOpen(false)} disabled={saving}>Cancelar</Button>
+          <Button onClick={submit} disabled={saving}>
+            {saving ? "Salvando…" : "Registrar venda"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
