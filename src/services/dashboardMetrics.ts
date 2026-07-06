@@ -238,11 +238,9 @@ async function fetchWithRange<T>(
   select: string,
   dateColumn: string,
   range: DateRange,
-  extra?: (q: ReturnType<typeof supabase.from>) => unknown,
 ): Promise<T[]> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let q: any = supabase.from(table).select(select).limit(5000);
-  if (extra) q = extra(q);
+  let q: any = (supabase as any).from(table).select(select).limit(5000);
   if (range.from) {
     const iso = dateColumn.endsWith("_date") ? range.from : startOfDayISO(range.from);
     q = q.gte(dateColumn, iso);
