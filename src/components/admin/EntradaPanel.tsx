@@ -290,19 +290,29 @@ export function EntradaPanel() {
   const totalReceived = totalAgg.net;
   const totalReceivedFee = totalAgg.fee;
 
-  // KPIs individuais da Camiseta
+  // KPIs individuais da Camiseta — considera SOMENTE pedidos pagos (kit).
+  // Reembolsos, cancelamentos, pendentes e expirados NÃO entram na receita nem na contagem de vendas.
   const shirtKpis = (() => {
-    const paid = orders.filter((o) => o.status === "paid");
-    const pending = orders.filter((o) => o.status === "pending");
-    const canceled = orders.filter((o) => o.status === "canceled" || o.status === "cancelled" || o.status === "rejected");
-    const paidAgg = netFromOrders(paid);
+    const kitPaid = orders.filter((o) => o.status === "paid" && o.product === "kit");
+    const kitPending = orders.filter((o) => o.status === "pending" && o.product === "kit");
+    const kitCanceled = orders.filter((o) => o.product === "kit" && (o.status === "canceled" || o.status === "cancelled" || o.status === "rejected" || o.status === "expired"));
+    const kitRefunded = orders.filter((o) => o.status === "refunded" && o.product === "kit");
+    const paidAgg = netFromOrders(kitPaid);
     const revPaid = paidAgg.gross;
     const revPaidNet = paidAgg.net;
     const fee = paidAgg.fee;
-    const revPending = pending.reduce((a, o) => a + o.total_cents, 0);
-    const itemsSold = paid.reduce((a, o) => a + (o.quantity || 0), 0);
-    return { revPaid, revPaidNet, fee, revPending, paidCount: paid.length, pendingCount: pending.length, canceledCount: canceled.length, itemsSold };
+    const revPending = kitPending.reduce((a, o) => a + o.total_cents, 0);
+    const itemsSold = kitPaid.reduce((a, o) => a + (o.quantity || 0), 0);
+    return {
+      revPaid, revPaidNet, fee, revPending,
+      paidCount: kitPaid.length,
+      pendingCount: kitPending.length,
+      canceledCount: kitCanceled.length,
+      refundedCount: kitRefunded.length,
+      itemsSold,
+    };
   })();
+
 
 
   // Custos & Lucro (baseado em pedidos pagos)
