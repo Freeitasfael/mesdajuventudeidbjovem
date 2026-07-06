@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, AlertTriangle, TrendingUp, TrendingDown } from "lucide-react";
+import { RefreshCw, AlertTriangle, TrendingUp, TrendingDown, CheckCircle2, ShieldAlert } from "lucide-react";
+
 import { netFromOrders } from "@/lib/fees";
 
 interface OrderLite { total_cents: number; created_at: string; status: string; payment_method: string | null; }
