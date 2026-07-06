@@ -76,7 +76,7 @@ export const SystemHealthPanel = () => {
   const handleRun = async () => {
     setRunning(true);
     try {
-      const result = await runHealthCheck({});
+      const result = await runHealthCheck({ from: "", to: "" });
       setRun(result);
       await loadLatest();
       const msg = `Auditoria concluída: ${result.counts.ok}/${result.counts.total} OK`;
