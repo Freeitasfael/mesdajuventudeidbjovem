@@ -16,6 +16,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { HeroRifa } from "@/components/HeroRifa";
 import { buildCsv, downloadCsv } from "@/lib/csv";
 import { netFromOrders } from "@/lib/fees";
+import { computePaymentKpis } from "@/services/dashboardMetrics";
+import { isPaid, isPending, isCancelledLike } from "@/lib/orderStatus";
 import { EntradaPanel } from "@/components/admin/EntradaPanel";
 import { VSLPanel } from "@/components/admin/VSLPanel";
 import { AdminsPanel } from "@/components/admin/AdminsPanel";
