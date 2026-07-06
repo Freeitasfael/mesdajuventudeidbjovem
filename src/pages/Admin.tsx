@@ -803,6 +803,7 @@ const Admin = () => {
               <TabsTrigger value="recap">Novidades</TabsTrigger>
               <TabsTrigger value="about">Sobre</TabsTrigger>
               <TabsTrigger value="admins">Admins</TabsTrigger>
+              <TabsTrigger value="health">Saúde</TabsTrigger>
 
             </TabsList>
           </div>
