@@ -713,6 +713,7 @@ export type Database = {
         }
         Returns: string
       }
+      admin_dashboard_consistency_check: { Args: never; Returns: Json }
       admin_dashboard_stats: {
         Args: never
         Returns: {
