@@ -632,12 +632,8 @@ export function EntradaPanel() {
           </div>
         </div>
 
-        </div>
-
-
-
-
         <Card className="p-3">
+
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
             <div className="space-y-1">
               <Label className="text-xs">Status</Label>
