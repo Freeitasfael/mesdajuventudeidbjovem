@@ -567,42 +567,54 @@ export function EntradaPanel() {
           </div>
         </Card>
 
-        {/* KPIs individuais da Camiseta */}
+        {/* KPIs individuais da Camiseta — apenas pedidos PAGOS. Reembolsos não contam na receita. */}
         <div>
           <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">
-            Resumo da Camiseta
+            Resumo da Camiseta <span className="text-[10px] normal-case tracking-normal text-muted-foreground/80">(somente pedidos pagos · reembolsos não contam)</span>
           </h3>
           <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
             <KpiCard
               label="Receita paga"
               value={fmtBRL(shirtKpis.revPaid)}
-              hint="Valor bruto recebido (sem descontar taxas). Ex.: 1 camiseta = R$ 60,00."
+              tone="positive"
+              hint="Valor bruto recebido em kits pagos. Reembolsos/cancelamentos/pendentes NÃO entram."
             />
-            <KpiCard label="Preço de custo" value={fmtBRL(costMetrics.costTotal)} tone="warning" hint="Custo × camisetas vendidas." />
-            <KpiCard label="Taxa de Mercado Pago" value={fmtBRL(shirtKpis.fee)} tone="warning" hint="PIX 0,99% · Cartão 4,99% sobre o valor bruto." />
+            <KpiCard
+              label="Preço de custo"
+              value={fmtBRL(costMetrics.costCamisetaTotal)}
+              tone="warning"
+              hint="Custo unitário × camisetas efetivamente vendidas (pagas)."
+            />
+            <KpiCard
+              label="Taxa de Mercado Pago"
+              value={fmtBRL(shirtKpis.fee)}
+              tone="warning"
+              hint="PIX 0,99% · Cartão 4,99% sobre o valor bruto pago."
+            />
             <KpiCard
               label="Lucro líquido"
-              value={fmtBRL(shirtKpis.revPaid - costMetrics.costTotal - shirtKpis.fee)}
-              tone={shirtKpis.revPaid - costMetrics.costTotal - shirtKpis.fee >= 0 ? "positive" : "negative"}
-              hint="Receita paga − (Preço de custo + Taxa MP)."
+              value={fmtBRL(shirtKpis.revPaid - costMetrics.costCamisetaTotal - shirtKpis.fee)}
+              tone={shirtKpis.revPaid - costMetrics.costCamisetaTotal - shirtKpis.fee >= 0 ? "positive" : "negative"}
+              hint="Receita paga − (Preço de custo + Taxa MP). Só considera vendas pagas."
             />
-            <KpiCard label="Camisetas vendidas" value={String(shirtKpis.itemsSold)} />
-            <KpiCard label="Vendas pendentes" value={String(shirtKpis.pendingCount)} />
-            <KpiCard label="Vendas canceladas" value={String(shirtKpis.canceledCount)} />
+            <KpiCard label="Camisetas vendidas" value={String(shirtKpis.itemsSold)} hint="Total de camisetas em pedidos pagos." />
+            <KpiCard label="Vendas pendentes" value={String(shirtKpis.pendingCount)} hint="Não incluídas na receita." />
+            <KpiCard label="Vendas canceladas" value={String(shirtKpis.canceledCount)} hint="Cancelados/expirados/rejeitados." />
+            <KpiCard label="Reembolsadas" value={String(shirtKpis.refundedCount)} tone="warning" hint="Reembolsos não entram na receita nem no lucro." />
           </div>
         </div>
 
-        {/* KPIs individuais da Pulseira */}
+        {/* KPIs individuais da Pulseira — apenas pagos */}
         <div>
           <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">
-            Resumo da Pulseira
+            Resumo da Pulseira <span className="text-[10px] normal-case tracking-normal text-muted-foreground/80">(somente pedidos pagos · reembolsos não contam)</span>
           </h3>
           <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
             <KpiCard
               label="Receita paga"
               value={fmtBRL(costMetrics.grossPulseira)}
               tone="positive"
-              hint="Valor bruto recebido em pulseiras (sem descontar taxas)."
+              hint="Valor bruto recebido em pulseiras pagas."
             />
             <KpiCard
               label="Taxa de Mercado Pago"
@@ -616,8 +628,10 @@ export function EntradaPanel() {
               tone={costMetrics.netPulseira >= 0 ? "positive" : "negative"}
               hint="Receita paga − Taxa MP."
             />
-            <KpiCard label="Pulseiras vendidas" value={String(costMetrics.pulseiraUnits)} />
+            <KpiCard label="Pulseiras vendidas" value={String(costMetrics.pulseiraUnits)} hint="Somente pedidos pagos." />
           </div>
+        </div>
+
         </div>
 
 
