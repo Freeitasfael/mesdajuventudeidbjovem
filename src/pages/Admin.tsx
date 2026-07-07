@@ -383,7 +383,14 @@ const Admin = () => {
       toast.success(`${rows.length} números exportados para sorteio`);
     } catch (err) {
       toast.dismiss(t);
-      const msg = err instanceof Error ? err.message : "Erro desconhecido";
+      console.error("[exportRaffleCsv]", err);
+      const anyErr = err as { message?: string; details?: string; hint?: string; code?: string };
+      const msg =
+        (err instanceof Error && err.message) ||
+        anyErr?.message ||
+        anyErr?.details ||
+        anyErr?.hint ||
+        (typeof err === "string" ? err : JSON.stringify(err));
       toast.error("Falha ao exportar: " + msg);
     }
   };
