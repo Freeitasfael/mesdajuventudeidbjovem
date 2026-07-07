@@ -417,6 +417,7 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
           report={consistency}
           score={health.score}
           issues={health.issues}
+          activeAlerts={activeAlerts}
         />
       </Section>
     </div>
