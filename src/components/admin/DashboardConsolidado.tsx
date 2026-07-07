@@ -81,6 +81,7 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
   const [loading, setLoading] = useState(false);
   const [consistency, setConsistency] = useState<ConsistencyReport | null>(null);
   const [checkingConsistency, setCheckingConsistency] = useState(false);
+  const [activeAlerts, setActiveAlerts] = useState<number | null>(null);
 
   const [costCamiseta, setCostCamiseta] = useState<number>(() => {
     try { const s = JSON.parse(localStorage.getItem(COST_STORAGE_KEY) || "{}"); return Number(s.camiseta) || DEFAULT_COST_CAMISETA; } catch { return DEFAULT_COST_CAMISETA; }
@@ -122,6 +123,15 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
     const iv = setInterval(runConsistencyCheck, 5 * 60 * 1000);
     return () => clearInterval(iv);
   }, [runConsistencyCheck]);
+
+  const loadActiveAlerts = useCallback(async () => {
+    const { count } = await supabase
+      .from("admin_alerts")
+      .select("*", { count: "exact", head: true })
+      .is("acknowledged_at", null);
+    setActiveAlerts(count ?? 0);
+  }, []);
+  useEffect(() => { loadActiveAlerts(); }, [loadActiveAlerts]);
 
   // Derivados de UX (custo fabricação, lucro, margem) — não são "métricas de venda"
   const derived = useMemo(() => {
@@ -400,14 +410,14 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
         </Card>
       </Section>
 
-      {/* ============== SAÚDE DO SISTEMA (compacto) ============== */}
-      <Section title="Saúde do sistema" icon={<Heart className="h-3.5 w-3.5" />}>
-        <ConsistencyCompact
+      {/* ============== RESUMO EXECUTIVO DA AUDITORIA ============== */}
+      <Section title="Última auditoria" icon={<Heart className="h-3.5 w-3.5" />}
+        subtitle="Resumo — detalhes técnicos na aba Saúde Técnica">
+        <AuditSummary
           report={consistency}
-          loading={checkingConsistency}
-          onRefresh={runConsistencyCheck}
           score={health.score}
           issues={health.issues}
+          activeAlerts={activeAlerts}
         />
       </Section>
     </div>
@@ -545,82 +555,47 @@ function FlowStep({
   );
 }
 
-function ConsistencyCompact({
-  report, loading, onRefresh, score, issues,
+function AuditSummary({
+  report, score, issues, activeAlerts,
 }: {
   report: ConsistencyReport | null;
-  loading: boolean;
-  onRefresh: () => void;
   score: number | null;
   issues: number;
+  activeAlerts: number | null;
 }) {
   const hasIssues = issues > 0;
   const generated = report?.generated_at ? new Date(report.generated_at).toLocaleString("pt-BR") : "—";
   const statusTone: Tone = hasIssues ? "warning" : "info";
-
   return (
     <Card className={`p-3 border ${hasIssues ? "border-orange-400/40 bg-orange-400/[0.04]" : "border-sky-500/25 bg-sky-500/[0.04]"}`}>
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div className="flex items-center gap-3 min-w-0">
-          <span className={`inline-flex h-9 w-9 items-center justify-center rounded-lg ${hasIssues ? "bg-orange-500/15 text-orange-600 dark:text-orange-400" : "bg-sky-500/15 text-sky-600 dark:text-sky-400"}`}>
-            {hasIssues ? <ShieldAlert className="h-5 w-5" /> : <CheckCircle2 className="h-5 w-5" />}
-          </span>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <p className="text-sm font-semibold truncate">
-                {report
-                  ? hasIssues
-                    ? `${issues} divergência(s) detectada(s)`
-                    : "Sistema consistente"
-                  : "Verificando…"}
-              </p>
-              {score !== null && (
-                <Badge variant="outline" className={`h-5 text-[10px] font-semibold ${toneText[statusTone]}`}>
-                  Health {score}/100
-                </Badge>
-              )}
-            </div>
-            <p className="text-[11px] text-muted-foreground truncate">
-              Última auditoria: {generated}
-              {report && (
-                <>
-                  {" · "}Rifa {report.rifa.paid_orders} pagos / {report.rifa.refunded_orders} reemb.
-                  {" · "}Entrada {report.entrada.paid_orders} pagos / {report.entrada.refunded_orders} reemb.
-                </>
-              )}
+      <div className="flex items-center gap-3 min-w-0">
+        <span className={`inline-flex h-9 w-9 items-center justify-center rounded-lg ${hasIssues ? "bg-orange-500/15 text-orange-600 dark:text-orange-400" : "bg-sky-500/15 text-sky-600 dark:text-sky-400"}`}>
+          {hasIssues ? <ShieldAlert className="h-5 w-5" /> : <CheckCircle2 className="h-5 w-5" />}
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <p className="text-sm font-semibold truncate">
+              {report ? (hasIssues ? `${issues} divergência(s) detectada(s)` : "Sistema consistente") : "Verificando…"}
             </p>
+            {score !== null && (
+              <Badge variant="outline" className={`h-5 text-[10px] font-semibold ${toneText[statusTone]}`}>
+                Health {score}/100
+              </Badge>
+            )}
+            {activeAlerts !== null && activeAlerts > 0 && (
+              <Badge variant="outline" className="h-5 text-[10px] font-semibold text-orange-600 dark:text-orange-400 border-orange-400/40">
+                {activeAlerts} alerta(s) ativo(s)
+              </Badge>
+            )}
+            {activeAlerts === 0 && (
+              <Badge variant="outline" className="h-5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 border-emerald-500/30">
+                Sem alertas ativos
+              </Badge>
+            )}
           </div>
+          <p className="text-[11px] text-muted-foreground truncate">Última auditoria: {generated}</p>
         </div>
-        <Button variant="outline" size="sm" onClick={onRefresh} disabled={loading}>
-          <RefreshCw className={`mr-2 h-3 w-3 ${loading ? "animate-spin" : ""}`} /> Executar auditoria
-        </Button>
       </div>
-
-      {hasIssues && report && (
-        <ul className="mt-3 grid gap-2 sm:grid-cols-2">
-          {report.divergences.numbers_vs_paid_orders && (
-            <IssueLine text={`Números pagos ≠ vinculados (${report.rifa.numbers_status_paid} / ${report.rifa.numbers_linked_to_paid_orders})`} />
-          )}
-          {report.divergences.refunded_holding_numbers && (
-            <IssueLine text={`${report.rifa.refunded_orders_still_holding_numbers} número(s) presos a pedidos reembolsados`} />
-          )}
-          {report.divergences.payments_status_mismatch && (
-            <IssueLine text={`${report.rifa.payments_status_mismatch} pagamento(s) com status divergente`} />
-          )}
-          {report.divergences.payments_amount_mismatch && (
-            <IssueLine text={`${report.rifa.payments_amount_mismatch} pagamento(s) com valor divergente`} />
-          )}
-        </ul>
-      )}
     </Card>
-  );
-}
-
-function IssueLine({ text }: { text: string }) {
-  return (
-    <li className="flex items-start gap-2 rounded-md border border-orange-400/30 bg-orange-400/10 px-2 py-1.5 text-xs text-orange-800 dark:text-orange-300">
-      <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-      <span>{text}</span>
-    </li>
   );
 }
