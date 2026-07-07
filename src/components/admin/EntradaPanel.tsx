@@ -901,6 +901,7 @@ function ManualSaleDialog({ onCreated }: { onCreated: () => void }) {
       _seller_ref_code: refCode.trim() || null,
       _model: product === "kit" ? model : null,
       _size: product === "kit" ? size : null,
+      _status: status,
     } as never);
     setSaving(false);
     if (error) {
