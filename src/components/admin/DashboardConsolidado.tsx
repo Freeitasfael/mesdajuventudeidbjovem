@@ -400,12 +400,11 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
         </Card>
       </Section>
 
-      {/* ============== SAÚDE DO SISTEMA (compacto) ============== */}
-      <Section title="Saúde do sistema" icon={<Heart className="h-3.5 w-3.5" />}>
-        <ConsistencyCompact
+      {/* ============== RESUMO EXECUTIVO DA AUDITORIA ============== */}
+      <Section title="Última auditoria" icon={<Heart className="h-3.5 w-3.5" />}
+        subtitle="Resumo — detalhes técnicos na aba Saúde Técnica">
+        <AuditSummary
           report={consistency}
-          loading={checkingConsistency}
-          onRefresh={runConsistencyCheck}
           score={health.score}
           issues={health.issues}
         />
