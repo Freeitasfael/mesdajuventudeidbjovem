@@ -80,6 +80,18 @@ export const RaffleGrid = () => {
     return acc;
   }, [numbers]);
 
+  // Filtra por número digitado (aceita "7", "07", "007" — casa por inclusão)
+  const filteredNumbers = useMemo(() => {
+    const q = search.replace(/\D/g, "");
+    if (!q) return numbers;
+    const qNum = parseInt(q, 10);
+    return numbers.filter((n) => {
+      if (n.number === qNum) return true;
+      const padded = n.number.toString().padStart(3, "0");
+      return padded.includes(q) || n.number.toString().includes(q);
+    });
+  }, [numbers, search]);
+
   // O(1) lookup do estado de seleção — antes era O(n) por botão = O(n²) por render
   const selectedSet = useMemo(() => new Set(selected), [selected]);
 
