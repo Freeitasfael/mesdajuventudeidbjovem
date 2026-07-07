@@ -556,11 +556,12 @@ function FlowStep({
 }
 
 function AuditSummary({
-  report, score, issues,
+  report, score, issues, activeAlerts,
 }: {
   report: ConsistencyReport | null;
   score: number | null;
   issues: number;
+  activeAlerts: number | null;
 }) {
   const hasIssues = issues > 0;
   const generated = report?.generated_at ? new Date(report.generated_at).toLocaleString("pt-BR") : "—";
