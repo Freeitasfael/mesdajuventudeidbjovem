@@ -582,6 +582,16 @@ function AuditSummary({
                 Health {score}/100
               </Badge>
             )}
+            {activeAlerts !== null && activeAlerts > 0 && (
+              <Badge variant="outline" className="h-5 text-[10px] font-semibold text-orange-600 dark:text-orange-400 border-orange-400/40">
+                {activeAlerts} alerta(s) ativo(s)
+              </Badge>
+            )}
+            {activeAlerts === 0 && (
+              <Badge variant="outline" className="h-5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 border-emerald-500/30">
+                Sem alertas ativos
+              </Badge>
+            )}
           </div>
           <p className="text-[11px] text-muted-foreground truncate">Última auditoria: {generated}</p>
         </div>
