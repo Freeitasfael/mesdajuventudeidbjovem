@@ -743,21 +743,38 @@ export type Database = {
     }
     Functions: {
       admin_add_admin_by_email: { Args: { _email: string }; Returns: string }
-      admin_add_manual_entrada_order: {
-        Args: {
-          _buyer_name: string
-          _buyer_phone: string
-          _items: Json
-          _model?: string
-          _payment_method: string
-          _product: string
-          _quantity: number
-          _seller_ref_code?: string
-          _size?: string
-          _total_cents: number
-        }
-        Returns: string
-      }
+      admin_add_manual_entrada_order:
+        | {
+            Args: {
+              _buyer_name: string
+              _buyer_phone: string
+              _items: Json
+              _model?: string
+              _payment_method: string
+              _product: string
+              _quantity: number
+              _seller_ref_code?: string
+              _size?: string
+              _total_cents: number
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              _buyer_name: string
+              _buyer_phone: string
+              _items: Json
+              _model?: string
+              _payment_method: string
+              _product: string
+              _quantity: number
+              _seller_ref_code?: string
+              _size?: string
+              _status?: string
+              _total_cents: number
+            }
+            Returns: string
+          }
       admin_dashboard_consistency_check: { Args: never; Returns: Json }
       admin_dashboard_stats: {
         Args: never
