@@ -554,82 +554,36 @@ function FlowStep({
   );
 }
 
-function ConsistencyCompact({
-  report, loading, onRefresh, score, issues,
+function AuditSummary({
+  report, score, issues,
 }: {
   report: ConsistencyReport | null;
-  loading: boolean;
-  onRefresh: () => void;
   score: number | null;
   issues: number;
 }) {
   const hasIssues = issues > 0;
   const generated = report?.generated_at ? new Date(report.generated_at).toLocaleString("pt-BR") : "—";
   const statusTone: Tone = hasIssues ? "warning" : "info";
-
   return (
     <Card className={`p-3 border ${hasIssues ? "border-orange-400/40 bg-orange-400/[0.04]" : "border-sky-500/25 bg-sky-500/[0.04]"}`}>
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div className="flex items-center gap-3 min-w-0">
-          <span className={`inline-flex h-9 w-9 items-center justify-center rounded-lg ${hasIssues ? "bg-orange-500/15 text-orange-600 dark:text-orange-400" : "bg-sky-500/15 text-sky-600 dark:text-sky-400"}`}>
-            {hasIssues ? <ShieldAlert className="h-5 w-5" /> : <CheckCircle2 className="h-5 w-5" />}
-          </span>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <p className="text-sm font-semibold truncate">
-                {report
-                  ? hasIssues
-                    ? `${issues} divergência(s) detectada(s)`
-                    : "Sistema consistente"
-                  : "Verificando…"}
-              </p>
-              {score !== null && (
-                <Badge variant="outline" className={`h-5 text-[10px] font-semibold ${toneText[statusTone]}`}>
-                  Health {score}/100
-                </Badge>
-              )}
-            </div>
-            <p className="text-[11px] text-muted-foreground truncate">
-              Última auditoria: {generated}
-              {report && (
-                <>
-                  {" · "}Rifa {report.rifa.paid_orders} pagos / {report.rifa.refunded_orders} reemb.
-                  {" · "}Entrada {report.entrada.paid_orders} pagos / {report.entrada.refunded_orders} reemb.
-                </>
-              )}
+      <div className="flex items-center gap-3 min-w-0">
+        <span className={`inline-flex h-9 w-9 items-center justify-center rounded-lg ${hasIssues ? "bg-orange-500/15 text-orange-600 dark:text-orange-400" : "bg-sky-500/15 text-sky-600 dark:text-sky-400"}`}>
+          {hasIssues ? <ShieldAlert className="h-5 w-5" /> : <CheckCircle2 className="h-5 w-5" />}
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <p className="text-sm font-semibold truncate">
+              {report ? (hasIssues ? `${issues} divergência(s) detectada(s)` : "Sistema consistente") : "Verificando…"}
             </p>
+            {score !== null && (
+              <Badge variant="outline" className={`h-5 text-[10px] font-semibold ${toneText[statusTone]}`}>
+                Health {score}/100
+              </Badge>
+            )}
           </div>
+          <p className="text-[11px] text-muted-foreground truncate">Última auditoria: {generated}</p>
         </div>
-        <Button variant="outline" size="sm" onClick={onRefresh} disabled={loading}>
-          <RefreshCw className={`mr-2 h-3 w-3 ${loading ? "animate-spin" : ""}`} /> Executar auditoria
-        </Button>
       </div>
-
-      {hasIssues && report && (
-        <ul className="mt-3 grid gap-2 sm:grid-cols-2">
-          {report.divergences.numbers_vs_paid_orders && (
-            <IssueLine text={`Números pagos ≠ vinculados (${report.rifa.numbers_status_paid} / ${report.rifa.numbers_linked_to_paid_orders})`} />
-          )}
-          {report.divergences.refunded_holding_numbers && (
-            <IssueLine text={`${report.rifa.refunded_orders_still_holding_numbers} número(s) presos a pedidos reembolsados`} />
-          )}
-          {report.divergences.payments_status_mismatch && (
-            <IssueLine text={`${report.rifa.payments_status_mismatch} pagamento(s) com status divergente`} />
-          )}
-          {report.divergences.payments_amount_mismatch && (
-            <IssueLine text={`${report.rifa.payments_amount_mismatch} pagamento(s) com valor divergente`} />
-          )}
-        </ul>
-      )}
     </Card>
-  );
-}
-
-function IssueLine({ text }: { text: string }) {
-  return (
-    <li className="flex items-start gap-2 rounded-md border border-orange-400/30 bg-orange-400/10 px-2 py-1.5 text-xs text-orange-800 dark:text-orange-300">
-      <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-      <span>{text}</span>
-    </li>
   );
 }
