@@ -27,6 +27,9 @@ export const RaffleGrid = () => {
     isInSelection: boolean;
   } | null>(null);
 
+  // Busca por número
+  const [search, setSearch] = useState("");
+
 
 
   const load = async () => {
