@@ -124,6 +124,15 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
     return () => clearInterval(iv);
   }, [runConsistencyCheck]);
 
+  const loadActiveAlerts = useCallback(async () => {
+    const { count } = await supabase
+      .from("admin_alerts")
+      .select("*", { count: "exact", head: true })
+      .is("acknowledged_at", null);
+    setActiveAlerts(count ?? 0);
+  }, []);
+  useEffect(() => { loadActiveAlerts(); }, [loadActiveAlerts]);
+
   // Derivados de UX (custo fabricação, lucro, margem) — não são "métricas de venda"
   const derived = useMemo(() => {
     if (!metrics) return null;
