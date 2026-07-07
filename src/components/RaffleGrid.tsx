@@ -4,7 +4,8 @@ import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { useSelection } from "@/hooks/useSelection";
-import { AlertTriangle, X, Trash2, Shuffle } from "lucide-react";
+import { AlertTriangle, X, Trash2, Shuffle, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 type NumberStatus = "available" | "reserved" | "paid";
 
@@ -25,6 +26,9 @@ export const RaffleGrid = () => {
     status: NumberStatus;
     isInSelection: boolean;
   } | null>(null);
+
+  // Busca por número
+  const [search, setSearch] = useState("");
 
 
 
@@ -75,6 +79,18 @@ export const RaffleGrid = () => {
     for (const n of numbers) acc[n.status]++;
     return acc;
   }, [numbers]);
+
+  // Filtra por número digitado (aceita "7", "07", "007" — casa por inclusão)
+  const filteredNumbers = useMemo(() => {
+    const q = search.replace(/\D/g, "");
+    if (!q) return numbers;
+    const qNum = parseInt(q, 10);
+    return numbers.filter((n) => {
+      if (n.number === qNum) return true;
+      const padded = n.number.toString().padStart(3, "0");
+      return padded.includes(q) || n.number.toString().includes(q);
+    });
+  }, [numbers, search]);
 
   // O(1) lookup do estado de seleção — antes era O(n) por botão = O(n²) por render
   const selectedSet = useMemo(() => new Set(selected), [selected]);
@@ -196,6 +212,37 @@ export const RaffleGrid = () => {
         </div>
       )}
 
+      {/* Busca por número */}
+      <div className="mx-auto flex w-full max-w-sm items-center gap-2">
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50" />
+          <Input
+            type="text"
+            inputMode="numeric"
+            placeholder="Buscar número (ex: 07, 123)"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="h-10 rounded-full border-white/15 bg-white/[0.06] pl-9 pr-9 text-sm text-white placeholder:text-white/40 focus-visible:ring-1"
+            aria-label="Buscar número"
+          />
+          {search && (
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-white/60 hover:bg-white/10 hover:text-white"
+              aria-label="Limpar busca"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+        {search && (
+          <span className="whitespace-nowrap text-xs text-white/60 tabular-nums">
+            {filteredNumbers.length} result{filteredNumbers.length === 1 ? "ado" : "ados"}
+          </span>
+        )}
+      </div>
+
       <div className="flex flex-wrap items-center justify-center gap-4 text-xs sm:text-sm">
         <LegendDot className="bg-number-available" label="Disponíveis" />
         <LegendDot className="bg-number-reserved" label="Reservados" />
@@ -208,9 +255,13 @@ export const RaffleGrid = () => {
             <Skeleton key={i} className="aspect-square rounded-lg bg-white/15" />
           ))}
         </div>
+      ) : filteredNumbers.length === 0 ? (
+        <div className="py-10 text-center text-sm text-white/60">
+          Nenhum número encontrado para "{search}".
+        </div>
       ) : (
         <div className="grid grid-cols-6 sm:grid-cols-10 md:grid-cols-12 lg:grid-cols-16 gap-1.5">
-          {numbers.map((n) => (
+          {filteredNumbers.map((n) => (
             <NumberButton
               key={n.number}
               n={n}
