@@ -1015,8 +1015,24 @@ function ManualSaleDialog({ onCreated }: { onCreated: () => void }) {
             </div>
           </div>
 
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1">
+              <Label>Status do pagamento *</Label>
+              <select
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                value={status}
+                onChange={(e) => setStatus(e.target.value as "paid" | "pending")}
+              >
+                <option value="paid">Paga</option>
+                <option value="pending">Pendente (não paga)</option>
+              </select>
+            </div>
+          </div>
+
           <p className="text-xs text-muted-foreground">
-            A venda é registrada como <strong>paga</strong> e o estoque é abatido automaticamente.
+            {status === "paid"
+              ? "A venda é registrada como paga e o estoque é abatido automaticamente."
+              : "A venda ficará pendente por 7 dias e não abaterá estoque até ser confirmada como paga."}
           </p>
         </div>
         <DialogFooter>
