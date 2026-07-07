@@ -81,6 +81,7 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
   const [loading, setLoading] = useState(false);
   const [consistency, setConsistency] = useState<ConsistencyReport | null>(null);
   const [checkingConsistency, setCheckingConsistency] = useState(false);
+  const [activeAlerts, setActiveAlerts] = useState<number | null>(null);
 
   const [costCamiseta, setCostCamiseta] = useState<number>(() => {
     try { const s = JSON.parse(localStorage.getItem(COST_STORAGE_KEY) || "{}"); return Number(s.camiseta) || DEFAULT_COST_CAMISETA; } catch { return DEFAULT_COST_CAMISETA; }
