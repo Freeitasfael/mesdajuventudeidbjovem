@@ -654,7 +654,7 @@ function HeroKpi({
         </p>
         {subtitle && <p className="mt-1 text-[11px] text-muted-foreground truncate">{subtitle}</p>}
         {extra && <p className="mt-0.5 text-[11px] text-orange-600 dark:text-orange-400 truncate">{extra}</p>}
-        {breakdown && <Breakdown items={breakdown} />}
+        {breakdown && <BreakdownPopover items={breakdown} />}
       </div>
     </Card>
   );
@@ -697,7 +697,7 @@ function StatCard({
         </p>
         {subtitle && <p className="mt-0.5 text-[11px] text-muted-foreground truncate">{subtitle}</p>}
         {extra && <p className="mt-0.5 text-[11px] text-orange-600 dark:text-orange-400 truncate">{extra}</p>}
-        {breakdown && <Breakdown items={breakdown} />}
+        {breakdown && <BreakdownPopover items={breakdown} />}
         {onOpen && (
           <button
             type="button"
