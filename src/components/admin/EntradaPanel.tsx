@@ -687,6 +687,7 @@ export function EntradaPanel() {
           </p>
           <div className="flex gap-2 flex-wrap">
             <ManualSaleDialog onCreated={load} />
+            <RevertManualToPendingButton onDone={load} />
             <Button variant="outline" size="sm" onClick={exportCsv} disabled={filteredOrders.length === 0}>
               <Download className="mr-2 h-3 w-3" /> Exportar CSV
             </Button>
