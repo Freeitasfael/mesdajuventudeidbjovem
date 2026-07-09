@@ -571,9 +571,30 @@ const toneBar: Record<Tone, string> = {
   neutral: "bg-muted-foreground/40",
 };
 
+type BreakdownItem = { label: string; value: string; emphasis?: boolean };
+
+function Breakdown({ items }: { items: BreakdownItem[] }) {
+  if (!items?.length) return null;
+  return (
+    <ul className="mt-2 space-y-0.5 border-t border-border/40 pt-2">
+      {items.map((b, i) => (
+        <li
+          key={i}
+          className={`flex items-center justify-between gap-2 text-[11px] tabular-nums ${
+            b.emphasis ? "font-semibold text-foreground pt-0.5" : "text-muted-foreground"
+          }`}
+        >
+          <span className="truncate">{b.label}</span>
+          <span className="shrink-0">{b.value}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function HeroKpi({
-  label, value, unit, subtitle, tone = "neutral", icon, help, extra,
-}: { label: string; value: string; unit?: string; subtitle?: string; tone?: Tone; icon?: React.ReactNode; help?: string; extra?: string }) {
+  label, value, unit, subtitle, tone = "neutral", icon, help, extra, breakdown,
+}: { label: string; value: string; unit?: string; subtitle?: string; tone?: Tone; icon?: React.ReactNode; help?: string; extra?: string; breakdown?: BreakdownItem[] }) {
   return (
     <Card className={`p-4 min-h-[110px] flex flex-col justify-between transition-colors hover:border-primary/30 ${toneBorder[tone]}`}>
       <div className="flex items-center justify-between">
@@ -605,18 +626,20 @@ function HeroKpi({
         </p>
         {subtitle && <p className="mt-1 text-[11px] text-muted-foreground truncate">{subtitle}</p>}
         {extra && <p className="mt-0.5 text-[11px] text-orange-600 dark:text-orange-400 truncate">{extra}</p>}
+        {breakdown && <Breakdown items={breakdown} />}
       </div>
     </Card>
   );
 }
 
 function StatCard({
-  label, value, highlight, tone = "neutral", subtitle, icon, help, extra, onOpen, openLabel,
+  label, value, highlight, tone = "neutral", subtitle, icon, help, extra, onOpen, openLabel, breakdown,
 }: {
   label: string; value: string; highlight?: boolean;
   tone?: Tone; subtitle?: string; icon?: React.ReactNode;
   help?: string; extra?: string;
   onOpen?: () => void; openLabel?: string;
+  breakdown?: BreakdownItem[];
 }) {
   return (
     <Card className={`p-3 min-h-[92px] flex flex-col justify-between ${toneBorder[tone]} ${highlight ? "ring-1 ring-primary/30" : ""}`}>
@@ -646,6 +669,7 @@ function StatCard({
         </p>
         {subtitle && <p className="mt-0.5 text-[11px] text-muted-foreground truncate">{subtitle}</p>}
         {extra && <p className="mt-0.5 text-[11px] text-orange-600 dark:text-orange-400 truncate">{extra}</p>}
+        {breakdown && <Breakdown items={breakdown} />}
         {onOpen && (
           <button
             type="button"
