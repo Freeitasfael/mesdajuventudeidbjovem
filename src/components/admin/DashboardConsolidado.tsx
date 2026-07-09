@@ -324,16 +324,8 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
 
       {/* ============== EXECUTIVO ============== */}
       <Section title="Executivo" icon={<Activity className="h-3.5 w-3.5" />}>
-        <div className="grid gap-3 grid-cols-2 lg:grid-cols-5">
-          <HeroKpi
-            label="Health Score"
-            value={health.score !== null ? `${health.score}` : "—"}
-            unit={health.score !== null ? "/100" : undefined}
-            tone={health.status === "ok" ? "info" : health.status === "warn" ? "warning" : "negative"}
-            icon={<Heart className="h-4 w-4" />}
-            subtitle={health.issues === 0 ? "Sem divergências" : `${health.issues} divergência(s)`}
-            help="Score derivado da auditoria automática de consistência entre pedidos, pagamentos e reservas. 100 = sem divergências; cada divergência reduz 20 pts."
-          />
+        <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+          {/* Health Score movido para a aba "Saúde Técnica". */}
           <HeroKpi
             label="Receita Líquida"
             value={fmtBRL(metrics.totals.revenueNet)}
@@ -546,28 +538,8 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
         </Card>
       </Section>
 
-      {/* ============== VALIDAÇÃO DE FÓRMULAS FINANCEIRAS ============== */}
-      <Section title="Validação de fórmulas" icon={<ShieldAlert className="h-3.5 w-3.5" />}
-        subtitle="Confere que os totais do Dashboard batem exatamente com a soma dos módulos">
-        <FormulaChecks
-          metrics={metrics}
-          fabricationCost={derived.fabricationCost}
-          prizeCost={derived.prizeCost}
-          totalExpenses={derived.totalExpenses}
-          netProfit={derived.netProfit}
-        />
-      </Section>
+      {/* Validação de fórmulas e Última auditoria movidas para a aba "Saúde Técnica". */}
 
-      {/* ============== RESUMO EXECUTIVO DA AUDITORIA ============== */}
-      <Section title="Última auditoria" icon={<Heart className="h-3.5 w-3.5" />}
-        subtitle="Resumo — detalhes técnicos na aba Saúde Técnica">
-        <AuditSummary
-          report={consistency}
-          score={health.score}
-          issues={health.issues}
-          activeAlerts={activeAlerts}
-        />
-      </Section>
     </div>
   );
 }
