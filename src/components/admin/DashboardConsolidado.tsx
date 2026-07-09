@@ -12,7 +12,7 @@ import {
   TrendingDown,
   CheckCircle2,
   ShieldAlert,
-  Heart,
+  Heart: _Heart,
   Wallet,
   Percent,
   ShoppingCart,
