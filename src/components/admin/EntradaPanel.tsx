@@ -15,7 +15,6 @@ import { buildCsv, downloadCsv } from "@/lib/csv";
 import ExcelJS from "exceljs";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
 import { NetValueCell } from "@/components/admin/NetValueCell";
-import { isPaid } from "@/lib/orderStatus";
 
 
 interface EntradaOrderItem {
