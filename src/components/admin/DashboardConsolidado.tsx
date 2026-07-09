@@ -913,14 +913,14 @@ export function FormulaChecks({
     },
     {
       label: "Gastos Totais",
-      formula: "Despesas pagas + Fabricação + Taxas MP + Prêmio",
-      parts: [metrics.expenses.paid, fabricationCost, metrics.totals.feesMP, prizeCost],
+      formula: "Despesas + Custo Camisetas Vendidas + Prêmio",
+      parts: [metrics.expenses.paid, fabricationCost, prizeCost],
       expected: totalExpenses,
     },
     {
       label: "Lucro Líquido",
-      formula: "Receita Bruta − Gastos Totais",
-      parts: [metrics.totals.revenueGross, -totalExpenses],
+      formula: "Receita Líquida − Gastos Totais",
+      parts: [metrics.totals.revenueNet, -totalExpenses],
       expected: netProfit,
     },
   ];
