@@ -348,17 +348,43 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
             value={fmtBRL(derived.netProfit)}
             tone={profitTone}
             icon={derived.netProfit >= 0 ? <TrendingUp className="h-3.5 w-3.5" /> : <TrendingDown className="h-3.5 w-3.5" />}
+            help="Receita líquida menos despesas pagas e custo estimado de fabricação (camisetas e pulseiras)."
             highlight
           />
-          <StatCard label="Receita Líquida" value={fmtBRL(metrics.totals.revenueNet)} tone="positive" icon={<Wallet className="h-3.5 w-3.5" />} />
-          <StatCard label="Margem" value={`${derived.margin.toFixed(1)}%`} tone={marginTone} icon={<Percent className="h-3.5 w-3.5" />} />
-          <StatCard label="Receita Bruta" value={fmtBRL(metrics.totals.revenueGross)} tone="neutral" icon={<DollarSign className="h-3.5 w-3.5" />} />
+          <StatCard
+            label="Receita Líquida"
+            value={fmtBRL(metrics.totals.revenueNet)}
+            tone="positive"
+            icon={<Wallet className="h-3.5 w-3.5" />}
+            help="Receita bruta confirmada menos as taxas do Mercado Pago (PIX 0,99% / Cartão 4,99%)."
+            extra={metrics.rifa.pendingGross + metrics.entrada.pendingGross > 0
+              ? `Receitas pendentes: ${fmtBRL(metrics.rifa.pendingGross + metrics.entrada.pendingGross)}`
+              : undefined}
+          />
+          <StatCard
+            label="Margem"
+            value={`${derived.margin.toFixed(1)}%`}
+            tone={marginTone}
+            icon={<Percent className="h-3.5 w-3.5" />}
+            help="Lucro líquido dividido pela receita líquida."
+          />
+          <StatCard
+            label="Receita Bruta"
+            value={fmtBRL(metrics.totals.revenueGross)}
+            tone="neutral"
+            icon={<DollarSign className="h-3.5 w-3.5" />}
+            help="Soma de todos os valores confirmados antes de qualquer desconto de taxa."
+          />
           <StatCard
             label="Gastos realizados"
             value={fmtBRL(derived.totalExpenses)}
             tone="negative"
             icon={<Receipt className="h-3.5 w-3.5" />}
             subtitle={`${fmtBRL(metrics.expenses.paid)} + ${fmtBRL(derived.fabricationCost)} fabricação`}
+            help="Somente despesas com status 'pago' + custo estimado de fabricação. Despesas agendadas não entram aqui."
+            extra={metrics.expenses.scheduled > 0 ? `Despesas pendentes: ${fmtBRL(metrics.expenses.scheduled)}` : undefined}
+            onOpen={onNavigate ? () => onNavigate("expenses") : undefined}
+            openLabel="Abrir Gastos"
           />
         </div>
         <p className="text-[11px] text-muted-foreground mt-2">
