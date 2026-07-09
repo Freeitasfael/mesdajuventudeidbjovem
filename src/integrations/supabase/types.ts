@@ -900,6 +900,14 @@ export type Database = {
           seller_id: string
         }[]
       }
+      admin_set_order_seller: {
+        Args: { _order_id: string; _ref_code: string }
+        Returns: {
+          order_id: string
+          referral_label: string
+          seller_id: string
+        }[]
+      }
       confirm_payment: { Args: { _order_id: string }; Returns: undefined }
       decrement_entrada_stock: {
         Args: { _qty: number; _sku: string }
