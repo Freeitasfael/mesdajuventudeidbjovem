@@ -180,23 +180,27 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
   }, []);
   useEffect(() => { loadActiveAlerts(); }, [loadActiveAlerts]);
 
-  // Derivados de UX (custo fabricação, lucro, margem) — não são "métricas de venda"
+  // Derivados: usam APENAS dados dos módulos.
+  // Custo das Camisetas Vendidas = camisetas vendidas × custo unitário da Produção.
+  // Gastos totais = Despesas gerais + COGS Camisetas + Prêmio da Rifa (SEM taxas MP;
+  //   as taxas já são descontadas para formar a Receita Líquida).
+  // Lucro Líquido = Receita Líquida − Gastos Totais.
   const derived = useMemo(() => {
     if (!metrics) return null;
-    const shirtCost = Math.round(metrics.entrada.kit.units * costCamiseta * 100);
-    const pulseiraCost = Math.round(
-      (metrics.entrada.kit.units + metrics.entrada.pulseira.units) * costPulseira * 100
-    );
-    const fabricationCost = shirtCost + pulseiraCost;
+    const totalProdCost = production?.total_cost_cents ?? 0;
+    const unitsProduced = production?.units_produced ?? 0;
+    const unitCostCents = unitsProduced > 0 ? totalProdCost / unitsProduced : 0;
+    const shirtCost = Math.round(shirtsSold * unitCostCents); // Custo das Camisetas Vendidas
+    const pulseiraCost = 0; // pulseira não entra em Gastos (spec)
+    const fabricationCost = shirtCost; // manter nome para compatibilidade das seções abaixo
     const prizeCost = Math.round(costRifaPremio * 100);
-    const totalExpenses = metrics.expenses.paid + fabricationCost + prizeCost + metrics.totals.feesMP;
+    const totalExpenses = metrics.expenses.paid + fabricationCost + prizeCost;
     const revenueNet = metrics.totals.revenueNet;
-    // revenueNet já é bruto − taxa MP; para "Gastos totais" separado somamos as
-    // taxas explicitamente ⇒ lucro = bruto − (despesas + fabricação + prêmio + taxas)
-    const netProfit = metrics.totals.revenueGross - totalExpenses;
+    const netProfit = revenueNet - totalExpenses;
     const margin = revenueNet > 0 ? (netProfit / revenueNet) * 100 : 0;
     return { shirtCost, pulseiraCost, fabricationCost, prizeCost, totalExpenses, netProfit, margin };
-  }, [metrics, costCamiseta, costPulseira, costRifaPremio]);
+  }, [metrics, production, shirtsSold, costRifaPremio]);
+
 
   // Alertas inteligentes
   const alerts: { level: "warn" | "danger"; msg: React.ReactNode }[] = [];
