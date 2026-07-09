@@ -10,7 +10,8 @@ import {
 } from "@/components/ui/dialog";
 
 import { toast } from "sonner";
-import { Download, FileSpreadsheet, Plus, RefreshCw, Save, Undo2, UserPlus } from "lucide-react";
+import { CheckCircle2, Download, FileSpreadsheet, Plus, RefreshCw, Save, Undo2, UserPlus } from "lucide-react";
+import { isPaid as isPaidStatus } from "@/lib/orderStatus";
 import { buildCsv, downloadCsv } from "@/lib/csv";
 import ExcelJS from "exceljs";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
