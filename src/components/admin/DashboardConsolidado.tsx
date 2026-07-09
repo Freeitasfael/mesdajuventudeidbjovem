@@ -449,11 +449,12 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
             value={fmtBRL(derived.totalExpenses)}
             tone="negative"
             icon={<Receipt className="h-3.5 w-3.5" />}
-            subtitle={`${fmtBRL(metrics.expenses.paid)} + ${fmtBRL(derived.fabricationCost)} fabricação`}
-            help="Somente despesas com status 'pago' + custo estimado de fabricação. Despesas agendadas não entram aqui."
+            subtitle={`realizado + fabricação + taxas + prêmio`}
+            help="Soma total dos gastos realizados. Despesas agendadas não entram."
             extra={metrics.expenses.scheduled > 0 ? `Despesas pendentes: ${fmtBRL(metrics.expenses.scheduled)}` : undefined}
             onOpen={onNavigate ? () => onNavigate("expenses") : undefined}
             openLabel="Abrir Gastos"
+            breakdown={expenseBreakdown.map((b) => ({ label: b.label, value: fmtBRL(b.value) }))}
           />
         </div>
         <p className="text-[11px] text-muted-foreground mt-2">
