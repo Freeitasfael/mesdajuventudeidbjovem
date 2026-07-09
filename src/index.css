@@ -393,3 +393,14 @@ body {
   display: none !important;
 }
 
+
+/* Dashboard — modo privacidade (borra valores numéricos) */
+.dashboard-privacy.is-hidden .tabular-nums {
+  filter: blur(8px);
+  transition: filter 0.2s ease;
+  user-select: none;
+  cursor: pointer;
+}
+.dashboard-privacy.is-hidden .tabular-nums:hover {
+  filter: blur(0);
+}

@@ -25,6 +25,8 @@ import {
   Activity,
   ArrowDown,
   ArrowRight,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
@@ -86,6 +88,12 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
   const [consistency, setConsistency] = useState<ConsistencyReport | null>(null);
   const [checkingConsistency, setCheckingConsistency] = useState(false);
   const [activeAlerts, setActiveAlerts] = useState<number | null>(null);
+  const [hideValues, setHideValues] = useState<boolean>(() => {
+    try { return localStorage.getItem("dashboard_hide_values") === "1"; } catch { return false; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem("dashboard_hide_values", hideValues ? "1" : "0"); } catch { /* noop */ }
+  }, [hideValues]);
 
   const [costCamiseta, setCostCamiseta] = useState<number>(() => {
     try { const s = JSON.parse(localStorage.getItem(COST_STORAGE_KEY) || "{}"); return Number(s.camiseta) || DEFAULT_COST_CAMISETA; } catch { return DEFAULT_COST_CAMISETA; }
@@ -272,7 +280,7 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
   const rifaBarBase = Math.max(1, metrics.rifa.count + metrics.rifa.pendingCount + metrics.rifa.cancelledCount + metrics.rifa.refundedCount);
 
   return (
-    <div className="space-y-8">
+    <div className={`space-y-8 dashboard-privacy ${hideValues ? "is-hidden" : ""}`}>
       {/* Filtros */}
       <Card className="p-3 shadow-sm">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:flex-wrap">
@@ -285,6 +293,27 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
             <Input id="dashTo" type="date" value={to} onChange={(e) => setTo(e.target.value)} className="h-9 w-full sm:w-40" />
           </div>
           <div className="flex gap-2 sm:ml-auto">
+            <TooltipProvider delayDuration={100}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={hideValues ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setHideValues((v) => !v)}
+                    aria-label={hideValues ? "Mostrar valores" : "Ocultar valores"}
+                    aria-pressed={hideValues}
+                  >
+                    {hideValues ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    <span className="ml-1.5 hidden sm:inline text-xs">
+                      {hideValues ? "Mostrar" : "Ocultar"}
+                    </span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">
+                  {hideValues ? "Clique para revelar os valores" : "Clique para ocultar valores (modo apresentação)"}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             <Button variant="outline" size="sm" onClick={() => { setFrom(""); setTo(""); }}>Limpar</Button>
             <Button variant="ghost" size="sm" onClick={load} disabled={loading}>
               <RefreshCw className={`mr-2 h-3 w-3 ${loading ? "animate-spin" : ""}`} /> Atualizar
