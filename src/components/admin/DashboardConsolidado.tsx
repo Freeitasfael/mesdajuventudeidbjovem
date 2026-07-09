@@ -65,6 +65,7 @@ interface ConsistencyReport {
 // Custos unitários de fabricação (R$)
 const DEFAULT_COST_CAMISETA = 38;
 const DEFAULT_COST_PULSEIRA = 1.05;
+const DEFAULT_COST_RIFA_PREMIO = 500;
 const COST_STORAGE_KEY = "dashboard_costs_v1";
 
 const fmtBRL = (c: number) => `R$ ${(c / 100).toFixed(2).replace(".", ",")}`;
