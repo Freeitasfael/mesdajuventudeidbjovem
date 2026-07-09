@@ -1346,6 +1346,13 @@ const Admin = () => {
                   >
                     Fechar
                   </Button>
+                  {detailOrder && (
+                    <Button variant="secondary" onClick={assignSellerToOrder}>
+                      {detailOrder.seller_id || detailOrder.referral_label
+                        ? "Alterar código de indicação"
+                        : "Adicionar código de indicação"}
+                    </Button>
+                  )}
                   {detailOrder &&
                     ["paid", "pending"].includes(detailOrder.status) && (
                       <Button
