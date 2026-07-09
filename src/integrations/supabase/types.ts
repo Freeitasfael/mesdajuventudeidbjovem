@@ -146,6 +146,7 @@ export type Database = {
           items: Json | null
           model: string
           mp_payment_id: string | null
+          paid_at: string | null
           payment_method: string
           product: string
           qr_code: string | null
@@ -170,6 +171,7 @@ export type Database = {
           items?: Json | null
           model?: string
           mp_payment_id?: string | null
+          paid_at?: string | null
           payment_method?: string
           product: string
           qr_code?: string | null
@@ -194,6 +196,7 @@ export type Database = {
           items?: Json | null
           model?: string
           mp_payment_id?: string | null
+          paid_at?: string | null
           payment_method?: string
           product?: string
           qr_code?: string | null
@@ -775,6 +778,15 @@ export type Database = {
             }
             Returns: string
           }
+      admin_confirm_manual_entrada_payment: {
+        Args: { _order_id: string; _paid_at?: string; _payment_method: string }
+        Returns: {
+          order_id: string
+          paid_at: string
+          payment_method: string
+          status: string
+        }[]
+      }
       admin_dashboard_consistency_check: { Args: never; Returns: Json }
       admin_dashboard_stats: {
         Args: never
@@ -827,6 +839,7 @@ export type Database = {
           items: Json | null
           model: string
           mp_payment_id: string | null
+          paid_at: string | null
           payment_method: string
           product: string
           qr_code: string | null
