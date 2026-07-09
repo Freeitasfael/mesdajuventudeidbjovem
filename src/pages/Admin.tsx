@@ -113,6 +113,14 @@ const fmtDate = (s: string) => new Date(s).toLocaleString("pt-BR");
 
 const Admin = () => {
   const navigate = useNavigate();
+  const [tab, setTab] = useState<string>(() => {
+    if (typeof window === "undefined") return "dashboard";
+    const h = window.location.hash.replace("#", "");
+    return h || "dashboard";
+  });
+  useEffect(() => {
+    if (typeof window !== "undefined") window.location.hash = tab;
+  }, [tab]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [payments, setPayments] = useState<PaymentRow[]>([]);
