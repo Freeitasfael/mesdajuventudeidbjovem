@@ -318,7 +318,18 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
                     {r.icon}
                   </span>
                   <div className="min-w-0">
-                    <p className="text-sm font-medium truncate">{r.label}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium truncate">{r.label}</p>
+                      {onNavigate && (
+                        <button
+                          type="button"
+                          onClick={() => onNavigate(r.tab)}
+                          className="inline-flex items-center gap-0.5 text-[10px] font-medium text-primary hover:underline"
+                        >
+                          abrir <ArrowRight className="h-3 w-3" />
+                        </button>
+                      )}
+                    </div>
                     <p className="text-[11px] text-muted-foreground truncate">{r.sub}</p>
                   </div>
                 </div>
