@@ -212,6 +212,30 @@ export type Database = {
         }
         Relationships: []
       }
+      entrada_production: {
+        Row: {
+          id: string
+          total_cost_cents: number
+          units_produced: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          id?: string
+          total_cost_cents?: number
+          units_produced?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          id?: string
+          total_cost_cents?: number
+          units_produced?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       entrada_stock: {
         Row: {
           label: string
@@ -766,6 +790,7 @@ export type Database = {
             Args: {
               _buyer_name: string
               _buyer_phone: string
+              _consume_stock?: boolean
               _items: Json
               _model?: string
               _payment_method: string
@@ -928,6 +953,22 @@ export type Database = {
           referral_label: string
           seller_id: string
         }[]
+      }
+      admin_upsert_entrada_production: {
+        Args: { _total_cost_cents: number; _units_produced: number }
+        Returns: {
+          id: string
+          total_cost_cents: number
+          units_produced: number
+          updated_at: string
+          updated_by: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "entrada_production"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       confirm_payment: { Args: { _order_id: string }; Returns: undefined }
       decrement_entrada_stock: {

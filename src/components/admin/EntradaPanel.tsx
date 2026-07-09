@@ -136,6 +136,10 @@ export function EntradaPanel() {
   const [savingPrices, setSavingPrices] = useState(false);
   const [refundingId, setRefundingId] = useState<string | null>(null);
   const [assigningId, setAssigningId] = useState<string | null>(null);
+  const [production, setProduction] = useState<{ total_cost_cents: number; units_produced: number } | null>(null);
+  const [prodCostReais, setProdCostReais] = useState("");
+  const [prodUnits, setProdUnits] = useState("");
+  const [savingProd, setSavingProd] = useState(false);
 
   // Custos de fabricação (sincronizados com a Dashboard via localStorage)
   const [costCamiseta, setCostCamiseta] = useState<number>(() => {
@@ -192,7 +196,7 @@ export function EntradaPanel() {
 
   const load = async () => {
     setLoading(true);
-    const [o, s, p] = await Promise.all([
+    const [o, s, p, pr] = await Promise.all([
       supabase
         .from("entrada_orders")
         .select("id, created_at, buyer_name, buyer_phone, product, model, size, quantity, total_cents, status, mp_payment_id, payment_method, seller_id, referral_label, items, paid_at")
@@ -200,6 +204,7 @@ export function EntradaPanel() {
         .limit(500),
       supabase.from("entrada_stock").select("sku, label, stock").order("sku"),
       supabase.from("app_settings").select("value").eq("key", "entrada_prices").maybeSingle(),
+      supabase.from("entrada_production").select("total_cost_cents, units_produced").eq("id", "default").maybeSingle(),
     ]);
     if (o.data) setOrders(o.data as unknown as EntradaOrder[]);
     if (s.data) setStock(s.data as StockRow[]);
@@ -207,6 +212,12 @@ export function EntradaPanel() {
       const v = p.data.value as { pulseira_cents?: number; kit_cents?: number };
       if (v.pulseira_cents) setPulseiraReais((v.pulseira_cents / 100).toFixed(2));
       if (v.kit_cents) setKitReais((v.kit_cents / 100).toFixed(2));
+    }
+    if (pr.data) {
+      const row = pr.data as { total_cost_cents: number; units_produced: number };
+      setProduction(row);
+      setProdCostReais((row.total_cost_cents / 100).toFixed(2));
+      setProdUnits(String(row.units_produced));
     }
     setLoading(false);
   };
@@ -269,6 +280,34 @@ export function EntradaPanel() {
     }
     toast.success("Preços atualizados");
   };
+
+  const saveProduction = async () => {
+    const c = Math.round(parseFloat(prodCostReais.replace(",", ".")) * 100);
+    const u = parseInt(prodUnits, 10);
+    if (!Number.isFinite(c) || c < 0) return toast.error("Custo inválido");
+    if (!Number.isFinite(u) || u <= 0) return toast.error("Quantidade inválida");
+    setSavingProd(true);
+    const { data, error } = await supabase.rpc("admin_upsert_entrada_production" as never, {
+      _total_cost_cents: c, _units_produced: u,
+    } as never);
+    setSavingProd(false);
+    if (error) return toast.error("Erro: " + error.message);
+    toast.success("Produção atualizada. Dashboard sincronizado.");
+    const row = data as unknown as { total_cost_cents: number; units_produced: number } | null;
+    if (row) setProduction(row);
+  };
+
+  const shirtsSold = useMemo(() => {
+    return orders
+      .filter((o) => o.status === "paid" && o.product === "kit")
+      .reduce((acc, o) => {
+        const items = normalizeItems(o);
+        const q = items.length > 0
+          ? items.reduce((a, it) => a + (Number(it.quantity) || 0), 0)
+          : (o.quantity || 0);
+        return acc + q;
+      }, 0);
+  }, [orders]);
 
   const filteredOrders = useMemo(() => {
     const fromTs = dateFrom ? new Date(dateFrom + "T00:00:00").getTime() : null;
@@ -774,6 +813,67 @@ export function EntradaPanel() {
       </TabsContent>
 
       <TabsContent value="estoque" className="space-y-3">
+        {(() => {
+          const totalCost = production?.total_cost_cents ?? 0;
+          const units = production?.units_produced ?? 0;
+          const unitCost = units > 0 ? totalCost / units : 0;
+          const sold = shirtsSold;
+          const remaining = Math.max(units - sold, 0);
+          const recognized = Math.round(sold * unitCost);
+          const stillStock = Math.round(remaining * unitCost);
+          return (
+            <Card className="p-4 space-y-4 border-primary/30 bg-primary/[0.02]">
+              <div>
+                <h3 className="font-semibold">Produção das Camisetas</h3>
+                <p className="text-xs text-muted-foreground">
+                  A produção é tratada como <strong>investimento em estoque</strong>. O custo unitário é calculado
+                  automaticamente e o Dashboard só reconhece o custo quando cada camiseta é vendida.
+                </p>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div className="space-y-1">
+                  <Label className="text-xs">Custo de produção (R$) *</Label>
+                  <Input type="number" step="0.01" min="0" value={prodCostReais}
+                    onChange={(e) => setProdCostReais(e.target.value)} placeholder="3268.00" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Quantidade produzida *</Label>
+                  <Input type="number" min={1} value={prodUnits}
+                    onChange={(e) => setProdUnits(e.target.value)} placeholder="86" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Custo unitário (calculado)</Label>
+                  <div className="flex h-10 items-center rounded-md border border-dashed border-input bg-muted/40 px-3 text-sm font-semibold">
+                    {units > 0 ? fmtBRL(Math.round(unitCost)) : "—"}
+                  </div>
+                </div>
+              </div>
+              <Button size="sm" onClick={saveProduction} disabled={savingProd}>
+                <Save className="mr-2 h-4 w-4" /> {savingProd ? "Salvando…" : "Salvar produção"}
+              </Button>
+
+              <div className="rounded-md border bg-background/60 p-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                  Resumo da produção
+                </p>
+                <div className="grid gap-2 sm:grid-cols-3 text-sm">
+                  <div className="flex justify-between border-b border-dashed pb-1"><span className="text-muted-foreground">Investimento total</span><span className="font-semibold tabular-nums">{fmtBRL(totalCost)}</span></div>
+                  <div className="flex justify-between border-b border-dashed pb-1"><span className="text-muted-foreground">Quantidade produzida</span><span className="font-semibold tabular-nums">{units}</span></div>
+                  <div className="flex justify-between border-b border-dashed pb-1"><span className="text-muted-foreground">Custo unitário</span><span className="font-semibold tabular-nums">{units > 0 ? fmtBRL(Math.round(unitCost)) : "—"}</span></div>
+                  <div className="flex justify-between border-b border-dashed pb-1"><span className="text-muted-foreground">Vendidas</span><span className="font-semibold tabular-nums">{sold}</span></div>
+                  <div className="flex justify-between border-b border-dashed pb-1"><span className="text-muted-foreground">Em estoque</span><span className="font-semibold tabular-nums">{remaining}</span></div>
+                  <div className="flex justify-between border-b border-dashed pb-1"><span className="text-muted-foreground">—</span><span>&nbsp;</span></div>
+                  <div className="flex justify-between border-b border-dashed pb-1"><span className="text-muted-foreground">Custo reconhecido</span><span className="font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">{fmtBRL(recognized)}</span></div>
+                  <div className="flex justify-between border-b border-dashed pb-1"><span className="text-muted-foreground">Custo ainda em estoque</span><span className="font-semibold text-amber-600 dark:text-amber-400 tabular-nums">{fmtBRL(stillStock)}</span></div>
+                  <div className="flex justify-between border-b border-dashed pb-1"><span className="text-muted-foreground">Total investido</span><span className="font-semibold tabular-nums">{fmtBRL(recognized + stillStock)}</span></div>
+                </div>
+                <p className="mt-3 text-[11px] text-muted-foreground">
+                  <strong>Custo reconhecido</strong> = camisetas vendidas × custo unitário. É esse valor que aparece no Dashboard como <em>Custo das Camisetas Vendidas</em>.
+                </p>
+              </div>
+            </Card>
+          );
+        })()}
         <Card className="p-4">
           <h3 className="font-semibold mb-1">Controle de estoque</h3>
           <p className="text-xs text-muted-foreground mb-4">
@@ -886,10 +986,12 @@ function ManualSaleDialog({ onCreated }: { onCreated: () => void }) {
   const [paymentMethod, setPaymentMethod] = useState("pix");
   const [refCode, setRefCode] = useState("");
   const [status, setStatus] = useState<"paid" | "pending">("paid");
+  const [consumeStock, setConsumeStock] = useState<boolean>(true);
 
   const reset = () => {
     setBuyerName(""); setBuyerPhone(""); setProduct("pulseira"); setQuantity("1");
     setModel("adulto"); setSize("M"); setTotalReais(""); setPaymentMethod("pix"); setRefCode(""); setStatus("paid");
+    setConsumeStock(true);
   };
 
   const submit = async () => {
@@ -917,6 +1019,7 @@ function ManualSaleDialog({ onCreated }: { onCreated: () => void }) {
       _model: product === "kit" ? model : null,
       _size: product === "kit" ? size : null,
       _status: status,
+      _consume_stock: consumeStock,
     } as never);
     setSaving(false);
     if (error) {
@@ -1044,10 +1147,28 @@ function ManualSaleDialog({ onCreated }: { onCreated: () => void }) {
             </div>
           </div>
 
+          <label className="flex items-start gap-2 rounded-md border bg-muted/30 p-3 cursor-pointer">
+            <input
+              type="checkbox"
+              className="mt-0.5 h-4 w-4"
+              checked={consumeStock}
+              onChange={(e) => setConsumeStock(e.target.checked)}
+            />
+            <div className="space-y-0.5">
+              <span className="text-sm font-medium">Consumir estoque</span>
+              <p className="text-[11px] text-muted-foreground">
+                Padrão marcado. Ao confirmar, abate o estoque e reconhece o custo automaticamente no Dashboard.
+                Desmarque apenas em situações excepcionais (ex.: brinde, ajuste manual).
+              </p>
+            </div>
+          </label>
+
           <p className="text-xs text-muted-foreground">
             {status === "paid"
-              ? "A venda é registrada como paga e o estoque é abatido automaticamente."
-              : "A venda ficará pendente por 7 dias e não abaterá estoque até ser confirmada como paga."}
+              ? (consumeStock
+                  ? "Venda registrada como paga: estoque abatido e custo reconhecido."
+                  : "Venda registrada como paga, mas sem consumo de estoque — o custo NÃO será reconhecido.")
+              : "A venda ficará pendente por 7 dias. O consumo de estoque ocorre ao confirmar o pagamento."}
           </p>
         </div>
         <DialogFooter>

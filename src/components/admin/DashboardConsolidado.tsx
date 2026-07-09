@@ -89,6 +89,8 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
   const [consistency, setConsistency] = useState<ConsistencyReport | null>(null);
   const [checkingConsistency, setCheckingConsistency] = useState(false);
   const [activeAlerts, setActiveAlerts] = useState<number | null>(null);
+  const [production, setProduction] = useState<{ total_cost_cents: number; units_produced: number } | null>(null);
+  const [shirtsSold, setShirtsSold] = useState<number>(0);
   const [hideValues, setHideValues] = useState<boolean>(() => {
     try { return localStorage.getItem("dashboard_hide_values") === "1"; } catch { return false; }
   });
@@ -129,8 +131,22 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const m = await loadDashboardMetrics(range);
+      const [m, prod, shirts] = await Promise.all([
+        loadDashboardMetrics(range),
+        supabase.from("entrada_production").select("total_cost_cents, units_produced").eq("id", "default").maybeSingle(),
+        supabase.from("entrada_orders").select("quantity, items, product, status").eq("status", "paid").eq("product", "kit").limit(2000),
+      ]);
       setMetrics(m);
+      if (prod.data) setProduction(prod.data as { total_cost_cents: number; units_produced: number });
+      const rows = (shirts.data ?? []) as Array<{ quantity: number; items: Array<{ quantity?: number }> | null }>;
+      const sold = rows.reduce((acc, r) => {
+        const arr = Array.isArray(r.items) ? r.items : null;
+        const q = arr && arr.length > 0
+          ? arr.reduce((a, it) => a + (Number(it?.quantity) || 0), 0)
+          : (r.quantity || 0);
+        return acc + q;
+      }, 0);
+      setShirtsSold(sold);
     } finally {
       setLoading(false);
     }
@@ -164,23 +180,27 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
   }, []);
   useEffect(() => { loadActiveAlerts(); }, [loadActiveAlerts]);
 
-  // Derivados de UX (custo fabricação, lucro, margem) — não são "métricas de venda"
+  // Derivados: usam APENAS dados dos módulos.
+  // Custo das Camisetas Vendidas = camisetas vendidas × custo unitário da Produção.
+  // Gastos totais = Despesas gerais + COGS Camisetas + Prêmio da Rifa (SEM taxas MP;
+  //   as taxas já são descontadas para formar a Receita Líquida).
+  // Lucro Líquido = Receita Líquida − Gastos Totais.
   const derived = useMemo(() => {
     if (!metrics) return null;
-    const shirtCost = Math.round(metrics.entrada.kit.units * costCamiseta * 100);
-    const pulseiraCost = Math.round(
-      (metrics.entrada.kit.units + metrics.entrada.pulseira.units) * costPulseira * 100
-    );
-    const fabricationCost = shirtCost + pulseiraCost;
+    const totalProdCost = production?.total_cost_cents ?? 0;
+    const unitsProduced = production?.units_produced ?? 0;
+    const unitCostCents = unitsProduced > 0 ? totalProdCost / unitsProduced : 0;
+    const shirtCost = Math.round(shirtsSold * unitCostCents); // Custo das Camisetas Vendidas
+    const pulseiraCost = 0; // pulseira não entra em Gastos (spec)
+    const fabricationCost = shirtCost; // manter nome para compatibilidade das seções abaixo
     const prizeCost = Math.round(costRifaPremio * 100);
-    const totalExpenses = metrics.expenses.paid + fabricationCost + prizeCost + metrics.totals.feesMP;
+    const totalExpenses = metrics.expenses.paid + fabricationCost + prizeCost;
     const revenueNet = metrics.totals.revenueNet;
-    // revenueNet já é bruto − taxa MP; para "Gastos totais" separado somamos as
-    // taxas explicitamente ⇒ lucro = bruto − (despesas + fabricação + prêmio + taxas)
-    const netProfit = metrics.totals.revenueGross - totalExpenses;
+    const netProfit = revenueNet - totalExpenses;
     const margin = revenueNet > 0 ? (netProfit / revenueNet) * 100 : 0;
     return { shirtCost, pulseiraCost, fabricationCost, prizeCost, totalExpenses, netProfit, margin };
-  }, [metrics, costCamiseta, costPulseira, costRifaPremio]);
+  }, [metrics, production, shirtsSold, costRifaPremio]);
+
 
   // Alertas inteligentes
   const alerts: { level: "warn" | "danger"; msg: React.ReactNode }[] = [];
@@ -254,9 +274,8 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
   ];
   const expenseBreakdown = [
     { label: "Despesas gerais do evento", value: metrics.expenses.paid, tab: "expenses" },
-    { label: "Custo de fabricação (camisetas + pulseiras)", value: derived.fabricationCost, tab: "entrada" },
-    { label: "Taxas Mercado Pago (Rifa + Camisetas)", value: metrics.totals.feesMP },
-    { label: "Custo do prêmio da Rifa", value: derived.prizeCost },
+    { label: "Custo das Camisetas Vendidas", value: derived.fabricationCost, tab: "entrada" },
+    { label: "Prêmio da Rifa", value: derived.prizeCost },
   ];
   const profitBreakdown = [
     { label: "Receita Líquida", value: metrics.totals.revenueNet, sign: "" as const },
@@ -450,8 +469,7 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
           <div className="space-y-2">
             {[
               { label: "Despesas do Evento", value: metrics.expenses.paid, tab: "expenses" },
-              { label: "Fabricação das Camisetas", value: derived.fabricationCost, tab: "entrada" },
-              { label: "Taxas Mercado Pago", value: metrics.totals.feesMP },
+              { label: "Custo das Camisetas Vendidas", value: derived.fabricationCost, tab: "entrada" },
               { label: "Prêmio da Rifa", value: derived.prizeCost },
             ].map((r) => {
               const pct = (r.value / Math.max(1, derived.totalExpenses)) * 100;
@@ -507,7 +525,7 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
             icon={<Shirt className="h-3.5 w-3.5" />}
             rows={[
               { label: "Receita", value: fmtBRL(metrics.entrada.gross) },
-              { label: "Custo de Fabricação", value: `− ${fmtBRL(derived.fabricationCost)}` },
+              { label: "Custo das Camisetas Vendidas", value: `− ${fmtBRL(derived.fabricationCost)}` },
               { label: "Taxas Mercado Pago", value: `− ${fmtBRL(metrics.entrada.fee)}` },
               { label: "Lucro", value: fmtBRL(metrics.entrada.net - derived.fabricationCost), emphasis: true, tone: (metrics.entrada.net - derived.fabricationCost) >= 0 ? "positive" : "negative" },
             ]}
@@ -895,14 +913,14 @@ export function FormulaChecks({
     },
     {
       label: "Gastos Totais",
-      formula: "Despesas pagas + Fabricação + Taxas MP + Prêmio",
-      parts: [metrics.expenses.paid, fabricationCost, metrics.totals.feesMP, prizeCost],
+      formula: "Despesas + Custo Camisetas Vendidas + Prêmio",
+      parts: [metrics.expenses.paid, fabricationCost, prizeCost],
       expected: totalExpenses,
     },
     {
       label: "Lucro Líquido",
-      formula: "Receita Bruta − Gastos Totais",
-      parts: [metrics.totals.revenueGross, -totalExpenses],
+      formula: "Receita Líquida − Gastos Totais",
+      parts: [metrics.totals.revenueNet, -totalExpenses],
       expected: netProfit,
     },
   ];
@@ -964,8 +982,8 @@ function FormulaValidationChip({
   const checks = [
     metrics.rifa.gross + metrics.entrada.kit.gross + metrics.entrada.pulseira.gross + metrics.sponsors.total + metrics.offerings.total - metrics.totals.revenueGross,
     metrics.totals.revenueGross - metrics.totals.feesMP - metrics.totals.revenueNet,
-    metrics.expenses.paid + fabricationCost + metrics.totals.feesMP + prizeCost - totalExpenses,
-    metrics.totals.revenueGross - totalExpenses - netProfit,
+    metrics.expenses.paid + fabricationCost + prizeCost - totalExpenses,
+    metrics.totals.revenueNet - totalExpenses - netProfit,
   ];
   const ok = checks.every((d) => Math.abs(d) <= 1);
   const when = lastCheckedAt ? new Date(lastCheckedAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "—";
