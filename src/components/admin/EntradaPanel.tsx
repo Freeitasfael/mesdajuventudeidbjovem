@@ -281,6 +281,34 @@ export function EntradaPanel() {
     toast.success("Preços atualizados");
   };
 
+  const saveProduction = async () => {
+    const c = Math.round(parseFloat(prodCostReais.replace(",", ".")) * 100);
+    const u = parseInt(prodUnits, 10);
+    if (!Number.isFinite(c) || c < 0) return toast.error("Custo inválido");
+    if (!Number.isFinite(u) || u <= 0) return toast.error("Quantidade inválida");
+    setSavingProd(true);
+    const { data, error } = await supabase.rpc("admin_upsert_entrada_production" as never, {
+      _total_cost_cents: c, _units_produced: u,
+    } as never);
+    setSavingProd(false);
+    if (error) return toast.error("Erro: " + error.message);
+    toast.success("Produção atualizada. Dashboard sincronizado.");
+    const row = data as unknown as { total_cost_cents: number; units_produced: number } | null;
+    if (row) setProduction(row);
+  };
+
+  const shirtsSold = useMemo(() => {
+    return orders
+      .filter((o) => o.status === "paid" && o.product === "kit")
+      .reduce((acc, o) => {
+        const items = normalizeItems(o);
+        const q = items.length > 0
+          ? items.reduce((a, it) => a + (Number(it.quantity) || 0), 0)
+          : (o.quantity || 0);
+        return acc + q;
+      }, 0);
+  }, [orders]);
+
   const filteredOrders = useMemo(() => {
     const fromTs = dateFrom ? new Date(dateFrom + "T00:00:00").getTime() : null;
     const toTs = dateTo ? new Date(dateTo + "T23:59:59").getTime() : null;
