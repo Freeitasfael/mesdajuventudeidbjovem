@@ -1060,3 +1060,86 @@ function ManualSaleDialog({ onCreated }: { onCreated: () => void }) {
   );
 }
 
+function ConfirmPaymentButton({ order, onConfirmed }: { order: EntradaOrder; onConfirmed: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [method, setMethod] = useState<string>("pix");
+  const today = new Date().toISOString().slice(0, 10);
+  const [paidDate, setPaidDate] = useState<string>(today);
+
+  const submit = async () => {
+    if (!paidDate) return toast.error("Informe a data do pagamento");
+    setSaving(true);
+    // Combina a data escolhida com a hora atual (fuso local do navegador)
+    const now = new Date();
+    const iso = new Date(
+      `${paidDate}T${now.toTimeString().slice(0, 8)}`
+    ).toISOString();
+    const { error } = await supabase.rpc(
+      "admin_confirm_manual_entrada_payment" as never,
+      {
+        _order_id: order.id,
+        _payment_method: method,
+        _paid_at: iso,
+      } as never
+    );
+    setSaving(false);
+    if (error) {
+      toast.error("Erro ao confirmar pagamento: " + error.message);
+      return;
+    }
+    toast.success("Pagamento confirmado! Estoque e financeiro atualizados.");
+    setOpen(false);
+    onConfirmed();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm" variant="default" className="bg-emerald-600 hover:bg-emerald-700 text-white">
+          <CheckCircle2 className="mr-1 h-3 w-3" />
+          Confirmar pagto.
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Confirmar pagamento</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div className="rounded-md bg-muted/50 p-3 text-xs">
+            <div><span className="text-muted-foreground">Comprador:</span> <strong>{order.buyer_name}</strong></div>
+            <div><span className="text-muted-foreground">Valor bruto:</span> <strong>{fmtBRL(order.total_cents)}</strong></div>
+          </div>
+          <div className="space-y-1">
+            <Label>Forma de pagamento *</Label>
+            <select
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+              value={method}
+              onChange={(e) => setMethod(e.target.value)}
+            >
+              <option value="pix">PIX (taxa 0,99%)</option>
+              <option value="card">Cartão (taxa 4,99%)</option>
+              <option value="cash">Dinheiro (sem taxa)</option>
+              <option value="other">Outro (sem taxa)</option>
+            </select>
+          </div>
+          <div className="space-y-1">
+            <Label>Data do pagamento *</Label>
+            <Input type="date" value={paidDate} onChange={(e) => setPaidDate(e.target.value)} />
+          </div>
+          <p className="text-[11px] text-muted-foreground">
+            Ao confirmar, a venda passa a compor a receita, taxa e lucro. O estoque é descontado automaticamente.
+          </p>
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => setOpen(false)} disabled={saving}>Cancelar</Button>
+          <Button onClick={submit} disabled={saving} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+            {saving ? "Confirmando…" : "Confirmar pagamento"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+
