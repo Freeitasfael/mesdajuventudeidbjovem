@@ -986,10 +986,12 @@ function ManualSaleDialog({ onCreated }: { onCreated: () => void }) {
   const [paymentMethod, setPaymentMethod] = useState("pix");
   const [refCode, setRefCode] = useState("");
   const [status, setStatus] = useState<"paid" | "pending">("paid");
+  const [consumeStock, setConsumeStock] = useState<boolean>(true);
 
   const reset = () => {
     setBuyerName(""); setBuyerPhone(""); setProduct("pulseira"); setQuantity("1");
     setModel("adulto"); setSize("M"); setTotalReais(""); setPaymentMethod("pix"); setRefCode(""); setStatus("paid");
+    setConsumeStock(true);
   };
 
   const submit = async () => {
