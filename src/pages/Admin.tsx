@@ -28,6 +28,7 @@ import { OfferingsPanel } from "@/components/admin/OfferingsPanel";
 import { RecapPanel } from "@/components/admin/RecapPanel";
 import { AboutPanel } from "@/components/admin/AboutPanel";
 import { SystemHealthPanel } from "@/components/admin/SystemHealthPanel";
+import { FinancialAudit } from "@/components/admin/FinancialAudit";
 
 import { WhatsAppLink } from "@/components/WhatsAppLink";
 
@@ -893,8 +894,9 @@ const Admin = () => {
             <AdminsPanel />
           </TabsContent>
 
-          {/* SAÚDE DO SISTEMA — health check das métricas */}
-          <TabsContent value="health" className="mt-6">
+          {/* SAÚDE DO SISTEMA — health check das métricas + auditoria financeira */}
+          <TabsContent value="health" className="mt-6 space-y-6">
+            <FinancialAudit />
             <SystemHealthPanel />
           </TabsContent>
 
