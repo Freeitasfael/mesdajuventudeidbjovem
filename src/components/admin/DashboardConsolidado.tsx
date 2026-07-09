@@ -787,3 +787,89 @@ function AuditSummary({
     </Card>
   );
 }
+
+function FormulaChecks({
+  metrics, fabricationCost, prizeCost, totalExpenses, netProfit,
+}: {
+  metrics: DashboardMetrics;
+  fabricationCost: number;
+  prizeCost: number;
+  totalExpenses: number;
+  netProfit: number;
+}) {
+  const rows = [
+    {
+      label: "Receita Bruta",
+      formula: "Rifa + Camisetas + Pulseiras + Patrocínios + Ofertas",
+      parts: [
+        metrics.rifa.gross,
+        metrics.entrada.kit.gross,
+        metrics.entrada.pulseira.gross,
+        metrics.sponsors.total,
+        metrics.offerings.total,
+      ],
+      expected: metrics.totals.revenueGross,
+    },
+    {
+      label: "Receita Líquida",
+      formula: "Receita Bruta − Taxas Mercado Pago",
+      parts: [metrics.totals.revenueGross, -metrics.totals.feesMP],
+      expected: metrics.totals.revenueNet,
+    },
+    {
+      label: "Gastos Totais",
+      formula: "Despesas pagas + Fabricação + Taxas MP + Prêmio",
+      parts: [metrics.expenses.paid, fabricationCost, metrics.totals.feesMP, prizeCost],
+      expected: totalExpenses,
+    },
+    {
+      label: "Lucro Líquido",
+      formula: "Receita Bruta − Gastos Totais",
+      parts: [metrics.totals.revenueGross, -totalExpenses],
+      expected: netProfit,
+    },
+  ];
+  return (
+    <Card className="p-0 overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="min-w-full text-sm">
+          <thead className="bg-muted/40 text-[10px] uppercase tracking-wide text-muted-foreground">
+            <tr>
+              <th className="text-left px-3 py-2">Indicador</th>
+              <th className="text-left px-3 py-2">Fórmula</th>
+              <th className="text-right px-3 py-2">Soma dos módulos</th>
+              <th className="text-right px-3 py-2">Valor no Dashboard</th>
+              <th className="text-left px-3 py-2">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => {
+              const sum = r.parts.reduce((a, v) => a + v, 0);
+              const diff = sum - r.expected;
+              const ok = Math.abs(diff) <= 1; // tolerância de 1 centavo por arredondamento
+              return (
+                <tr key={r.label} className="border-t">
+                  <td className="px-3 py-2 font-medium">{r.label}</td>
+                  <td className="px-3 py-2 text-[11px] text-muted-foreground">{r.formula}</td>
+                  <td className="px-3 py-2 text-right tabular-nums">{fmtBRL(sum)}</td>
+                  <td className="px-3 py-2 text-right tabular-nums">{fmtBRL(r.expected)}</td>
+                  <td className="px-3 py-2">
+                    {ok ? (
+                      <Badge variant="outline" className="h-5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 border-emerald-500/30">
+                        <CheckCircle2 className="h-3 w-3 mr-1" /> OK
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="h-5 text-[10px] font-semibold text-red-600 dark:text-red-400 border-red-500/40">
+                        <AlertTriangle className="h-3 w-3 mr-1" /> Δ {fmtBRL(diff)}
+                      </Badge>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </Card>
+  );
+}
