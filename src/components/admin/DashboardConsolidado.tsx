@@ -247,6 +247,7 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
             tone={health.status === "ok" ? "info" : health.status === "warn" ? "warning" : "negative"}
             icon={<Heart className="h-4 w-4" />}
             subtitle={health.issues === 0 ? "Sem divergências" : `${health.issues} divergência(s)`}
+            help="Score derivado da auditoria automática de consistência entre pedidos, pagamentos e reservas. 100 = sem divergências; cada divergência reduz 20 pts."
           />
           <HeroKpi
             label="Receita Líquida"
@@ -254,6 +255,10 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
             tone="positive"
             icon={<Wallet className="h-4 w-4" />}
             subtitle={`bruto ${fmtBRL(metrics.totals.revenueGross)}`}
+            help="Soma de todas as receitas confirmadas (rifa + camisetas + patrocínios + ofertas) menos as taxas do Mercado Pago."
+            extra={metrics.rifa.pendingGross + metrics.entrada.pendingGross > 0
+              ? `Receitas pendentes: ${fmtBRL(metrics.rifa.pendingGross + metrics.entrada.pendingGross)}`
+              : undefined}
           />
           <HeroKpi
             label="Lucro Líquido"
@@ -261,6 +266,7 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
             tone={profitTone}
             icon={derived.netProfit >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
             subtitle={`gastos ${fmtBRL(derived.totalExpenses)}`}
+            help="Receita líquida menos despesas pagas e custo estimado de fabricação (camisetas e pulseiras)."
           />
           <HeroKpi
             label="Margem"
@@ -268,6 +274,7 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
             tone={marginTone}
             icon={<Percent className="h-4 w-4" />}
             subtitle={derived.margin >= 20 ? "Saudável" : derived.margin >= 0 ? "Abaixo do ideal" : "Negativa"}
+            help="Lucro líquido dividido pela receita líquida. Meta interna: acima de 20%."
           />
           <HeroKpi
             label="Pedidos Pagos"
@@ -275,6 +282,7 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
             tone="info"
             icon={<ShoppingCart className="h-4 w-4" />}
             subtitle={`rifa ${metrics.rifa.count} · entrada ${metrics.entrada.count}`}
+            help="Total de pedidos confirmados como pagos no período (rifa + camisetas)."
           />
         </div>
       </Section>
