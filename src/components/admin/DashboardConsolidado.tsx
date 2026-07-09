@@ -517,6 +517,18 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
         </Card>
       </Section>
 
+      {/* ============== VALIDAÇÃO DE FÓRMULAS FINANCEIRAS ============== */}
+      <Section title="Validação de fórmulas" icon={<ShieldAlert className="h-3.5 w-3.5" />}
+        subtitle="Confere que os totais do Dashboard batem exatamente com a soma dos módulos">
+        <FormulaChecks
+          metrics={metrics}
+          fabricationCost={derived.fabricationCost}
+          prizeCost={derived.prizeCost}
+          totalExpenses={derived.totalExpenses}
+          netProfit={derived.netProfit}
+        />
+      </Section>
+
       {/* ============== RESUMO EXECUTIVO DA AUDITORIA ============== */}
       <Section title="Última auditoria" icon={<Heart className="h-3.5 w-3.5" />}
         subtitle="Resumo — detalhes técnicos na aba Saúde Técnica">
