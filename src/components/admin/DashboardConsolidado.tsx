@@ -333,11 +333,10 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
             tone="positive"
             icon={<Wallet className="h-4 w-4" />}
             subtitle={`bruto ${fmtBRL(metrics.totals.revenueGross)}`}
-            help="Soma de todas as receitas confirmadas (rifa + camisetas + patrocínios + ofertas) menos as taxas do Mercado Pago."
+            help="Receita bruta (rifa + camisetas + patrocínios + ofertas) menos taxas do Mercado Pago. Composição detalhada em 'Receitas por categoria'."
             extra={metrics.rifa.pendingGross + metrics.entrada.pendingGross > 0
-              ? `Receitas pendentes: ${fmtBRL(metrics.rifa.pendingGross + metrics.entrada.pendingGross)}`
+              ? `Pendentes: ${fmtBRL(metrics.rifa.pendingGross + metrics.entrada.pendingGross)}`
               : undefined}
-            breakdown={revenueBreakdown.map((b) => ({ label: b.label, value: fmtBRL(b.value) }))}
           />
           <HeroKpi
             label="Lucro Líquido"
