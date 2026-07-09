@@ -982,8 +982,8 @@ function FormulaValidationChip({
   const checks = [
     metrics.rifa.gross + metrics.entrada.kit.gross + metrics.entrada.pulseira.gross + metrics.sponsors.total + metrics.offerings.total - metrics.totals.revenueGross,
     metrics.totals.revenueGross - metrics.totals.feesMP - metrics.totals.revenueNet,
-    metrics.expenses.paid + fabricationCost + metrics.totals.feesMP + prizeCost - totalExpenses,
-    metrics.totals.revenueGross - totalExpenses - netProfit,
+    metrics.expenses.paid + fabricationCost + prizeCost - totalExpenses,
+    metrics.totals.revenueNet - totalExpenses - netProfit,
   ];
   const ok = checks.every((d) => Math.abs(d) <= 1);
   const when = lastCheckedAt ? new Date(lastCheckedAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "—";
