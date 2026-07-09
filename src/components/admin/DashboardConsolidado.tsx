@@ -515,15 +515,33 @@ function HeroKpi({
 }
 
 function StatCard({
-  label, value, highlight, tone = "neutral", subtitle, icon,
+  label, value, highlight, tone = "neutral", subtitle, icon, help, extra, onOpen, openLabel,
 }: {
   label: string; value: string; highlight?: boolean;
   tone?: Tone; subtitle?: string; icon?: React.ReactNode;
+  help?: string; extra?: string;
+  onOpen?: () => void; openLabel?: string;
 }) {
   return (
     <Card className={`p-3 min-h-[92px] flex flex-col justify-between ${toneBorder[tone]} ${highlight ? "ring-1 ring-primary/30" : ""}`}>
       <div className="flex items-center justify-between">
-        <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium">{label}</p>
+        <div className="flex items-center gap-1.5 min-w-0">
+          <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium truncate">{label}</p>
+          {help && (
+            <TooltipProvider delayDuration={100}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button type="button" className="text-muted-foreground/70 hover:text-foreground shrink-0">
+                    <Info className="h-3 w-3" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-[240px] text-xs leading-snug">
+                  {help}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </div>
         {icon && <span className={toneText[tone]}>{icon}</span>}
       </div>
       <div>
@@ -531,6 +549,16 @@ function StatCard({
           {value}
         </p>
         {subtitle && <p className="mt-0.5 text-[11px] text-muted-foreground truncate">{subtitle}</p>}
+        {extra && <p className="mt-0.5 text-[11px] text-orange-600 dark:text-orange-400 truncate">{extra}</p>}
+        {onOpen && (
+          <button
+            type="button"
+            onClick={onOpen}
+            className="mt-1 inline-flex items-center gap-1 text-[10px] font-medium text-primary hover:underline"
+          >
+            {openLabel ?? "Abrir módulo"} <ArrowRight className="h-3 w-3" />
+          </button>
+        )}
       </div>
     </Card>
   );
