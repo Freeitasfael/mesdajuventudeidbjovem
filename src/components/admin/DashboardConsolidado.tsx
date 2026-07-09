@@ -183,7 +183,7 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
   }, [metrics, costCamiseta, costPulseira, costRifaPremio]);
 
   // Alertas inteligentes
-  const alerts: { level: "warn" | "danger"; msg: string }[] = [];
+  const alerts: { level: "warn" | "danger"; msg: React.ReactNode }[] = [];
   if (metrics && derived) {
     if (metrics.totals.revenueNet > 0 && derived.margin < 20) {
       alerts.push({
