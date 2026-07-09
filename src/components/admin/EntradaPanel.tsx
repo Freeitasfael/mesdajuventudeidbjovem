@@ -743,6 +743,9 @@ export function EntradaPanel() {
                       )}
                     </td>
                     <td className="px-4 py-3 text-right space-x-1 whitespace-nowrap">
+                      {o.status === "pending" && !o.mp_payment_id && (
+                        <ConfirmPaymentButton order={o} onConfirmed={load} />
+                      )}
                       <Button size="sm" variant="ghost" onClick={() => assignSeller(o)} disabled={assigningId === o.id}>
                         <UserPlus className="mr-1 h-3 w-3" />
                         {assigningId === o.id ? "..." : "Revend."}
