@@ -1019,6 +1019,7 @@ function ManualSaleDialog({ onCreated }: { onCreated: () => void }) {
       _model: product === "kit" ? model : null,
       _size: product === "kit" ? size : null,
       _status: status,
+      _consume_stock: consumeStock,
     } as never);
     setSaving(false);
     if (error) {
