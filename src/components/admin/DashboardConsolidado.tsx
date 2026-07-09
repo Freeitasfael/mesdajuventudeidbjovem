@@ -525,7 +525,7 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
             icon={<Shirt className="h-3.5 w-3.5" />}
             rows={[
               { label: "Receita", value: fmtBRL(metrics.entrada.gross) },
-              { label: "Custo de Fabricação", value: `− ${fmtBRL(derived.fabricationCost)}` },
+              { label: "Custo das Camisetas Vendidas", value: `− ${fmtBRL(derived.fabricationCost)}` },
               { label: "Taxas Mercado Pago", value: `− ${fmtBRL(metrics.entrada.fee)}` },
               { label: "Lucro", value: fmtBRL(metrics.entrada.net - derived.fabricationCost), emphasis: true, tone: (metrics.entrada.net - derived.fabricationCost) >= 0 ? "positive" : "negative" },
             ]}
