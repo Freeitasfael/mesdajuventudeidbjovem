@@ -394,13 +394,44 @@ body {
 }
 
 
-/* Dashboard — modo privacidade (borra valores numéricos) */
-.dashboard-privacy.is-hidden .tabular-nums {
-  filter: blur(8px);
-  transition: filter 0.2s ease;
-  user-select: none;
+/* Dashboard — modo privacidade (borra valores numéricos e legendas monetárias) */
+.dashboard-privacy.is-hidden .tabular-nums,
+.dashboard-privacy.is-hidden .priv {
+  position: relative;
+  color: transparent !important;
+  text-shadow: 0 0 10px hsl(var(--foreground) / 0.55);
+  background: linear-gradient(
+    100deg,
+    hsl(var(--muted) / 0.55) 20%,
+    hsl(var(--muted-foreground) / 0.18) 50%,
+    hsl(var(--muted) / 0.55) 80%
+  );
+  background-size: 220% 100%;
+  animation: dashboardPrivacyShimmer 2.6s ease-in-out infinite;
+  border-radius: 6px;
+  padding: 0 4px;
   cursor: pointer;
+  user-select: none;
+  transition:
+    color 0.28s ease,
+    text-shadow 0.28s ease,
+    background 0.28s ease;
 }
-.dashboard-privacy.is-hidden .tabular-nums:hover {
-  filter: blur(0);
+.dashboard-privacy.is-hidden .tabular-nums:hover,
+.dashboard-privacy.is-hidden .priv:hover {
+  color: inherit !important;
+  text-shadow: none;
+  background: transparent;
+  animation: none;
 }
+@keyframes dashboardPrivacyShimmer {
+  0%   { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-privacy.is-hidden .tabular-nums,
+  .dashboard-privacy.is-hidden .priv {
+    animation: none;
+  }
+}
+
