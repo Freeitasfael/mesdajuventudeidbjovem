@@ -880,7 +880,7 @@ const Admin = () => {
                 {realtimeOk ? "Atualizando em tempo real" : "Conectando ao tempo real..."}
               </span>
             </div>
-            <DashboardConsolidado rifaStatus={stats ? {
+            <DashboardConsolidado onNavigate={setTab} rifaStatus={stats ? {
               pending_orders: stats.pending_orders,
               numbers_available: stats.numbers_available,
               numbers_paid: stats.numbers_paid,
