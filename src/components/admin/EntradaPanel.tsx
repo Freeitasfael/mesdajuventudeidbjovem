@@ -1157,7 +1157,7 @@ function RevertManualToPendingButton({ onDone }: { onDone: () => void }) {
       toast.error("Erro: " + error.message);
       return;
     }
-    const row = Array.isArray(data) ? data[0] : (data as unknown);
+    const row = Array.isArray(data) ? (data[0] ?? null) : (data as unknown);
     const n = (row as { reverted_count?: number })?.reverted_count ?? 0;
     toast.success(`${n} venda(s) manual(is) revertida(s) para pendente. Estoque devolvido.`);
     setOpen(false);
