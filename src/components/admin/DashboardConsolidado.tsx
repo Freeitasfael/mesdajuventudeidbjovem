@@ -29,6 +29,7 @@ import {
   EyeOff,
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Info } from "lucide-react";
 
 import {
@@ -332,11 +333,10 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
             tone="positive"
             icon={<Wallet className="h-4 w-4" />}
             subtitle={`bruto ${fmtBRL(metrics.totals.revenueGross)}`}
-            help="Soma de todas as receitas confirmadas (rifa + camisetas + patrocínios + ofertas) menos as taxas do Mercado Pago."
+            help="Receita bruta (rifa + camisetas + patrocínios + ofertas) menos taxas do Mercado Pago. Composição detalhada em 'Receitas por categoria'."
             extra={metrics.rifa.pendingGross + metrics.entrada.pendingGross > 0
-              ? `Receitas pendentes: ${fmtBRL(metrics.rifa.pendingGross + metrics.entrada.pendingGross)}`
+              ? `Pendentes: ${fmtBRL(metrics.rifa.pendingGross + metrics.entrada.pendingGross)}`
               : undefined}
-            breakdown={revenueBreakdown.map((b) => ({ label: b.label, value: fmtBRL(b.value) }))}
           />
           <HeroKpi
             label="Lucro Líquido"
@@ -366,24 +366,38 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
         </div>
       </Section>
 
-      {/* Alertas */}
-      {alerts.length > 0 && (
-        <div className="space-y-2">
-          {alerts.map((a, i) => (
-            <div
-              key={i}
-              className={`flex items-start gap-2 rounded-lg border px-3 py-2 text-sm ${
-                a.level === "danger"
-                  ? "border-destructive/40 bg-destructive/10 text-destructive"
-                  : "border-orange-400/40 bg-orange-400/10 text-orange-700 dark:text-orange-300"
-              }`}
-            >
-              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-              <span>{a.msg}</span>
-            </div>
-          ))}
-        </div>
-      )}
+      {/* Chips compactos: validação de fórmulas + alertas */}
+      <div className="flex flex-wrap items-center gap-2">
+        <FormulaValidationChip
+          metrics={metrics}
+          fabricationCost={derived.fabricationCost}
+          prizeCost={derived.prizeCost}
+          totalExpenses={derived.totalExpenses}
+          netProfit={derived.netProfit}
+          lastCheckedAt={consistency?.generated_at}
+        />
+        {alerts.map((a, i) => (
+          <TooltipProvider key={i} delayDuration={100}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium cursor-help ${
+                    a.level === "danger"
+                      ? "border-destructive/40 bg-destructive/10 text-destructive"
+                      : "border-orange-400/40 bg-orange-400/10 text-orange-700 dark:text-orange-300"
+                  }`}
+                >
+                  <AlertTriangle className="h-3 w-3 shrink-0" />
+                  <span className="truncate max-w-[220px]">{a.msg}</span>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-[280px] text-xs leading-snug">
+                {a.msg}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ))}
+      </div>
 
       {/* ============== RECEITAS ============== */}
       <Section title="Receitas por categoria" icon={<DollarSign className="h-3.5 w-3.5" />}
@@ -586,24 +600,38 @@ const toneBar: Record<Tone, string> = {
 
 type BreakdownItem = { label: string; value: string; emphasis?: boolean };
 
-function Breakdown({ items }: { items: BreakdownItem[] }) {
+function BreakdownPopover({ items, label = "Ver composição" }: { items: BreakdownItem[]; label?: string }) {
   if (!items?.length) return null;
   return (
-    <ul className="mt-2 space-y-0.5 border-t border-border/40 pt-2">
-      {items.map((b, i) => (
-        <li
-          key={i}
-          className={`flex items-center justify-between gap-2 text-[11px] tabular-nums ${
-            b.emphasis ? "font-semibold text-foreground pt-0.5" : "text-muted-foreground"
-          }`}
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className="mt-2 inline-flex items-center gap-1 text-[10px] font-medium text-primary hover:underline"
         >
-          <span className="truncate">{b.label}</span>
-          <span className="shrink-0">{b.value}</span>
-        </li>
-      ))}
-    </ul>
+          <Info className="h-3 w-3" /> {label}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-64 p-3">
+        <p className="text-[10px] uppercase tracking-wide text-muted-foreground mb-2">Composição</p>
+        <ul className="space-y-1">
+          {items.map((b, i) => (
+            <li
+              key={i}
+              className={`flex items-center justify-between gap-2 text-xs tabular-nums ${
+                b.emphasis ? "font-semibold text-foreground border-t border-border/50 pt-1.5 mt-1" : "text-muted-foreground"
+              }`}
+            >
+              <span className="truncate">{b.label}</span>
+              <span className="shrink-0">{b.value}</span>
+            </li>
+          ))}
+        </ul>
+      </PopoverContent>
+    </Popover>
   );
 }
+
 
 function HeroKpi({
   label, value, unit, subtitle, tone = "neutral", icon, help, extra, breakdown,
@@ -639,7 +667,7 @@ function HeroKpi({
         </p>
         {subtitle && <p className="mt-1 text-[11px] text-muted-foreground truncate">{subtitle}</p>}
         {extra && <p className="mt-0.5 text-[11px] text-orange-600 dark:text-orange-400 truncate">{extra}</p>}
-        {breakdown && <Breakdown items={breakdown} />}
+        {breakdown && <BreakdownPopover items={breakdown} />}
       </div>
     </Card>
   );
@@ -682,7 +710,7 @@ function StatCard({
         </p>
         {subtitle && <p className="mt-0.5 text-[11px] text-muted-foreground truncate">{subtitle}</p>}
         {extra && <p className="mt-0.5 text-[11px] text-orange-600 dark:text-orange-400 truncate">{extra}</p>}
-        {breakdown && <Breakdown items={breakdown} />}
+        {breakdown && <BreakdownPopover items={breakdown} />}
         {onOpen && (
           <button
             type="button"
@@ -874,3 +902,48 @@ export function FormulaChecks({
     </Card>
   );
 }
+
+function FormulaValidationChip({
+  metrics, fabricationCost, prizeCost, totalExpenses, netProfit, lastCheckedAt,
+}: {
+  metrics: DashboardMetrics;
+  fabricationCost: number;
+  prizeCost: number;
+  totalExpenses: number;
+  netProfit: number;
+  lastCheckedAt?: string;
+}) {
+  const checks = [
+    metrics.rifa.gross + metrics.entrada.kit.gross + metrics.entrada.pulseira.gross + metrics.sponsors.total + metrics.offerings.total - metrics.totals.revenueGross,
+    metrics.totals.revenueGross - metrics.totals.feesMP - metrics.totals.revenueNet,
+    metrics.expenses.paid + fabricationCost + metrics.totals.feesMP + prizeCost - totalExpenses,
+    metrics.totals.revenueGross - totalExpenses - netProfit,
+  ];
+  const ok = checks.every((d) => Math.abs(d) <= 1);
+  const when = lastCheckedAt ? new Date(lastCheckedAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "—";
+  return (
+    <TooltipProvider delayDuration={100}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium ${
+              ok
+                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+                : "border-destructive/40 bg-destructive/10 text-destructive"
+            }`}
+          >
+            {ok ? <CheckCircle2 className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
+            {ok ? "Fórmulas validadas" : "Divergência nas fórmulas"}
+            <span className="text-muted-foreground font-normal">· {when}</span>
+          </span>
+        </TooltipTrigger>
+        <TooltipContent side="bottom" className="max-w-[280px] text-xs leading-snug">
+          {ok
+            ? "Receita, gastos e lucro batem com a soma dos módulos. Detalhes na aba Saúde Técnica."
+            : "Foram encontradas divergências entre os totais e a soma dos módulos. Veja detalhes na aba Saúde Técnica."}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
+
