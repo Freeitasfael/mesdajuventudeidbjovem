@@ -88,6 +88,12 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
   const [consistency, setConsistency] = useState<ConsistencyReport | null>(null);
   const [checkingConsistency, setCheckingConsistency] = useState(false);
   const [activeAlerts, setActiveAlerts] = useState<number | null>(null);
+  const [hideValues, setHideValues] = useState<boolean>(() => {
+    try { return localStorage.getItem("dashboard_hide_values") === "1"; } catch { return false; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem("dashboard_hide_values", hideValues ? "1" : "0"); } catch { /* noop */ }
+  }, [hideValues]);
 
   const [costCamiseta, setCostCamiseta] = useState<number>(() => {
     try { const s = JSON.parse(localStorage.getItem(COST_STORAGE_KEY) || "{}"); return Number(s.camiseta) || DEFAULT_COST_CAMISETA; } catch { return DEFAULT_COST_CAMISETA; }
