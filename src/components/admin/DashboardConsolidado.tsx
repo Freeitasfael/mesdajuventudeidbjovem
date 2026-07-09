@@ -89,6 +89,8 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
   const [consistency, setConsistency] = useState<ConsistencyReport | null>(null);
   const [checkingConsistency, setCheckingConsistency] = useState(false);
   const [activeAlerts, setActiveAlerts] = useState<number | null>(null);
+  const [production, setProduction] = useState<{ total_cost_cents: number; units_produced: number } | null>(null);
+  const [shirtsSold, setShirtsSold] = useState<number>(0);
   const [hideValues, setHideValues] = useState<boolean>(() => {
     try { return localStorage.getItem("dashboard_hide_values") === "1"; } catch { return false; }
   });
