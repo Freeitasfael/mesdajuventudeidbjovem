@@ -1147,10 +1147,28 @@ function ManualSaleDialog({ onCreated }: { onCreated: () => void }) {
             </div>
           </div>
 
+          <label className="flex items-start gap-2 rounded-md border bg-muted/30 p-3 cursor-pointer">
+            <input
+              type="checkbox"
+              className="mt-0.5 h-4 w-4"
+              checked={consumeStock}
+              onChange={(e) => setConsumeStock(e.target.checked)}
+            />
+            <div className="space-y-0.5">
+              <span className="text-sm font-medium">Consumir estoque</span>
+              <p className="text-[11px] text-muted-foreground">
+                Padrão marcado. Ao confirmar, abate o estoque e reconhece o custo automaticamente no Dashboard.
+                Desmarque apenas em situações excepcionais (ex.: brinde, ajuste manual).
+              </p>
+            </div>
+          </label>
+
           <p className="text-xs text-muted-foreground">
             {status === "paid"
-              ? "A venda é registrada como paga e o estoque é abatido automaticamente."
-              : "A venda ficará pendente por 7 dias e não abaterá estoque até ser confirmada como paga."}
+              ? (consumeStock
+                  ? "Venda registrada como paga: estoque abatido e custo reconhecido."
+                  : "Venda registrada como paga, mas sem consumo de estoque — o custo NÃO será reconhecido.")
+              : "A venda ficará pendente por 7 dias. O consumo de estoque ocorre ao confirmar o pagamento."}
           </p>
         </div>
         <DialogFooter>
