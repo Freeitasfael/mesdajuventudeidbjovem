@@ -733,6 +733,13 @@ export function EntradaPanel() {
                     </td>
                     <td className="px-4 py-3"><StatusBadge status={o.status} /></td>
                     <td className="px-4 py-3 text-right font-medium">{fmtBRL(o.total_cents)}</td>
+                    <td className="px-4 py-3 text-right">
+                      {isPaid(o.status) ? (
+                        <NetValueCell grossCents={o.total_cents} method={o.payment_method} />
+                      ) : (
+                        <span className="text-muted-foreground text-xs">—</span>
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-right space-x-1 whitespace-nowrap">
                       <Button size="sm" variant="ghost" onClick={() => assignSeller(o)} disabled={assigningId === o.id}>
                         <UserPlus className="mr-1 h-3 w-3" />
