@@ -902,3 +902,48 @@ export function FormulaChecks({
     </Card>
   );
 }
+
+function FormulaValidationChip({
+  metrics, fabricationCost, prizeCost, totalExpenses, netProfit, lastCheckedAt,
+}: {
+  metrics: DashboardMetrics;
+  fabricationCost: number;
+  prizeCost: number;
+  totalExpenses: number;
+  netProfit: number;
+  lastCheckedAt?: string;
+}) {
+  const checks = [
+    metrics.rifa.gross + metrics.entrada.kit.gross + metrics.entrada.pulseira.gross + metrics.sponsors.total + metrics.offerings.total - metrics.totals.revenueGross,
+    metrics.totals.revenueGross - metrics.totals.feesMP - metrics.totals.revenueNet,
+    metrics.expenses.paid + fabricationCost + metrics.totals.feesMP + prizeCost - totalExpenses,
+    metrics.totals.revenueGross - totalExpenses - netProfit,
+  ];
+  const ok = checks.every((d) => Math.abs(d) <= 1);
+  const when = lastCheckedAt ? new Date(lastCheckedAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "—";
+  return (
+    <TooltipProvider delayDuration={100}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium ${
+              ok
+                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+                : "border-destructive/40 bg-destructive/10 text-destructive"
+            }`}
+          >
+            {ok ? <CheckCircle2 className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
+            {ok ? "Fórmulas validadas" : "Divergência nas fórmulas"}
+            <span className="text-muted-foreground font-normal">· {when}</span>
+          </span>
+        </TooltipTrigger>
+        <TooltipContent side="bottom" className="max-w-[280px] text-xs leading-snug">
+          {ok
+            ? "Receita, gastos e lucro batem com a soma dos módulos. Detalhes na aba Saúde Técnica."
+            : "Foram encontradas divergências entre os totais e a soma dos módulos. Veja detalhes na aba Saúde Técnica."}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
+
