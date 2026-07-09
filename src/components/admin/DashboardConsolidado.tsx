@@ -65,6 +65,7 @@ interface ConsistencyReport {
 // Custos unitários de fabricação (R$)
 const DEFAULT_COST_CAMISETA = 38;
 const DEFAULT_COST_PULSEIRA = 1.05;
+const DEFAULT_COST_RIFA_PREMIO = 500;
 const COST_STORAGE_KEY = "dashboard_costs_v1";
 
 const fmtBRL = (c: number) => `R$ ${(c / 100).toFixed(2).replace(".", ",")}`;
@@ -92,9 +93,27 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
   const [costPulseira, setCostPulseira] = useState<number>(() => {
     try { const s = JSON.parse(localStorage.getItem(COST_STORAGE_KEY) || "{}"); return Number(s.pulseira) || DEFAULT_COST_PULSEIRA; } catch { return DEFAULT_COST_PULSEIRA; }
   });
+  const [costRifaPremio, setCostRifaPremio] = useState<number>(() => {
+    try { const s = JSON.parse(localStorage.getItem(COST_STORAGE_KEY) || "{}"); return Number(s.rifaPremio) || DEFAULT_COST_RIFA_PREMIO; } catch { return DEFAULT_COST_RIFA_PREMIO; }
+  });
   useEffect(() => {
-    localStorage.setItem(COST_STORAGE_KEY, JSON.stringify({ camiseta: costCamiseta, pulseira: costPulseira }));
-  }, [costCamiseta, costPulseira]);
+    try {
+      const s = JSON.parse(localStorage.getItem(COST_STORAGE_KEY) || "{}");
+      localStorage.setItem(COST_STORAGE_KEY, JSON.stringify({ ...s, camiseta: costCamiseta, pulseira: costPulseira, rifaPremio: costRifaPremio }));
+    } catch {
+      localStorage.setItem(COST_STORAGE_KEY, JSON.stringify({ camiseta: costCamiseta, pulseira: costPulseira, rifaPremio: costRifaPremio }));
+    }
+    // sync when other panels update the same key
+    const handler = (e: StorageEvent) => {
+      if (e.key !== COST_STORAGE_KEY || !e.newValue) return;
+      try {
+        const s = JSON.parse(e.newValue);
+        if (typeof s.rifaPremio === "number") setCostRifaPremio(s.rifaPremio);
+      } catch { /* noop */ }
+    };
+    window.addEventListener("storage", handler);
+    return () => window.removeEventListener("storage", handler);
+  }, [costCamiseta, costPulseira, costRifaPremio]);
 
   const range = useMemo<DateRange>(() => ({ from, to }), [from, to]);
 
@@ -144,12 +163,15 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
       (metrics.entrada.kit.units + metrics.entrada.pulseira.units) * costPulseira * 100
     );
     const fabricationCost = shirtCost + pulseiraCost;
-    const totalExpenses = metrics.expenses.paid + fabricationCost;
+    const prizeCost = Math.round(costRifaPremio * 100);
+    const totalExpenses = metrics.expenses.paid + fabricationCost + prizeCost + metrics.totals.feesMP;
     const revenueNet = metrics.totals.revenueNet;
-    const netProfit = revenueNet - totalExpenses;
+    // revenueNet já é bruto − taxa MP; para "Gastos totais" separado somamos as
+    // taxas explicitamente ⇒ lucro = bruto − (despesas + fabricação + prêmio + taxas)
+    const netProfit = metrics.totals.revenueGross - totalExpenses;
     const margin = revenueNet > 0 ? (netProfit / revenueNet) * 100 : 0;
-    return { shirtCost, pulseiraCost, fabricationCost, totalExpenses, netProfit, margin };
-  }, [metrics, costCamiseta, costPulseira]);
+    return { shirtCost, pulseiraCost, fabricationCost, prizeCost, totalExpenses, netProfit, margin };
+  }, [metrics, costCamiseta, costPulseira, costRifaPremio]);
 
   // Alertas inteligentes
   const alerts: { level: "warn" | "danger"; msg: string }[] = [];
@@ -206,6 +228,26 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
 
   const profitTone: Tone = derived.netProfit > 0 ? "positive" : derived.netProfit < 0 ? "negative" : "neutral";
   const marginTone: Tone = derived.margin >= 20 ? "positive" : derived.margin >= 0 ? "warning" : "negative";
+
+  // Composições (usadas nos cards executivos)
+  const revenueBreakdown = [
+    { label: "Patrocínios", value: metrics.sponsors.total, tab: "sponsors" },
+    { label: "Camisetas (kits)", value: metrics.entrada.kit.net, tab: "entrada" },
+    { label: "Rifa", value: metrics.rifa.net, tab: "orders" },
+    { label: "Ofertas", value: metrics.offerings.total, tab: "offerings" },
+    { label: "Pulseiras", value: metrics.entrada.pulseira.net, tab: "entrada" },
+  ];
+  const expenseBreakdown = [
+    { label: "Despesas gerais do evento", value: metrics.expenses.paid, tab: "expenses" },
+    { label: "Custo de fabricação (camisetas + pulseiras)", value: derived.fabricationCost, tab: "entrada" },
+    { label: "Taxas Mercado Pago (Rifa + Camisetas)", value: metrics.totals.feesMP },
+    { label: "Custo do prêmio da Rifa", value: derived.prizeCost },
+  ];
+  const profitBreakdown = [
+    { label: "Receita Líquida", value: metrics.totals.revenueNet, sign: "" as const },
+    { label: "(−) Gastos Totais", value: derived.totalExpenses, sign: "-" as const },
+    { label: "(=) Lucro Líquido", value: derived.netProfit, sign: "=" as const },
+  ];
 
   // % participação por categoria (visual apenas)
   const revenueBase = Math.max(
@@ -273,6 +315,7 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
             extra={metrics.rifa.pendingGross + metrics.entrada.pendingGross > 0
               ? `Receitas pendentes: ${fmtBRL(metrics.rifa.pendingGross + metrics.entrada.pendingGross)}`
               : undefined}
+            breakdown={revenueBreakdown.map((b) => ({ label: b.label, value: fmtBRL(b.value) }))}
           />
           <HeroKpi
             label="Lucro Líquido"
@@ -280,7 +323,8 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
             tone={profitTone}
             icon={derived.netProfit >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
             subtitle={`gastos ${fmtBRL(derived.totalExpenses)}`}
-            help="Receita líquida menos despesas pagas e custo estimado de fabricação (camisetas e pulseiras)."
+            help="Receita líquida menos gastos totais (despesas pagas + fabricação + taxas MP + prêmio da rifa)."
+            breakdown={profitBreakdown.map((b) => ({ label: b.label, value: fmtBRL(b.value), emphasis: b.sign === "=" }))}
           />
           <HeroKpi
             label="Margem"
@@ -405,11 +449,12 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
             value={fmtBRL(derived.totalExpenses)}
             tone="negative"
             icon={<Receipt className="h-3.5 w-3.5" />}
-            subtitle={`${fmtBRL(metrics.expenses.paid)} + ${fmtBRL(derived.fabricationCost)} fabricação`}
-            help="Somente despesas com status 'pago' + custo estimado de fabricação. Despesas agendadas não entram aqui."
+            subtitle={`realizado + fabricação + taxas + prêmio`}
+            help="Soma total dos gastos realizados. Despesas agendadas não entram."
             extra={metrics.expenses.scheduled > 0 ? `Despesas pendentes: ${fmtBRL(metrics.expenses.scheduled)}` : undefined}
             onOpen={onNavigate ? () => onNavigate("expenses") : undefined}
             openLabel="Abrir Gastos"
+            breakdown={expenseBreakdown.map((b) => ({ label: b.label, value: fmtBRL(b.value) }))}
           />
         </div>
         <p className="text-[11px] text-muted-foreground mt-2">
@@ -472,6 +517,18 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
         </Card>
       </Section>
 
+      {/* ============== VALIDAÇÃO DE FÓRMULAS FINANCEIRAS ============== */}
+      <Section title="Validação de fórmulas" icon={<ShieldAlert className="h-3.5 w-3.5" />}
+        subtitle="Confere que os totais do Dashboard batem exatamente com a soma dos módulos">
+        <FormulaChecks
+          metrics={metrics}
+          fabricationCost={derived.fabricationCost}
+          prizeCost={derived.prizeCost}
+          totalExpenses={derived.totalExpenses}
+          netProfit={derived.netProfit}
+        />
+      </Section>
+
       {/* ============== RESUMO EXECUTIVO DA AUDITORIA ============== */}
       <Section title="Última auditoria" icon={<Heart className="h-3.5 w-3.5" />}
         subtitle="Resumo — detalhes técnicos na aba Saúde Técnica">
@@ -526,9 +583,30 @@ const toneBar: Record<Tone, string> = {
   neutral: "bg-muted-foreground/40",
 };
 
+type BreakdownItem = { label: string; value: string; emphasis?: boolean };
+
+function Breakdown({ items }: { items: BreakdownItem[] }) {
+  if (!items?.length) return null;
+  return (
+    <ul className="mt-2 space-y-0.5 border-t border-border/40 pt-2">
+      {items.map((b, i) => (
+        <li
+          key={i}
+          className={`flex items-center justify-between gap-2 text-[11px] tabular-nums ${
+            b.emphasis ? "font-semibold text-foreground pt-0.5" : "text-muted-foreground"
+          }`}
+        >
+          <span className="truncate">{b.label}</span>
+          <span className="shrink-0">{b.value}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function HeroKpi({
-  label, value, unit, subtitle, tone = "neutral", icon, help, extra,
-}: { label: string; value: string; unit?: string; subtitle?: string; tone?: Tone; icon?: React.ReactNode; help?: string; extra?: string }) {
+  label, value, unit, subtitle, tone = "neutral", icon, help, extra, breakdown,
+}: { label: string; value: string; unit?: string; subtitle?: string; tone?: Tone; icon?: React.ReactNode; help?: string; extra?: string; breakdown?: BreakdownItem[] }) {
   return (
     <Card className={`p-4 min-h-[110px] flex flex-col justify-between transition-colors hover:border-primary/30 ${toneBorder[tone]}`}>
       <div className="flex items-center justify-between">
@@ -560,18 +638,20 @@ function HeroKpi({
         </p>
         {subtitle && <p className="mt-1 text-[11px] text-muted-foreground truncate">{subtitle}</p>}
         {extra && <p className="mt-0.5 text-[11px] text-orange-600 dark:text-orange-400 truncate">{extra}</p>}
+        {breakdown && <Breakdown items={breakdown} />}
       </div>
     </Card>
   );
 }
 
 function StatCard({
-  label, value, highlight, tone = "neutral", subtitle, icon, help, extra, onOpen, openLabel,
+  label, value, highlight, tone = "neutral", subtitle, icon, help, extra, onOpen, openLabel, breakdown,
 }: {
   label: string; value: string; highlight?: boolean;
   tone?: Tone; subtitle?: string; icon?: React.ReactNode;
   help?: string; extra?: string;
   onOpen?: () => void; openLabel?: string;
+  breakdown?: BreakdownItem[];
 }) {
   return (
     <Card className={`p-3 min-h-[92px] flex flex-col justify-between ${toneBorder[tone]} ${highlight ? "ring-1 ring-primary/30" : ""}`}>
@@ -601,6 +681,7 @@ function StatCard({
         </p>
         {subtitle && <p className="mt-0.5 text-[11px] text-muted-foreground truncate">{subtitle}</p>}
         {extra && <p className="mt-0.5 text-[11px] text-orange-600 dark:text-orange-400 truncate">{extra}</p>}
+        {breakdown && <Breakdown items={breakdown} />}
         {onOpen && (
           <button
             type="button"
@@ -702,6 +783,92 @@ function AuditSummary({
           </div>
           <p className="text-[11px] text-muted-foreground truncate">Última auditoria: {generated}</p>
         </div>
+      </div>
+    </Card>
+  );
+}
+
+function FormulaChecks({
+  metrics, fabricationCost, prizeCost, totalExpenses, netProfit,
+}: {
+  metrics: DashboardMetrics;
+  fabricationCost: number;
+  prizeCost: number;
+  totalExpenses: number;
+  netProfit: number;
+}) {
+  const rows = [
+    {
+      label: "Receita Bruta",
+      formula: "Rifa + Camisetas + Pulseiras + Patrocínios + Ofertas",
+      parts: [
+        metrics.rifa.gross,
+        metrics.entrada.kit.gross,
+        metrics.entrada.pulseira.gross,
+        metrics.sponsors.total,
+        metrics.offerings.total,
+      ],
+      expected: metrics.totals.revenueGross,
+    },
+    {
+      label: "Receita Líquida",
+      formula: "Receita Bruta − Taxas Mercado Pago",
+      parts: [metrics.totals.revenueGross, -metrics.totals.feesMP],
+      expected: metrics.totals.revenueNet,
+    },
+    {
+      label: "Gastos Totais",
+      formula: "Despesas pagas + Fabricação + Taxas MP + Prêmio",
+      parts: [metrics.expenses.paid, fabricationCost, metrics.totals.feesMP, prizeCost],
+      expected: totalExpenses,
+    },
+    {
+      label: "Lucro Líquido",
+      formula: "Receita Bruta − Gastos Totais",
+      parts: [metrics.totals.revenueGross, -totalExpenses],
+      expected: netProfit,
+    },
+  ];
+  return (
+    <Card className="p-0 overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="min-w-full text-sm">
+          <thead className="bg-muted/40 text-[10px] uppercase tracking-wide text-muted-foreground">
+            <tr>
+              <th className="text-left px-3 py-2">Indicador</th>
+              <th className="text-left px-3 py-2">Fórmula</th>
+              <th className="text-right px-3 py-2">Soma dos módulos</th>
+              <th className="text-right px-3 py-2">Valor no Dashboard</th>
+              <th className="text-left px-3 py-2">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => {
+              const sum = r.parts.reduce((a, v) => a + v, 0);
+              const diff = sum - r.expected;
+              const ok = Math.abs(diff) <= 1; // tolerância de 1 centavo por arredondamento
+              return (
+                <tr key={r.label} className="border-t">
+                  <td className="px-3 py-2 font-medium">{r.label}</td>
+                  <td className="px-3 py-2 text-[11px] text-muted-foreground">{r.formula}</td>
+                  <td className="px-3 py-2 text-right tabular-nums">{fmtBRL(sum)}</td>
+                  <td className="px-3 py-2 text-right tabular-nums">{fmtBRL(r.expected)}</td>
+                  <td className="px-3 py-2">
+                    {ok ? (
+                      <Badge variant="outline" className="h-5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 border-emerald-500/30">
+                        <CheckCircle2 className="h-3 w-3 mr-1" /> OK
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="h-5 text-[10px] font-semibold text-red-600 dark:text-red-400 border-red-500/40">
+                        <AlertTriangle className="h-3 w-3 mr-1" /> Δ {fmtBRL(diff)}
+                      </Badge>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
     </Card>
   );
