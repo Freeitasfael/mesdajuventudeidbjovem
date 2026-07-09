@@ -163,12 +163,15 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
       (metrics.entrada.kit.units + metrics.entrada.pulseira.units) * costPulseira * 100
     );
     const fabricationCost = shirtCost + pulseiraCost;
-    const totalExpenses = metrics.expenses.paid + fabricationCost;
+    const prizeCost = Math.round(costRifaPremio * 100);
+    const totalExpenses = metrics.expenses.paid + fabricationCost + prizeCost + metrics.totals.feesMP;
     const revenueNet = metrics.totals.revenueNet;
-    const netProfit = revenueNet - totalExpenses;
+    // revenueNet já é bruto − taxa MP; para "Gastos totais" separado somamos as
+    // taxas explicitamente ⇒ lucro = bruto − (despesas + fabricação + prêmio + taxas)
+    const netProfit = metrics.totals.revenueGross - totalExpenses;
     const margin = revenueNet > 0 ? (netProfit / revenueNet) * 100 : 0;
-    return { shirtCost, pulseiraCost, fabricationCost, totalExpenses, netProfit, margin };
-  }, [metrics, costCamiseta, costPulseira]);
+    return { shirtCost, pulseiraCost, fabricationCost, prizeCost, totalExpenses, netProfit, margin };
+  }, [metrics, costCamiseta, costPulseira, costRifaPremio]);
 
   // Alertas inteligentes
   const alerts: { level: "warn" | "danger"; msg: string }[] = [];
