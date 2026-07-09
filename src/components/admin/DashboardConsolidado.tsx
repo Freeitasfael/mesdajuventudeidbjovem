@@ -273,15 +273,18 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
       metrics.sponsors.total +
       metrics.offerings.total,
   );
-  const catRows = [
+  const catRows: Array<{
+    key: string; tab: string; label: string; icon: React.ReactNode;
+    value: number; sub: React.ReactNode; pct?: number;
+  }> = [
     { key: "sponsors", tab: "sponsors", label: "Patrocínios", icon: <Handshake className="h-3.5 w-3.5" />, value: metrics.sponsors.total, sub: `${metrics.sponsors.count} confirmado(s)` },
-    { key: "rifa", tab: "orders", label: "Rifa", icon: <Ticket className="h-3.5 w-3.5" />, value: metrics.rifa.net, sub: `${metrics.rifa.count} ped. · bruto ${fmtBRL(metrics.rifa.gross)}` },
+    { key: "rifa", tab: "orders", label: "Rifa", icon: <Ticket className="h-3.5 w-3.5" />, value: metrics.rifa.net, sub: <>{metrics.rifa.count} ped. · bruto <span className="priv">{fmtBRL(metrics.rifa.gross)}</span></> },
     { key: "kit", tab: "entrada", label: "Camisetas (kit)", icon: <Shirt className="h-3.5 w-3.5" />, value: metrics.entrada.kit.net, sub: `${metrics.entrada.kit.count} ped. · ${metrics.entrada.kit.units} un.` },
     { key: "pulseira", tab: "entrada", label: "Pulseiras", icon: <Shirt className="h-3.5 w-3.5" />, value: metrics.entrada.pulseira.net, sub: `${metrics.entrada.pulseira.count} ped. · ${metrics.entrada.pulseira.units} un.` },
     { key: "offerings", tab: "offerings", label: "Ofertas", icon: <Gift className="h-3.5 w-3.5" />, value: metrics.offerings.total, sub: `${metrics.offerings.count} oferta(s)` },
-  ]
-    .map((r) => ({ ...r, pct: (r.value / revenueBase) * 100 }))
-    .sort((a, b) => b.value - a.value);
+  ];
+  catRows.forEach((r) => { r.pct = (r.value / revenueBase) * 100; });
+  catRows.sort((a, b) => b.value - a.value);
 
   // Barras da rifa (visual)
   const rifaBarBase = Math.max(1, metrics.rifa.count + metrics.rifa.pendingCount + metrics.rifa.cancelledCount + metrics.rifa.refundedCount);
