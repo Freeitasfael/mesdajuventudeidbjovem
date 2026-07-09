@@ -587,24 +587,38 @@ const toneBar: Record<Tone, string> = {
 
 type BreakdownItem = { label: string; value: string; emphasis?: boolean };
 
-function Breakdown({ items }: { items: BreakdownItem[] }) {
+function BreakdownPopover({ items, label = "Ver composição" }: { items: BreakdownItem[]; label?: string }) {
   if (!items?.length) return null;
   return (
-    <ul className="mt-2 space-y-0.5 border-t border-border/40 pt-2">
-      {items.map((b, i) => (
-        <li
-          key={i}
-          className={`flex items-center justify-between gap-2 text-[11px] tabular-nums ${
-            b.emphasis ? "font-semibold text-foreground pt-0.5" : "text-muted-foreground"
-          }`}
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className="mt-2 inline-flex items-center gap-1 text-[10px] font-medium text-primary hover:underline"
         >
-          <span className="truncate">{b.label}</span>
-          <span className="shrink-0">{b.value}</span>
-        </li>
-      ))}
-    </ul>
+          <Info className="h-3 w-3" /> {label}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-64 p-3">
+        <p className="text-[10px] uppercase tracking-wide text-muted-foreground mb-2">Composição</p>
+        <ul className="space-y-1">
+          {items.map((b, i) => (
+            <li
+              key={i}
+              className={`flex items-center justify-between gap-2 text-xs tabular-nums ${
+                b.emphasis ? "font-semibold text-foreground border-t border-border/50 pt-1.5 mt-1" : "text-muted-foreground"
+              }`}
+            >
+              <span className="truncate">{b.label}</span>
+              <span className="shrink-0">{b.value}</span>
+            </li>
+          ))}
+        </ul>
+      </PopoverContent>
+    </Popover>
   );
 }
+
 
 function HeroKpi({
   label, value, unit, subtitle, tone = "neutral", icon, help, extra, breakdown,
