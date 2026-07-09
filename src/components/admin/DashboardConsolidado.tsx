@@ -274,9 +274,8 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
   ];
   const expenseBreakdown = [
     { label: "Despesas gerais do evento", value: metrics.expenses.paid, tab: "expenses" },
-    { label: "Custo de fabricação (camisetas + pulseiras)", value: derived.fabricationCost, tab: "entrada" },
-    { label: "Taxas Mercado Pago (Rifa + Camisetas)", value: metrics.totals.feesMP },
-    { label: "Custo do prêmio da Rifa", value: derived.prizeCost },
+    { label: "Custo das Camisetas Vendidas", value: derived.fabricationCost, tab: "entrada" },
+    { label: "Prêmio da Rifa", value: derived.prizeCost },
   ];
   const profitBreakdown = [
     { label: "Receita Líquida", value: metrics.totals.revenueNet, sign: "" as const },
