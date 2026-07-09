@@ -772,7 +772,7 @@ function FlowStep({
   );
 }
 
-function AuditSummary({
+export function AuditSummary({
   report, score, issues, activeAlerts,
 }: {
   report: ConsistencyReport | null;
@@ -817,7 +817,7 @@ function AuditSummary({
   );
 }
 
-function FormulaChecks({
+export function FormulaChecks({
   metrics, fabricationCost, prizeCost, totalExpenses, netProfit,
 }: {
   metrics: DashboardMetrics;
