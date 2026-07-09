@@ -77,7 +77,7 @@ interface RifaStatusStats {
   sellers_count: number;
 }
 
-export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusStats } = {}) {
+export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: RifaStatusStats; onNavigate?: (tab: string) => void } = {}) {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
