@@ -1176,7 +1176,8 @@ const Admin = () => {
                     <th className="px-4 py-3">Telefone</th>
                     <th className="px-4 py-3">Indicação</th>
                     <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3 text-right">Total</th>
+                    <th className="px-4 py-3 text-right">Total (bruto)</th>
+                    <th className="px-4 py-3 text-right">Líquido recebido</th>
                   </tr>
                 </thead>
                 <tbody>
