@@ -323,29 +323,33 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
         </div>
       </Card>
 
-      {/* ============== EXECUTIVO ============== */}
-      <Section title="Executivo" icon={<Activity className="h-3.5 w-3.5" />}>
+      {/* ============== RESUMO FINANCEIRO ============== */}
+      <Section title="Resumo Financeiro" icon={<Activity className="h-3.5 w-3.5" />}
+        subtitle="Quanto entrou, quanto foi gasto, quanto sobrou">
         <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
-          {/* Health Score movido para a aba "Saúde Técnica". */}
           <HeroKpi
-            label="Receita Líquida"
-            value={fmtBRL(metrics.totals.revenueNet)}
-            tone="positive"
-            icon={<Wallet className="h-4 w-4" />}
-            subtitle={`bruto ${fmtBRL(metrics.totals.revenueGross)}`}
-            help="Receita bruta (rifa + camisetas + patrocínios + ofertas) menos taxas do Mercado Pago. Composição detalhada em 'Receitas por categoria'."
-            extra={metrics.rifa.pendingGross + metrics.entrada.pendingGross > 0
-              ? `Pendentes: ${fmtBRL(metrics.rifa.pendingGross + metrics.entrada.pendingGross)}`
-              : undefined}
+            label="Receita Bruta"
+            value={fmtBRL(metrics.totals.revenueGross)}
+            tone="neutral"
+            icon={<DollarSign className="h-4 w-4" />}
+            subtitle="Total arrecadado no período"
+            help="Soma de rifa, camisetas, patrocínios e ofertas antes de qualquer desconto."
+          />
+          <HeroKpi
+            label="Gastos Totais"
+            value={fmtBRL(derived.totalExpenses)}
+            tone="negative"
+            icon={<Receipt className="h-4 w-4" />}
+            subtitle="Despesas + fabricação + taxas + prêmio"
+            help="Somatório de despesas do evento, fabricação de camisetas, taxas do Mercado Pago e prêmio da rifa."
           />
           <HeroKpi
             label="Lucro Líquido"
             value={fmtBRL(derived.netProfit)}
             tone={profitTone}
             icon={derived.netProfit >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
-            subtitle={`gastos ${fmtBRL(derived.totalExpenses)}`}
-            help="Receita líquida menos gastos totais (despesas pagas + fabricação + taxas MP + prêmio da rifa)."
-            breakdown={profitBreakdown.map((b) => ({ label: b.label, value: fmtBRL(b.value), emphasis: b.sign === "=" }))}
+            subtitle="Receita Bruta − Gastos Totais"
+            help="Resultado final do evento após todos os custos."
           />
           <HeroKpi
             label="Margem"
@@ -355,53 +359,39 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
             subtitle={derived.margin >= 20 ? "Saudável" : derived.margin >= 0 ? "Abaixo do ideal" : "Negativa"}
             help="Lucro líquido dividido pela receita líquida. Meta interna: acima de 20%."
           />
-          <HeroKpi
-            label="Pedidos Pagos"
-            value={String(metrics.rifa.count + metrics.entrada.count)}
-            tone="info"
-            icon={<ShoppingCart className="h-4 w-4" />}
-            subtitle={`rifa ${metrics.rifa.count} · entrada ${metrics.entrada.count}`}
-            help="Total de pedidos confirmados como pagos no período (rifa + camisetas)."
-          />
         </div>
       </Section>
 
-      {/* Chips compactos: validação de fórmulas + alertas */}
-      <div className="flex flex-wrap items-center gap-2">
-        <FormulaValidationChip
-          metrics={metrics}
-          fabricationCost={derived.fabricationCost}
-          prizeCost={derived.prizeCost}
-          totalExpenses={derived.totalExpenses}
-          netProfit={derived.netProfit}
-          lastCheckedAt={consistency?.generated_at}
-        />
-        {alerts.map((a, i) => (
-          <TooltipProvider key={i} delayDuration={100}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span
-                  className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium cursor-help ${
-                    a.level === "danger"
-                      ? "border-destructive/40 bg-destructive/10 text-destructive"
-                      : "border-orange-400/40 bg-orange-400/10 text-orange-700 dark:text-orange-300"
-                  }`}
-                >
-                  <AlertTriangle className="h-3 w-3 shrink-0" />
-                  <span className="truncate max-w-[220px]">{a.msg}</span>
-                </span>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" className="max-w-[280px] text-xs leading-snug">
-                {a.msg}
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        ))}
-      </div>
+      {/* Chips compactos: alertas discretos */}
+      {alerts.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2">
+          {alerts.map((a, i) => (
+            <TooltipProvider key={i} delayDuration={100}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span
+                    className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium cursor-help ${
+                      a.level === "danger"
+                        ? "border-destructive/40 bg-destructive/10 text-destructive"
+                        : "border-orange-400/40 bg-orange-400/10 text-orange-700 dark:text-orange-300"
+                    }`}
+                  >
+                    <AlertTriangle className="h-3 w-3 shrink-0" />
+                    <span className="truncate max-w-[220px]">{a.msg}</span>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-[280px] text-xs leading-snug">
+                  {a.msg}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          ))}
+        </div>
+      )}
 
       {/* ============== RECEITAS ============== */}
       <Section title="Receitas por categoria" icon={<DollarSign className="h-3.5 w-3.5" />}
-        subtitle="Distribuição da receita líquida no período">
+        subtitle="De onde veio o dinheiro">
         <Card className="p-4">
           <div className="space-y-3">
             {catRows.map((r) => (
@@ -444,117 +434,166 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
         </Card>
       </Section>
 
-      {/* ============== FINANCEIRO ============== */}
-      <Section title="Visão financeira" icon={<Wallet className="h-3.5 w-3.5" />}>
-        <div className="grid gap-3 grid-cols-2 lg:grid-cols-5">
-          <StatCard
-            label="Lucro Líquido"
-            value={fmtBRL(derived.netProfit)}
-            tone={profitTone}
-            icon={derived.netProfit >= 0 ? <TrendingUp className="h-3.5 w-3.5" /> : <TrendingDown className="h-3.5 w-3.5" />}
-            help="Receita líquida menos despesas pagas e custo estimado de fabricação (camisetas e pulseiras)."
-            highlight
-          />
-          <StatCard
-            label="Receita Líquida"
-            value={fmtBRL(metrics.totals.revenueNet)}
-            tone="positive"
-            icon={<Wallet className="h-3.5 w-3.5" />}
-            help="Receita bruta confirmada menos as taxas do Mercado Pago (PIX 0,99% / Cartão 4,99%)."
-            extra={metrics.rifa.pendingGross + metrics.entrada.pendingGross > 0
-              ? `Receitas pendentes: ${fmtBRL(metrics.rifa.pendingGross + metrics.entrada.pendingGross)}`
-              : undefined}
-          />
-          <StatCard
-            label="Margem"
-            value={`${derived.margin.toFixed(1)}%`}
-            tone={marginTone}
-            icon={<Percent className="h-3.5 w-3.5" />}
-            help="Lucro líquido dividido pela receita líquida."
-          />
-          <StatCard
-            label="Receita Bruta"
-            value={fmtBRL(metrics.totals.revenueGross)}
-            tone="neutral"
-            icon={<DollarSign className="h-3.5 w-3.5" />}
-            help="Soma de todos os valores confirmados antes de qualquer desconto de taxa."
-          />
-          <StatCard
-            label="Gastos realizados"
-            value={fmtBRL(derived.totalExpenses)}
-            tone="negative"
-            icon={<Receipt className="h-3.5 w-3.5" />}
-            subtitle={`realizado + fabricação + taxas + prêmio`}
-            help="Soma total dos gastos realizados. Despesas agendadas não entram."
-            extra={metrics.expenses.scheduled > 0 ? `Despesas pendentes: ${fmtBRL(metrics.expenses.scheduled)}` : undefined}
-            onOpen={onNavigate ? () => onNavigate("expenses") : undefined}
-            openLabel="Abrir Gastos"
-            breakdown={expenseBreakdown.map((b) => ({ label: b.label, value: fmtBRL(b.value) }))}
-          />
-        </div>
-        <p className="text-[11px] text-muted-foreground mt-2">
-          Taxa MP: {fmtBRL(metrics.totals.feesMP)} · Ticket líquido médio: {fmtBRL(metrics.totals.ticketNet)} · Despesas previstas: {fmtBRL(metrics.expenses.scheduled)}
-        </p>
-      </Section>
-
-      {/* ============== OPERAÇÃO — Rifa ============== */}
-      <Section title="Rifa — operação" icon={<Ticket className="h-3.5 w-3.5" />}>
-        <div className="grid gap-3 lg:grid-cols-2">
-          <Card className="p-4">
-            <p className="text-[11px] uppercase tracking-wide text-muted-foreground mb-3">Pedidos por status</p>
-            <div className="space-y-2">
-              <BarRow label="Pagos" value={metrics.rifa.count} base={rifaBarBase} tone="positive" />
-              <BarRow label="Pendentes" value={metrics.rifa.pendingCount} base={rifaBarBase} tone="warning" sub={fmtBRL(metrics.rifa.pendingGross)} />
-              <BarRow label="Cancelados" value={metrics.rifa.cancelledCount} base={rifaBarBase} tone="neutral" />
-              <BarRow label="Reembolsados" value={metrics.rifa.refundedCount} base={rifaBarBase} tone="warning" />
+      {/* ============== COMPOSIÇÃO DOS GASTOS ============== */}
+      <Section title="Composição dos Gastos" icon={<Receipt className="h-3.5 w-3.5" />}
+        subtitle="Como o dinheiro foi consumido — categorias consolidadas">
+        <Card className="p-4">
+          <div className="space-y-2">
+            {[
+              { label: "Despesas do Evento", value: metrics.expenses.paid, tab: "expenses" },
+              { label: "Fabricação das Camisetas", value: derived.fabricationCost, tab: "entrada" },
+              { label: "Taxas Mercado Pago", value: metrics.totals.feesMP },
+              { label: "Prêmio da Rifa", value: derived.prizeCost },
+            ].map((r) => {
+              const pct = (r.value / Math.max(1, derived.totalExpenses)) * 100;
+              return (
+                <div key={r.label} className="grid grid-cols-12 items-center gap-3">
+                  <div className="col-span-12 sm:col-span-4 flex items-center gap-2 min-w-0">
+                    <p className="text-sm font-medium truncate">{r.label}</p>
+                    {onNavigate && r.tab && (
+                      <button type="button" onClick={() => onNavigate(r.tab!)}
+                        className="inline-flex items-center gap-0.5 text-[10px] font-medium text-primary hover:underline">
+                        abrir <ArrowRight className="h-3 w-3" />
+                      </button>
+                    )}
+                  </div>
+                  <div className="col-span-8 sm:col-span-6">
+                    <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+                      <div className="h-full rounded-full bg-red-500/70" style={{ width: `${Math.min(100, pct).toFixed(1)}%` }} />
+                    </div>
+                  </div>
+                  <div className="col-span-4 sm:col-span-2 text-right">
+                    <p className="text-sm font-semibold tabular-nums">{fmtBRL(r.value)}</p>
+                    <p className="text-[11px] text-muted-foreground tabular-nums">{pct.toFixed(1)}%</p>
+                  </div>
+                </div>
+              );
+            })}
+            <div className="grid grid-cols-12 items-center gap-3 pt-2 mt-1 border-t border-border/50">
+              <p className="col-span-12 sm:col-span-10 text-sm font-semibold">Total</p>
+              <p className="col-span-12 sm:col-span-2 text-right text-sm font-bold tabular-nums">{fmtBRL(derived.totalExpenses)}</p>
             </div>
-          </Card>
-          {rifaStatus && (
-            <Card className="p-4">
-              <p className="text-[11px] uppercase tracking-wide text-muted-foreground mb-3">Números</p>
-              <div className="grid grid-cols-2 gap-3">
-                <MiniStat label="Disponíveis" value={String(rifaStatus.numbers_available)} />
-                <MiniStat label="Pagos" value={String(rifaStatus.numbers_paid)} tone="positive" />
-                <MiniStat label="Reservados" value={String(rifaStatus.numbers_reserved)} tone="warning" />
-                <MiniStat label="Vendedores" value={String(rifaStatus.sellers_count)} />
-              </div>
-            </Card>
-          )}
+          </div>
+        </Card>
+      </Section>
+
+      {/* ============== RESUMOS OPERACIONAIS ============== */}
+      <Section title="Resumo por operação" icon={<Activity className="h-3.5 w-3.5" />}
+        subtitle="Visão financeira de cada frente — detalhes nas respectivas abas">
+        <div className="grid gap-3 lg:grid-cols-2">
+          <OperationSummary
+            title="Rifa"
+            icon={<Ticket className="h-3.5 w-3.5" />}
+            rows={[
+              { label: "Receita", value: fmtBRL(metrics.rifa.gross) },
+              { label: "Taxas Mercado Pago", value: `− ${fmtBRL(metrics.rifa.fee)}` },
+              { label: "Prêmio", value: `− ${fmtBRL(derived.prizeCost)}` },
+              { label: "Lucro", value: fmtBRL(metrics.rifa.net - derived.prizeCost), emphasis: true, tone: (metrics.rifa.net - derived.prizeCost) >= 0 ? "positive" : "negative" },
+            ]}
+            onOpen={onNavigate ? () => onNavigate("orders") : undefined}
+            openLabel="Ver detalhes da Rifa"
+          />
+          <OperationSummary
+            title="Camisetas"
+            icon={<Shirt className="h-3.5 w-3.5" />}
+            rows={[
+              { label: "Receita", value: fmtBRL(metrics.entrada.gross) },
+              { label: "Custo de Fabricação", value: `− ${fmtBRL(derived.fabricationCost)}` },
+              { label: "Taxas Mercado Pago", value: `− ${fmtBRL(metrics.entrada.fee)}` },
+              { label: "Lucro", value: fmtBRL(metrics.entrada.net - derived.fabricationCost), emphasis: true, tone: (metrics.entrada.net - derived.fabricationCost) >= 0 ? "positive" : "negative" },
+            ]}
+            onOpen={onNavigate ? () => onNavigate("entrada") : undefined}
+            openLabel="Ver detalhes"
+          />
+          <OperationSummary
+            title="Patrocínios"
+            icon={<Handshake className="h-3.5 w-3.5" />}
+            rows={[
+              { label: "Valor recebido", value: fmtBRL(metrics.sponsors.total), tone: "positive" },
+              { label: "Valor pendente", value: fmtBRL(metrics.sponsors.pendingCash), tone: "warning" },
+              { label: "Patrocinadores", value: String(metrics.sponsors.count), emphasis: true },
+            ]}
+            onOpen={onNavigate ? () => onNavigate("sponsors") : undefined}
+            openLabel="Ver detalhes"
+          />
+          <OperationSummary
+            title="Ofertas"
+            icon={<Gift className="h-3.5 w-3.5" />}
+            rows={[
+              { label: "Total arrecadado", value: fmtBRL(metrics.offerings.total), tone: "positive" },
+              { label: "Quantidade de ofertas", value: String(metrics.offerings.count), emphasis: true },
+            ]}
+            onOpen={onNavigate ? () => onNavigate("offerings") : undefined}
+            openLabel="Ver detalhes"
+          />
         </div>
       </Section>
 
-      {/* ============== OPERAÇÃO — Camiseta + Pulseira (fluxo) ============== */}
-      <Section title="Camiseta + Pulseira — fluxo financeiro" icon={<Shirt className="h-3.5 w-3.5" />}>
-        <Card className="p-4">
-          <div className="grid gap-3 sm:grid-cols-4 items-stretch">
-            <FlowStep label="Receita Bruta" value={fmtBRL(metrics.entrada.gross)} tone="positive" />
-            <FlowStep label="Taxa Mercado Pago" value={`− ${fmtBRL(metrics.entrada.fee)}`} tone="warning" />
-            <FlowStep label="Receita Líquida" value={fmtBRL(metrics.entrada.net)} tone="positive" highlight />
-            <FlowStep
-              label="Pedidos Pagos"
-              value={String(metrics.entrada.count)}
-              tone="info"
-              subtitle={`${metrics.entrada.pendingCount} pend. · ${metrics.entrada.refundedCount} reemb.`}
-            />
-          </div>
-        </Card>
-      </Section>
-
-      {/* ============== PATROCÍNIOS ============== */}
-      <Section title="Patrocínios — detalhe" icon={<Handshake className="h-3.5 w-3.5" />}>
-        <Card className="p-4">
-          <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
-            <MiniStat label="Confirmados" value={String(metrics.sponsors.count)} tone="positive" />
-            <MiniStat label="Pendentes" value={String(metrics.sponsors.pendingCount)} tone="warning" />
-            <MiniStat label="Em dinheiro" value={fmtBRL(metrics.sponsors.cash)} tone="positive" />
-            <MiniStat label="Em permuta" value={fmtBRL(metrics.sponsors.permuta)} tone="neutral" />
-          </div>
-        </Card>
-      </Section>
-
-      {/* Validação de fórmulas e Última auditoria movidas para a aba "Saúde Técnica". */}
+      {/* ============== INDICADOR DISCRETO DE SAÚDE ============== */}
+      <div className="flex flex-wrap items-center gap-2">
+        <FormulaValidationChip
+          metrics={metrics}
+          fabricationCost={derived.fabricationCost}
+          prizeCost={derived.prizeCost}
+          totalExpenses={derived.totalExpenses}
+          netProfit={derived.netProfit}
+          lastCheckedAt={consistency?.generated_at}
+        />
+        {health.issues > 0 && onNavigate && (
+          <button
+            type="button"
+            onClick={() => onNavigate("health")}
+            className="text-[11px] font-medium text-primary hover:underline"
+          >
+            Ver Saúde Técnica →
+          </button>
+        )}
+      </div>
 
     </div>
+  );
+}
+
+function OperationSummary({
+  title, icon, rows, onOpen, openLabel,
+}: {
+  title: string;
+  icon?: React.ReactNode;
+  rows: { label: string; value: string; emphasis?: boolean; tone?: Tone }[];
+  onOpen?: () => void;
+  openLabel?: string;
+}) {
+  return (
+    <Card className="p-4 flex flex-col">
+      <div className="flex items-center gap-1.5 mb-3">
+        <span className="text-muted-foreground">{icon}</span>
+        <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold">{title}</p>
+      </div>
+      <div className="space-y-1.5 flex-1">
+        {rows.map((r, i) => (
+          <div
+            key={i}
+            className={`flex items-center justify-between gap-2 text-sm ${
+              r.emphasis ? "border-t border-border/50 pt-2 mt-1 font-semibold" : "text-muted-foreground"
+            }`}
+          >
+            <span className="truncate">{r.label}</span>
+            <span className={`tabular-nums shrink-0 ${r.tone ? toneText[r.tone] : r.emphasis ? "text-foreground" : ""}`}>
+              {r.value}
+            </span>
+          </div>
+        ))}
+      </div>
+      {onOpen && (
+        <button
+          type="button"
+          onClick={onOpen}
+          className="mt-3 inline-flex items-center gap-1 text-[11px] font-medium text-primary hover:underline self-start"
+        >
+          {openLabel ?? "Ver detalhes"} <ArrowRight className="h-3 w-3" />
+        </button>
+      )}
+    </Card>
   );
 }
 
