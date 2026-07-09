@@ -469,8 +469,7 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
           <div className="space-y-2">
             {[
               { label: "Despesas do Evento", value: metrics.expenses.paid, tab: "expenses" },
-              { label: "Fabricação das Camisetas", value: derived.fabricationCost, tab: "entrada" },
-              { label: "Taxas Mercado Pago", value: metrics.totals.feesMP },
+              { label: "Custo das Camisetas Vendidas", value: derived.fabricationCost, tab: "entrada" },
               { label: "Prêmio da Rifa", value: derived.prizeCost },
             ].map((r) => {
               const pct = (r.value / Math.max(1, derived.totalExpenses)) * 100;
