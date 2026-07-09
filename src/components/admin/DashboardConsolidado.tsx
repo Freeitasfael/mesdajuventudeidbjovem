@@ -366,24 +366,38 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
         </div>
       </Section>
 
-      {/* Alertas */}
-      {alerts.length > 0 && (
-        <div className="space-y-2">
-          {alerts.map((a, i) => (
-            <div
-              key={i}
-              className={`flex items-start gap-2 rounded-lg border px-3 py-2 text-sm ${
-                a.level === "danger"
-                  ? "border-destructive/40 bg-destructive/10 text-destructive"
-                  : "border-orange-400/40 bg-orange-400/10 text-orange-700 dark:text-orange-300"
-              }`}
-            >
-              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-              <span>{a.msg}</span>
-            </div>
-          ))}
-        </div>
-      )}
+      {/* Chips compactos: validação de fórmulas + alertas */}
+      <div className="flex flex-wrap items-center gap-2">
+        <FormulaValidationChip
+          metrics={metrics}
+          fabricationCost={derived.fabricationCost}
+          prizeCost={derived.prizeCost}
+          totalExpenses={derived.totalExpenses}
+          netProfit={derived.netProfit}
+          lastCheckedAt={consistency?.generated_at}
+        />
+        {alerts.map((a, i) => (
+          <TooltipProvider key={i} delayDuration={100}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium cursor-help ${
+                    a.level === "danger"
+                      ? "border-destructive/40 bg-destructive/10 text-destructive"
+                      : "border-orange-400/40 bg-orange-400/10 text-orange-700 dark:text-orange-300"
+                  }`}
+                >
+                  <AlertTriangle className="h-3 w-3 shrink-0" />
+                  <span className="truncate max-w-[220px]">{a.msg}</span>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-[280px] text-xs leading-snug">
+                {a.msg}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ))}
+      </div>
 
       {/* ============== RECEITAS ============== */}
       <Section title="Receitas por categoria" icon={<DollarSign className="h-3.5 w-3.5" />}
