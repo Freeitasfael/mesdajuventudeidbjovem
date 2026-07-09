@@ -1281,8 +1281,14 @@ const Admin = () => {
                           <div className="text-xs text-muted-foreground">{buyer?.phone ? <WhatsAppLink phone={buyer.phone} /> : "—"}</div>
                         </div>
                         <div>
-                          <p className="text-xs uppercase text-muted-foreground">Total</p>
+                          <p className="text-xs uppercase text-muted-foreground">Total (bruto)</p>
                           <p className="font-semibold">{fmtBRL(detailOrder.total_cents)}</p>
+                          {isPaid(detailOrder.status) && (
+                            <div className="mt-1 text-xs">
+                              <span className="text-muted-foreground">Líquido: </span>
+                              <NetValueCell grossCents={detailOrder.total_cents} method={detailOrder.payment_method} compact />
+                            </div>
+                          )}
                         </div>
                         <div>
                           <p className="text-xs uppercase text-muted-foreground">Data</p>
