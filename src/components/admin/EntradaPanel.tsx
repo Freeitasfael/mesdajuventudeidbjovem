@@ -136,6 +136,10 @@ export function EntradaPanel() {
   const [savingPrices, setSavingPrices] = useState(false);
   const [refundingId, setRefundingId] = useState<string | null>(null);
   const [assigningId, setAssigningId] = useState<string | null>(null);
+  const [production, setProduction] = useState<{ total_cost_cents: number; units_produced: number } | null>(null);
+  const [prodCostReais, setProdCostReais] = useState("");
+  const [prodUnits, setProdUnits] = useState("");
+  const [savingProd, setSavingProd] = useState(false);
 
   // Custos de fabricação (sincronizados com a Dashboard via localStorage)
   const [costCamiseta, setCostCamiseta] = useState<number>(() => {
