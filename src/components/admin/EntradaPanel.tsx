@@ -711,7 +711,8 @@ export function EntradaPanel() {
                 <th className="px-4 py-3">Pgto</th>
                 <th className="px-4 py-3">Revendedor</th>
                 <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3 text-right">Total</th>
+                <th className="px-4 py-3 text-right">Total (bruto)</th>
+                <th className="px-4 py-3 text-right">Líquido recebido</th>
                 <th className="px-4 py-3 text-right">Ações</th>
               </tr>
             </thead>
