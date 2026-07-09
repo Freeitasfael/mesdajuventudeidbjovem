@@ -196,7 +196,7 @@ export function EntradaPanel() {
 
   const load = async () => {
     setLoading(true);
-    const [o, s, p] = await Promise.all([
+    const [o, s, p, pr] = await Promise.all([
       supabase
         .from("entrada_orders")
         .select("id, created_at, buyer_name, buyer_phone, product, model, size, quantity, total_cents, status, mp_payment_id, payment_method, seller_id, referral_label, items, paid_at")
@@ -204,6 +204,7 @@ export function EntradaPanel() {
         .limit(500),
       supabase.from("entrada_stock").select("sku, label, stock").order("sku"),
       supabase.from("app_settings").select("value").eq("key", "entrada_prices").maybeSingle(),
+      supabase.from("entrada_production").select("total_cost_cents, units_produced").eq("id", "default").maybeSingle(),
     ]);
     if (o.data) setOrders(o.data as unknown as EntradaOrder[]);
     if (s.data) setStock(s.data as StockRow[]);
@@ -211,6 +212,12 @@ export function EntradaPanel() {
       const v = p.data.value as { pulseira_cents?: number; kit_cents?: number };
       if (v.pulseira_cents) setPulseiraReais((v.pulseira_cents / 100).toFixed(2));
       if (v.kit_cents) setKitReais((v.kit_cents / 100).toFixed(2));
+    }
+    if (pr.data) {
+      const row = pr.data as { total_cost_cents: number; units_produced: number };
+      setProduction(row);
+      setProdCostReais((row.total_cost_cents / 100).toFixed(2));
+      setProdUnits(String(row.units_produced));
     }
     setLoading(false);
   };
