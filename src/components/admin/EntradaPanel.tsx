@@ -14,6 +14,7 @@ import { Download, FileSpreadsheet, Plus, RefreshCw, Save, Undo2, UserPlus } fro
 import { buildCsv, downloadCsv } from "@/lib/csv";
 import ExcelJS from "exceljs";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
+import { NetValueCell } from "@/components/admin/NetValueCell";
 
 
 interface EntradaOrderItem {
@@ -710,7 +711,8 @@ export function EntradaPanel() {
                 <th className="px-4 py-3">Pgto</th>
                 <th className="px-4 py-3">Revendedor</th>
                 <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3 text-right">Total</th>
+                <th className="px-4 py-3 text-right">Total (bruto)</th>
+                <th className="px-4 py-3 text-right">Líquido recebido</th>
                 <th className="px-4 py-3 text-right">Ações</th>
               </tr>
             </thead>
@@ -731,6 +733,13 @@ export function EntradaPanel() {
                     </td>
                     <td className="px-4 py-3"><StatusBadge status={o.status} /></td>
                     <td className="px-4 py-3 text-right font-medium">{fmtBRL(o.total_cents)}</td>
+                    <td className="px-4 py-3 text-right">
+                      {isPaid(o.status) ? (
+                        <NetValueCell grossCents={o.total_cents} method={o.payment_method} />
+                      ) : (
+                        <span className="text-muted-foreground text-xs">—</span>
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-right space-x-1 whitespace-nowrap">
                       <Button size="sm" variant="ghost" onClick={() => assignSeller(o)} disabled={assigningId === o.id}>
                         <UserPlus className="mr-1 h-3 w-3" />
@@ -748,7 +757,7 @@ export function EntradaPanel() {
               })}
               {filteredOrders.length === 0 && (
                 <tr>
-                  <td colSpan={11} className="px-4 py-8 text-center text-muted-foreground">
+                  <td colSpan={12} className="px-4 py-8 text-center text-muted-foreground">
                     {orders.length === 0 ? "Nenhuma transação ainda." : "Nenhum pedido corresponde aos filtros."}
                   </td>
                 </tr>

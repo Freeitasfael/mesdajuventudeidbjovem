@@ -29,6 +29,7 @@ import { RecapPanel } from "@/components/admin/RecapPanel";
 import { AboutPanel } from "@/components/admin/AboutPanel";
 import { SystemHealthPanel } from "@/components/admin/SystemHealthPanel";
 import { FinancialAudit } from "@/components/admin/FinancialAudit";
+import { NetValueCell } from "@/components/admin/NetValueCell";
 
 import { WhatsAppLink } from "@/components/WhatsAppLink";
 
@@ -1175,7 +1176,8 @@ const Admin = () => {
                     <th className="px-4 py-3">Telefone</th>
                     <th className="px-4 py-3">Indicação</th>
                     <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3 text-right">Total</th>
+                    <th className="px-4 py-3 text-right">Total (bruto)</th>
+                    <th className="px-4 py-3 text-right">Líquido recebido</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1219,13 +1221,20 @@ const Admin = () => {
                         <td className="px-4 py-3 text-right font-medium">
                           {fmtBRL(o.total_cents)}
                         </td>
+                        <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
+                          {isPaid(o.status) ? (
+                            <NetValueCell grossCents={o.total_cents} method={o.payment_method} />
+                          ) : (
+                            <span className="text-muted-foreground text-xs">—</span>
+                          )}
+                        </td>
                       </tr>
                     );
 
                   })}
                   {filteredOrders.length === 0 && (
                     <tr>
-                      <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
+                      <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">
                         Nenhum pedido nesse filtro.
                       </td>
                     </tr>
@@ -1272,8 +1281,14 @@ const Admin = () => {
                           <div className="text-xs text-muted-foreground">{buyer?.phone ? <WhatsAppLink phone={buyer.phone} /> : "—"}</div>
                         </div>
                         <div>
-                          <p className="text-xs uppercase text-muted-foreground">Total</p>
+                          <p className="text-xs uppercase text-muted-foreground">Total (bruto)</p>
                           <p className="font-semibold">{fmtBRL(detailOrder.total_cents)}</p>
+                          {isPaid(detailOrder.status) && (
+                            <div className="mt-1 text-xs">
+                              <span className="text-muted-foreground">Líquido: </span>
+                              <NetValueCell grossCents={detailOrder.total_cents} method={detailOrder.payment_method} compact />
+                            </div>
+                          )}
                         </div>
                         <div>
                           <p className="text-xs uppercase text-muted-foreground">Data</p>
