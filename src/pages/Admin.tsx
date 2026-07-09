@@ -1221,13 +1221,20 @@ const Admin = () => {
                         <td className="px-4 py-3 text-right font-medium">
                           {fmtBRL(o.total_cents)}
                         </td>
+                        <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
+                          {isPaid(o.status) ? (
+                            <NetValueCell grossCents={o.total_cents} method={o.payment_method} />
+                          ) : (
+                            <span className="text-muted-foreground text-xs">—</span>
+                          )}
+                        </td>
                       </tr>
                     );
 
                   })}
                   {filteredOrders.length === 0 && (
                     <tr>
-                      <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
+                      <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">
                         Nenhum pedido nesse filtro.
                       </td>
                     </tr>
