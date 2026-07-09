@@ -131,8 +131,22 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const m = await loadDashboardMetrics(range);
+      const [m, prod, shirts] = await Promise.all([
+        loadDashboardMetrics(range),
+        supabase.from("entrada_production").select("total_cost_cents, units_produced").eq("id", "default").maybeSingle(),
+        supabase.from("entrada_orders").select("quantity, items, product, status").eq("status", "paid").eq("product", "kit").limit(2000),
+      ]);
       setMetrics(m);
+      if (prod.data) setProduction(prod.data as { total_cost_cents: number; units_produced: number });
+      const rows = (shirts.data ?? []) as Array<{ quantity: number; items: Array<{ quantity?: number }> | null }>;
+      const sold = rows.reduce((acc, r) => {
+        const arr = Array.isArray(r.items) ? r.items : null;
+        const q = arr && arr.length > 0
+          ? arr.reduce((a, it) => a + (Number(it?.quantity) || 0), 0)
+          : (r.quantity || 0);
+        return acc + q;
+      }, 0);
+      setShirtsSold(sold);
     } finally {
       setLoading(false);
     }
