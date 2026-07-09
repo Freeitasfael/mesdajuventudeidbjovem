@@ -39,6 +39,7 @@ interface EntradaOrder {
   seller_id: string | null;
   referral_label: string | null;
   items: EntradaOrderItem[] | null;
+  paid_at?: string | null;
 }
 
 const MODEL_LABEL: Record<string, string> = {
