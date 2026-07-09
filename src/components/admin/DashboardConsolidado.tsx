@@ -169,7 +169,21 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
     if (metrics.expenses.scheduled > 0) {
       alerts.push({
         level: "warn",
-        msg: `Despesas previstas (não pagas): ${fmtBRL(metrics.expenses.scheduled)} — não estão no lucro realizado.`,
+        msg: `Despesas pendentes (agendadas): ${fmtBRL(metrics.expenses.scheduled)} — ainda não impactam o lucro realizado.`,
+      });
+    }
+    if (metrics.sponsors.pendingCount > 0) {
+      alerts.push({
+        level: "warn",
+        msg: `${metrics.sponsors.pendingCount} patrocínio(s) pendente(s) de confirmação${metrics.sponsors.pendingCash > 0 ? ` — ${fmtBRL(metrics.sponsors.pendingCash)} em dinheiro` : ""}.`,
+      });
+    }
+    const pendingOrders = metrics.rifa.pendingCount + metrics.entrada.pendingCount;
+    if (pendingOrders > 0) {
+      const pendingGross = metrics.rifa.pendingGross + metrics.entrada.pendingGross;
+      alerts.push({
+        level: "warn",
+        msg: `${pendingOrders} pedido(s) aguardando pagamento — ${fmtBRL(pendingGross)} em receita pendente.`,
       });
     }
   }
