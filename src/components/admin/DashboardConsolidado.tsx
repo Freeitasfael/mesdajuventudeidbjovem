@@ -554,6 +554,49 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
   );
 }
 
+function OperationSummary({
+  title, icon, rows, onOpen, openLabel,
+}: {
+  title: string;
+  icon?: React.ReactNode;
+  rows: { label: string; value: string; emphasis?: boolean; tone?: Tone }[];
+  onOpen?: () => void;
+  openLabel?: string;
+}) {
+  return (
+    <Card className="p-4 flex flex-col">
+      <div className="flex items-center gap-1.5 mb-3">
+        <span className="text-muted-foreground">{icon}</span>
+        <p className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold">{title}</p>
+      </div>
+      <div className="space-y-1.5 flex-1">
+        {rows.map((r, i) => (
+          <div
+            key={i}
+            className={`flex items-center justify-between gap-2 text-sm ${
+              r.emphasis ? "border-t border-border/50 pt-2 mt-1 font-semibold" : "text-muted-foreground"
+            }`}
+          >
+            <span className="truncate">{r.label}</span>
+            <span className={`tabular-nums shrink-0 ${r.tone ? toneText[r.tone] : r.emphasis ? "text-foreground" : ""}`}>
+              {r.value}
+            </span>
+          </div>
+        ))}
+      </div>
+      {onOpen && (
+        <button
+          type="button"
+          onClick={onOpen}
+          className="mt-3 inline-flex items-center gap-1 text-[11px] font-medium text-primary hover:underline self-start"
+        >
+          {openLabel ?? "Ver detalhes"} <ArrowRight className="h-3 w-3" />
+        </button>
+      )}
+    </Card>
+  );
+}
+
 function Section({
   title, subtitle, icon, children,
 }: { title: string; subtitle?: string; icon?: React.ReactNode; children: React.ReactNode }) {
