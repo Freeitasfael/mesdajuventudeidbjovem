@@ -93,9 +93,27 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
   const [costPulseira, setCostPulseira] = useState<number>(() => {
     try { const s = JSON.parse(localStorage.getItem(COST_STORAGE_KEY) || "{}"); return Number(s.pulseira) || DEFAULT_COST_PULSEIRA; } catch { return DEFAULT_COST_PULSEIRA; }
   });
+  const [costRifaPremio, setCostRifaPremio] = useState<number>(() => {
+    try { const s = JSON.parse(localStorage.getItem(COST_STORAGE_KEY) || "{}"); return Number(s.rifaPremio) || DEFAULT_COST_RIFA_PREMIO; } catch { return DEFAULT_COST_RIFA_PREMIO; }
+  });
   useEffect(() => {
-    localStorage.setItem(COST_STORAGE_KEY, JSON.stringify({ camiseta: costCamiseta, pulseira: costPulseira }));
-  }, [costCamiseta, costPulseira]);
+    try {
+      const s = JSON.parse(localStorage.getItem(COST_STORAGE_KEY) || "{}");
+      localStorage.setItem(COST_STORAGE_KEY, JSON.stringify({ ...s, camiseta: costCamiseta, pulseira: costPulseira, rifaPremio: costRifaPremio }));
+    } catch {
+      localStorage.setItem(COST_STORAGE_KEY, JSON.stringify({ camiseta: costCamiseta, pulseira: costPulseira, rifaPremio: costRifaPremio }));
+    }
+    // sync when other panels update the same key
+    const handler = (e: StorageEvent) => {
+      if (e.key !== COST_STORAGE_KEY || !e.newValue) return;
+      try {
+        const s = JSON.parse(e.newValue);
+        if (typeof s.rifaPremio === "number") setCostRifaPremio(s.rifaPremio);
+      } catch { /* noop */ }
+    };
+    window.addEventListener("storage", handler);
+    return () => window.removeEventListener("storage", handler);
+  }, [costCamiseta, costPulseira, costRifaPremio]);
 
   const range = useMemo<DateRange>(() => ({ from, to }), [from, to]);
 
