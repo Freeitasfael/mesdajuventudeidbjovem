@@ -905,6 +905,14 @@ export type Database = {
           orders_deleted: number
         }[]
       }
+      admin_revert_all_manual_entrada_to_pending: {
+        Args: never
+        Returns: {
+          restocked_pulseiras: number
+          restocked_shirts: number
+          reverted_count: number
+        }[]
+      }
       admin_set_entrada_order_seller: {
         Args: { _order_id: string; _ref_code: string }
         Returns: {

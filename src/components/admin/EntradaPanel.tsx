@@ -687,6 +687,7 @@ export function EntradaPanel() {
           </p>
           <div className="flex gap-2 flex-wrap">
             <ManualSaleDialog onCreated={load} />
+            <RevertManualToPendingButton onDone={load} />
             <Button variant="outline" size="sm" onClick={exportCsv} disabled={filteredOrders.length === 0}>
               <Download className="mr-2 h-3 w-3" /> Exportar CSV
             </Button>
@@ -1141,5 +1142,64 @@ function ConfirmPaymentButton({ order, onConfirmed }: { order: EntradaOrder; onC
     </Dialog>
   );
 }
+
+function RevertManualToPendingButton({ onDone }: { onDone: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const submit = async () => {
+    setSaving(true);
+    const { data, error } = await supabase.rpc(
+      "admin_revert_all_manual_entrada_to_pending" as never,
+    );
+    setSaving(false);
+    if (error) {
+      toast.error("Erro: " + error.message);
+      return;
+    }
+    const arr = (data ?? []) as unknown as Array<{ reverted_count?: number }>;
+    const row = Array.isArray(arr) ? arr[0] : (data as unknown);
+    const n = (row as { reverted_count?: number })?.reverted_count ?? 0;
+    toast.success(`${n} venda(s) manual(is) revertida(s) para pendente. Estoque devolvido.`);
+    setOpen(false);
+    onDone();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm" variant="outline" className="border-amber-500/40 text-amber-700 hover:bg-amber-50 dark:text-amber-400">
+          <Undo2 className="mr-2 h-3 w-3" /> Marcar manuais como pendente
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Reverter vendas manuais para pendente</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3 text-sm">
+          <p>
+            Todas as vendas <strong>manuais pagas</strong> (sem vínculo com Mercado Pago) voltarão ao status <strong>Pendente</strong>.
+          </p>
+          <ul className="list-disc pl-4 text-xs text-muted-foreground space-y-1">
+            <li>O estoque abatido é devolvido automaticamente.</li>
+            <li>A data e a forma de pagamento são limpas.</li>
+            <li>Cada linha exibirá novamente o botão <em>Confirmar pagto.</em> para reconfirmação individual.</li>
+            <li>Pedidos do checkout online (Mercado Pago) não são afetados.</li>
+          </ul>
+          <p className="text-xs text-amber-700 dark:text-amber-400">
+            Use com cuidado: essa ação afeta o Dashboard imediatamente.
+          </p>
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => setOpen(false)} disabled={saving}>Cancelar</Button>
+          <Button onClick={submit} disabled={saving} className="bg-amber-600 hover:bg-amber-700 text-white">
+            {saving ? "Revertendo…" : "Reverter agora"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 
 
