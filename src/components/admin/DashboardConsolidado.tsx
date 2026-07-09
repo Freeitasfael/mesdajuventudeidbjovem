@@ -24,7 +24,10 @@ import {
   Receipt,
   Activity,
   ArrowDown,
+  ArrowRight,
 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Info } from "lucide-react";
 
 import {
   loadDashboardMetrics,
@@ -74,7 +77,7 @@ interface RifaStatusStats {
   sellers_count: number;
 }
 
-export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusStats } = {}) {
+export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: RifaStatusStats; onNavigate?: (tab: string) => void } = {}) {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
@@ -166,7 +169,21 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
     if (metrics.expenses.scheduled > 0) {
       alerts.push({
         level: "warn",
-        msg: `Despesas previstas (não pagas): ${fmtBRL(metrics.expenses.scheduled)} — não estão no lucro realizado.`,
+        msg: `Despesas pendentes (agendadas): ${fmtBRL(metrics.expenses.scheduled)} — ainda não impactam o lucro realizado.`,
+      });
+    }
+    if (metrics.sponsors.pendingCount > 0) {
+      alerts.push({
+        level: "warn",
+        msg: `${metrics.sponsors.pendingCount} patrocínio(s) pendente(s) de confirmação${metrics.sponsors.pendingCash > 0 ? ` — ${fmtBRL(metrics.sponsors.pendingCash)} em dinheiro` : ""}.`,
+      });
+    }
+    const pendingOrders = metrics.rifa.pendingCount + metrics.entrada.pendingCount;
+    if (pendingOrders > 0) {
+      const pendingGross = metrics.rifa.pendingGross + metrics.entrada.pendingGross;
+      alerts.push({
+        level: "warn",
+        msg: `${pendingOrders} pedido(s) aguardando pagamento — ${fmtBRL(pendingGross)} em receita pendente.`,
       });
     }
   }
@@ -200,11 +217,11 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
       metrics.offerings.total,
   );
   const catRows = [
-    { key: "sponsors", label: "Patrocínios", icon: <Handshake className="h-3.5 w-3.5" />, value: metrics.sponsors.total, sub: `${metrics.sponsors.count} confirmado(s)` },
-    { key: "rifa", label: "Rifa", icon: <Ticket className="h-3.5 w-3.5" />, value: metrics.rifa.net, sub: `${metrics.rifa.count} ped. · bruto ${fmtBRL(metrics.rifa.gross)}` },
-    { key: "kit", label: "Camisetas (kit)", icon: <Shirt className="h-3.5 w-3.5" />, value: metrics.entrada.kit.net, sub: `${metrics.entrada.kit.count} ped. · ${metrics.entrada.kit.units} un.` },
-    { key: "pulseira", label: "Pulseiras", icon: <Shirt className="h-3.5 w-3.5" />, value: metrics.entrada.pulseira.net, sub: `${metrics.entrada.pulseira.count} ped. · ${metrics.entrada.pulseira.units} un.` },
-    { key: "offerings", label: "Ofertas", icon: <Gift className="h-3.5 w-3.5" />, value: metrics.offerings.total, sub: `${metrics.offerings.count} oferta(s)` },
+    { key: "sponsors", tab: "sponsors", label: "Patrocínios", icon: <Handshake className="h-3.5 w-3.5" />, value: metrics.sponsors.total, sub: `${metrics.sponsors.count} confirmado(s)` },
+    { key: "rifa", tab: "orders", label: "Rifa", icon: <Ticket className="h-3.5 w-3.5" />, value: metrics.rifa.net, sub: `${metrics.rifa.count} ped. · bruto ${fmtBRL(metrics.rifa.gross)}` },
+    { key: "kit", tab: "entrada", label: "Camisetas (kit)", icon: <Shirt className="h-3.5 w-3.5" />, value: metrics.entrada.kit.net, sub: `${metrics.entrada.kit.count} ped. · ${metrics.entrada.kit.units} un.` },
+    { key: "pulseira", tab: "entrada", label: "Pulseiras", icon: <Shirt className="h-3.5 w-3.5" />, value: metrics.entrada.pulseira.net, sub: `${metrics.entrada.pulseira.count} ped. · ${metrics.entrada.pulseira.units} un.` },
+    { key: "offerings", tab: "offerings", label: "Ofertas", icon: <Gift className="h-3.5 w-3.5" />, value: metrics.offerings.total, sub: `${metrics.offerings.count} oferta(s)` },
   ]
     .map((r) => ({ ...r, pct: (r.value / revenueBase) * 100 }))
     .sort((a, b) => b.value - a.value);
@@ -244,6 +261,7 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
             tone={health.status === "ok" ? "info" : health.status === "warn" ? "warning" : "negative"}
             icon={<Heart className="h-4 w-4" />}
             subtitle={health.issues === 0 ? "Sem divergências" : `${health.issues} divergência(s)`}
+            help="Score derivado da auditoria automática de consistência entre pedidos, pagamentos e reservas. 100 = sem divergências; cada divergência reduz 20 pts."
           />
           <HeroKpi
             label="Receita Líquida"
@@ -251,6 +269,10 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
             tone="positive"
             icon={<Wallet className="h-4 w-4" />}
             subtitle={`bruto ${fmtBRL(metrics.totals.revenueGross)}`}
+            help="Soma de todas as receitas confirmadas (rifa + camisetas + patrocínios + ofertas) menos as taxas do Mercado Pago."
+            extra={metrics.rifa.pendingGross + metrics.entrada.pendingGross > 0
+              ? `Receitas pendentes: ${fmtBRL(metrics.rifa.pendingGross + metrics.entrada.pendingGross)}`
+              : undefined}
           />
           <HeroKpi
             label="Lucro Líquido"
@@ -258,6 +280,7 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
             tone={profitTone}
             icon={derived.netProfit >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
             subtitle={`gastos ${fmtBRL(derived.totalExpenses)}`}
+            help="Receita líquida menos despesas pagas e custo estimado de fabricação (camisetas e pulseiras)."
           />
           <HeroKpi
             label="Margem"
@@ -265,6 +288,7 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
             tone={marginTone}
             icon={<Percent className="h-4 w-4" />}
             subtitle={derived.margin >= 20 ? "Saudável" : derived.margin >= 0 ? "Abaixo do ideal" : "Negativa"}
+            help="Lucro líquido dividido pela receita líquida. Meta interna: acima de 20%."
           />
           <HeroKpi
             label="Pedidos Pagos"
@@ -272,6 +296,7 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
             tone="info"
             icon={<ShoppingCart className="h-4 w-4" />}
             subtitle={`rifa ${metrics.rifa.count} · entrada ${metrics.entrada.count}`}
+            help="Total de pedidos confirmados como pagos no período (rifa + camisetas)."
           />
         </div>
       </Section>
@@ -307,7 +332,18 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
                     {r.icon}
                   </span>
                   <div className="min-w-0">
-                    <p className="text-sm font-medium truncate">{r.label}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium truncate">{r.label}</p>
+                      {onNavigate && (
+                        <button
+                          type="button"
+                          onClick={() => onNavigate(r.tab)}
+                          className="inline-flex items-center gap-0.5 text-[10px] font-medium text-primary hover:underline"
+                        >
+                          abrir <ArrowRight className="h-3 w-3" />
+                        </button>
+                      )}
+                    </div>
                     <p className="text-[11px] text-muted-foreground truncate">{r.sub}</p>
                   </div>
                 </div>
@@ -337,17 +373,43 @@ export function DashboardConsolidado({ rifaStatus }: { rifaStatus?: RifaStatusSt
             value={fmtBRL(derived.netProfit)}
             tone={profitTone}
             icon={derived.netProfit >= 0 ? <TrendingUp className="h-3.5 w-3.5" /> : <TrendingDown className="h-3.5 w-3.5" />}
+            help="Receita líquida menos despesas pagas e custo estimado de fabricação (camisetas e pulseiras)."
             highlight
           />
-          <StatCard label="Receita Líquida" value={fmtBRL(metrics.totals.revenueNet)} tone="positive" icon={<Wallet className="h-3.5 w-3.5" />} />
-          <StatCard label="Margem" value={`${derived.margin.toFixed(1)}%`} tone={marginTone} icon={<Percent className="h-3.5 w-3.5" />} />
-          <StatCard label="Receita Bruta" value={fmtBRL(metrics.totals.revenueGross)} tone="neutral" icon={<DollarSign className="h-3.5 w-3.5" />} />
+          <StatCard
+            label="Receita Líquida"
+            value={fmtBRL(metrics.totals.revenueNet)}
+            tone="positive"
+            icon={<Wallet className="h-3.5 w-3.5" />}
+            help="Receita bruta confirmada menos as taxas do Mercado Pago (PIX 0,99% / Cartão 4,99%)."
+            extra={metrics.rifa.pendingGross + metrics.entrada.pendingGross > 0
+              ? `Receitas pendentes: ${fmtBRL(metrics.rifa.pendingGross + metrics.entrada.pendingGross)}`
+              : undefined}
+          />
+          <StatCard
+            label="Margem"
+            value={`${derived.margin.toFixed(1)}%`}
+            tone={marginTone}
+            icon={<Percent className="h-3.5 w-3.5" />}
+            help="Lucro líquido dividido pela receita líquida."
+          />
+          <StatCard
+            label="Receita Bruta"
+            value={fmtBRL(metrics.totals.revenueGross)}
+            tone="neutral"
+            icon={<DollarSign className="h-3.5 w-3.5" />}
+            help="Soma de todos os valores confirmados antes de qualquer desconto de taxa."
+          />
           <StatCard
             label="Gastos realizados"
             value={fmtBRL(derived.totalExpenses)}
             tone="negative"
             icon={<Receipt className="h-3.5 w-3.5" />}
             subtitle={`${fmtBRL(metrics.expenses.paid)} + ${fmtBRL(derived.fabricationCost)} fabricação`}
+            help="Somente despesas com status 'pago' + custo estimado de fabricação. Despesas agendadas não entram aqui."
+            extra={metrics.expenses.scheduled > 0 ? `Despesas pendentes: ${fmtBRL(metrics.expenses.scheduled)}` : undefined}
+            onOpen={onNavigate ? () => onNavigate("expenses") : undefined}
+            openLabel="Abrir Gastos"
           />
         </div>
         <p className="text-[11px] text-muted-foreground mt-2">
@@ -465,12 +527,28 @@ const toneBar: Record<Tone, string> = {
 };
 
 function HeroKpi({
-  label, value, unit, subtitle, tone = "neutral", icon,
-}: { label: string; value: string; unit?: string; subtitle?: string; tone?: Tone; icon?: React.ReactNode }) {
+  label, value, unit, subtitle, tone = "neutral", icon, help, extra,
+}: { label: string; value: string; unit?: string; subtitle?: string; tone?: Tone; icon?: React.ReactNode; help?: string; extra?: string }) {
   return (
     <Card className={`p-4 min-h-[110px] flex flex-col justify-between transition-colors hover:border-primary/30 ${toneBorder[tone]}`}>
       <div className="flex items-center justify-between">
-        <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium">{label}</p>
+        <div className="flex items-center gap-1.5 min-w-0">
+          <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium truncate">{label}</p>
+          {help && (
+            <TooltipProvider delayDuration={100}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button type="button" className="text-muted-foreground/70 hover:text-foreground shrink-0">
+                    <Info className="h-3 w-3" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-[240px] text-xs leading-snug">
+                  {help}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </div>
         <span className={`inline-flex h-6 w-6 items-center justify-center rounded-md bg-background/60 ${toneText[tone]}`}>
           {icon}
         </span>
@@ -481,21 +559,40 @@ function HeroKpi({
           {unit && <span className="text-sm font-medium text-muted-foreground ml-0.5">{unit}</span>}
         </p>
         {subtitle && <p className="mt-1 text-[11px] text-muted-foreground truncate">{subtitle}</p>}
+        {extra && <p className="mt-0.5 text-[11px] text-orange-600 dark:text-orange-400 truncate">{extra}</p>}
       </div>
     </Card>
   );
 }
 
 function StatCard({
-  label, value, highlight, tone = "neutral", subtitle, icon,
+  label, value, highlight, tone = "neutral", subtitle, icon, help, extra, onOpen, openLabel,
 }: {
   label: string; value: string; highlight?: boolean;
   tone?: Tone; subtitle?: string; icon?: React.ReactNode;
+  help?: string; extra?: string;
+  onOpen?: () => void; openLabel?: string;
 }) {
   return (
     <Card className={`p-3 min-h-[92px] flex flex-col justify-between ${toneBorder[tone]} ${highlight ? "ring-1 ring-primary/30" : ""}`}>
       <div className="flex items-center justify-between">
-        <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium">{label}</p>
+        <div className="flex items-center gap-1.5 min-w-0">
+          <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium truncate">{label}</p>
+          {help && (
+            <TooltipProvider delayDuration={100}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button type="button" className="text-muted-foreground/70 hover:text-foreground shrink-0">
+                    <Info className="h-3 w-3" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-[240px] text-xs leading-snug">
+                  {help}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </div>
         {icon && <span className={toneText[tone]}>{icon}</span>}
       </div>
       <div>
@@ -503,6 +600,16 @@ function StatCard({
           {value}
         </p>
         {subtitle && <p className="mt-0.5 text-[11px] text-muted-foreground truncate">{subtitle}</p>}
+        {extra && <p className="mt-0.5 text-[11px] text-orange-600 dark:text-orange-400 truncate">{extra}</p>}
+        {onOpen && (
+          <button
+            type="button"
+            onClick={onOpen}
+            className="mt-1 inline-flex items-center gap-1 text-[10px] font-medium text-primary hover:underline"
+          >
+            {openLabel ?? "Abrir módulo"} <ArrowRight className="h-3 w-3" />
+          </button>
+        )}
       </div>
     </Card>
   );

@@ -113,6 +113,14 @@ const fmtDate = (s: string) => new Date(s).toLocaleString("pt-BR");
 
 const Admin = () => {
   const navigate = useNavigate();
+  const [tab, setTab] = useState<string>(() => {
+    if (typeof window === "undefined") return "dashboard";
+    const h = window.location.hash.replace("#", "");
+    return h || "dashboard";
+  });
+  useEffect(() => {
+    if (typeof window !== "undefined") window.location.hash = tab;
+  }, [tab]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [payments, setPayments] = useState<PaymentRow[]>([]);
@@ -794,7 +802,7 @@ const Admin = () => {
       </header>
 
       <section className="container py-4 sm:py-6">
-        <Tabs defaultValue="dashboard">
+        <Tabs value={tab} onValueChange={setTab}>
           <div className="-mx-2 overflow-x-auto px-2 sm:mx-0 sm:px-0">
             <TabsList className="inline-flex w-max min-w-full sm:w-auto sm:min-w-0">
               <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
@@ -872,7 +880,7 @@ const Admin = () => {
                 {realtimeOk ? "Atualizando em tempo real" : "Conectando ao tempo real..."}
               </span>
             </div>
-            <DashboardConsolidado rifaStatus={stats ? {
+            <DashboardConsolidado onNavigate={setTab} rifaStatus={stats ? {
               pending_orders: stats.pending_orders,
               numbers_available: stats.numbers_available,
               numbers_paid: stats.numbers_paid,
