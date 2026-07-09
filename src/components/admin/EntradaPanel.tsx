@@ -813,6 +813,67 @@ export function EntradaPanel() {
       </TabsContent>
 
       <TabsContent value="estoque" className="space-y-3">
+        {(() => {
+          const totalCost = production?.total_cost_cents ?? 0;
+          const units = production?.units_produced ?? 0;
+          const unitCost = units > 0 ? totalCost / units : 0;
+          const sold = shirtsSold;
+          const remaining = Math.max(units - sold, 0);
+          const recognized = Math.round(sold * unitCost);
+          const stillStock = Math.round(remaining * unitCost);
+          return (
+            <Card className="p-4 space-y-4 border-primary/30 bg-primary/[0.02]">
+              <div>
+                <h3 className="font-semibold">Produção das Camisetas</h3>
+                <p className="text-xs text-muted-foreground">
+                  A produção é tratada como <strong>investimento em estoque</strong>. O custo unitário é calculado
+                  automaticamente e o Dashboard só reconhece o custo quando cada camiseta é vendida.
+                </p>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div className="space-y-1">
+                  <Label className="text-xs">Custo de produção (R$) *</Label>
+                  <Input type="number" step="0.01" min="0" value={prodCostReais}
+                    onChange={(e) => setProdCostReais(e.target.value)} placeholder="3268.00" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Quantidade produzida *</Label>
+                  <Input type="number" min={1} value={prodUnits}
+                    onChange={(e) => setProdUnits(e.target.value)} placeholder="86" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">Custo unitário (calculado)</Label>
+                  <div className="flex h-10 items-center rounded-md border border-dashed border-input bg-muted/40 px-3 text-sm font-semibold">
+                    {units > 0 ? fmtBRL(Math.round(unitCost)) : "—"}
+                  </div>
+                </div>
+              </div>
+              <Button size="sm" onClick={saveProduction} disabled={savingProd}>
+                <Save className="mr-2 h-4 w-4" /> {savingProd ? "Salvando…" : "Salvar produção"}
+              </Button>
+
+              <div className="rounded-md border bg-background/60 p-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                  Resumo da produção
+                </p>
+                <div className="grid gap-2 sm:grid-cols-3 text-sm">
+                  <div className="flex justify-between border-b border-dashed pb-1"><span className="text-muted-foreground">Investimento total</span><span className="font-semibold tabular-nums">{fmtBRL(totalCost)}</span></div>
+                  <div className="flex justify-between border-b border-dashed pb-1"><span className="text-muted-foreground">Quantidade produzida</span><span className="font-semibold tabular-nums">{units}</span></div>
+                  <div className="flex justify-between border-b border-dashed pb-1"><span className="text-muted-foreground">Custo unitário</span><span className="font-semibold tabular-nums">{units > 0 ? fmtBRL(Math.round(unitCost)) : "—"}</span></div>
+                  <div className="flex justify-between border-b border-dashed pb-1"><span className="text-muted-foreground">Vendidas</span><span className="font-semibold tabular-nums">{sold}</span></div>
+                  <div className="flex justify-between border-b border-dashed pb-1"><span className="text-muted-foreground">Em estoque</span><span className="font-semibold tabular-nums">{remaining}</span></div>
+                  <div className="flex justify-between border-b border-dashed pb-1"><span className="text-muted-foreground">—</span><span>&nbsp;</span></div>
+                  <div className="flex justify-between border-b border-dashed pb-1"><span className="text-muted-foreground">Custo reconhecido</span><span className="font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">{fmtBRL(recognized)}</span></div>
+                  <div className="flex justify-between border-b border-dashed pb-1"><span className="text-muted-foreground">Custo ainda em estoque</span><span className="font-semibold text-amber-600 dark:text-amber-400 tabular-nums">{fmtBRL(stillStock)}</span></div>
+                  <div className="flex justify-between border-b border-dashed pb-1"><span className="text-muted-foreground">Total investido</span><span className="font-semibold tabular-nums">{fmtBRL(recognized + stillStock)}</span></div>
+                </div>
+                <p className="mt-3 text-[11px] text-muted-foreground">
+                  <strong>Custo reconhecido</strong> = camisetas vendidas × custo unitário. É esse valor que aparece no Dashboard como <em>Custo das Camisetas Vendidas</em>.
+                </p>
+              </div>
+            </Card>
+          );
+        })()}
         <Card className="p-4">
           <h3 className="font-semibold mb-1">Controle de estoque</h3>
           <p className="text-xs text-muted-foreground mb-4">
