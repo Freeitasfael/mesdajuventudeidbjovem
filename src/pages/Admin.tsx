@@ -29,6 +29,7 @@ import { RecapPanel } from "@/components/admin/RecapPanel";
 import { AboutPanel } from "@/components/admin/AboutPanel";
 import { SystemHealthPanel } from "@/components/admin/SystemHealthPanel";
 import { FinancialAudit } from "@/components/admin/FinancialAudit";
+import { NetValueCell } from "@/components/admin/NetValueCell";
 
 import { WhatsAppLink } from "@/components/WhatsAppLink";
 
