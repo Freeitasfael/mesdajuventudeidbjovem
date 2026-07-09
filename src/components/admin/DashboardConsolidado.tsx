@@ -315,6 +315,7 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
             extra={metrics.rifa.pendingGross + metrics.entrada.pendingGross > 0
               ? `Receitas pendentes: ${fmtBRL(metrics.rifa.pendingGross + metrics.entrada.pendingGross)}`
               : undefined}
+            breakdown={revenueBreakdown.map((b) => ({ label: b.label, value: fmtBRL(b.value) }))}
           />
           <HeroKpi
             label="Lucro Líquido"
@@ -322,7 +323,8 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
             tone={profitTone}
             icon={derived.netProfit >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
             subtitle={`gastos ${fmtBRL(derived.totalExpenses)}`}
-            help="Receita líquida menos despesas pagas e custo estimado de fabricação (camisetas e pulseiras)."
+            help="Receita líquida menos gastos totais (despesas pagas + fabricação + taxas MP + prêmio da rifa)."
+            breakdown={profitBreakdown.map((b) => ({ label: b.label, value: fmtBRL(b.value), emphasis: b.sign === "=" }))}
           />
           <HeroKpi
             label="Margem"
