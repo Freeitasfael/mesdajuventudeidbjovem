@@ -298,23 +298,14 @@ const Checkout = () => {
 
           {/* Indicação por código */}
           <div className="space-y-3 rounded-md border border-border p-3">
-            <label className="flex items-start gap-2 text-sm font-medium cursor-pointer">
-              <input
-                type="checkbox"
-                checked={hasReferral}
-                onChange={(e) => {
-                  setHasReferral(e.target.checked);
-                  if (!e.target.checked) {
-                    setRefInput("");
-                    setRefResult(null);
-                  }
-                }}
-                className="mt-0.5 h-4 w-4 rounded border-border"
-              />
-              <span>
-                Você recebeu do seu líder o código de identificação da sua igreja?
-              </span>
-            </label>
+            <div className="space-y-1">
+              <Label htmlFor="ref-input" className="text-sm font-medium">
+                Código de indicação (opcional)
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Se você recebeu do seu líder o código da sua igreja, digite abaixo para vincular sua compra à indicação.
+              </p>
+            </div>
 
             <ChurchCodesHelp
               onPick={(code) => {
@@ -323,43 +314,43 @@ const Checkout = () => {
               }}
             />
 
-            {hasReferral && (
-              <div className="space-y-2">
-                <Label htmlFor="ref-input" className="text-xs">
-                  Ele te informou um código? Digite abaixo para validar a indicação.
-                </Label>
-                <Input
-                  id="ref-input"
-                  type="text"
-                  inputMode="text"
-                  placeholder="Ex.: IDB001"
-                  value={refInput}
-                  onChange={(e) => setRefInput(e.target.value.toUpperCase().slice(0, 32))}
-                  maxLength={32}
-                  className="font-mono tracking-wider"
-                />
-                {refValidating && (
-                  <p className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" /> Validando código...
+            <div className="space-y-2">
+              <Input
+                id="ref-input"
+                type="text"
+                inputMode="text"
+                placeholder="Ex.: IDB001"
+                value={refInput}
+                onChange={(e) => {
+                  const v = e.target.value.toUpperCase().slice(0, 32);
+                  setRefInput(v);
+                  setHasReferral(v.trim().length > 0);
+                  if (v.trim().length === 0) setRefResult(null);
+                }}
+                maxLength={32}
+                className="font-mono tracking-wider"
+              />
+              {hasReferral && refValidating && (
+                <p className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> Validando código...
+                </p>
+              )}
+              {hasReferral && !refValidating && refResult?.ok && (
+                <div className="flex items-start gap-2 rounded-md border border-number-available/40 bg-number-available/10 p-2 text-sm">
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-number-available" />
+                  <p>
+                    Este código pertence a:{" "}
+                    <strong>{refResult.name}</strong>
                   </p>
-                )}
-                {!refValidating && refResult?.ok && (
-                  <div className="flex items-start gap-2 rounded-md border border-number-available/40 bg-number-available/10 p-2 text-sm">
-                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-number-available" />
-                    <p>
-                      Este código pertence a:{" "}
-                      <strong>{refResult.name}</strong>
-                    </p>
-                  </div>
-                )}
-                {!refValidating && refResult && refResult.ok === false && refInput.trim().length >= 3 && (
-                  <div className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 p-2 text-sm">
-                    <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
-                    <p>{refResult.message}</p>
-                  </div>
-                )}
-              </div>
-            )}
+                </div>
+              )}
+              {hasReferral && !refValidating && refResult && refResult.ok === false && refInput.trim().length >= 3 && (
+                <div className="flex items-start gap-2 rounded-md border border-destructive/40 bg-destructive/10 p-2 text-sm">
+                  <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
+                  <p>{refResult.message}</p>
+                </div>
+              )}
+            </div>
           </div>
 
           <Button type="submit" className="w-full" size="lg" disabled={submitting}>

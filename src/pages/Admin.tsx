@@ -725,6 +725,32 @@ const Admin = () => {
     loadAll();
   };
 
+  const assignSellerToOrder = async () => {
+    if (!detailOrder) return;
+    const current = detailOrder.referral_label ?? "";
+    const code = window.prompt(
+      `Atribuir/alterar código de indicação do pedido ${detailOrder.id.slice(0, 8)}.\n\nDigite o código do revendedor (ex: IDB001) ou deixe em branco para remover o vínculo.`,
+      current,
+    );
+    if (code === null) return;
+    const { error } = await supabase.rpc("admin_set_order_seller" as never, {
+      _order_id: detailOrder.id,
+      _ref_code: code.trim(),
+    } as never);
+    if (error) {
+      toast.error(
+        error.message.includes("seller_not_found")
+          ? "Código não encontrado."
+          : "Erro: " + error.message,
+      );
+      return;
+    }
+    toast.success(code.trim() ? "Código de indicação atualizado." : "Vínculo removido.");
+    setDetailOrder(null);
+    setDetailNumbers([]);
+    loadAll();
+  };
+
 
 
 
@@ -1320,6 +1346,13 @@ const Admin = () => {
                   >
                     Fechar
                   </Button>
+                  {detailOrder && (
+                    <Button variant="secondary" onClick={assignSellerToOrder}>
+                      {detailOrder.seller_id || detailOrder.referral_label
+                        ? "Alterar código de indicação"
+                        : "Adicionar código de indicação"}
+                    </Button>
+                  )}
                   {detailOrder &&
                     ["paid", "pending"].includes(detailOrder.status) && (
                       <Button
