@@ -229,6 +229,26 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
   const profitTone: Tone = derived.netProfit > 0 ? "positive" : derived.netProfit < 0 ? "negative" : "neutral";
   const marginTone: Tone = derived.margin >= 20 ? "positive" : derived.margin >= 0 ? "warning" : "negative";
 
+  // Composições (usadas nos cards executivos)
+  const revenueBreakdown = [
+    { label: "Patrocínios", value: metrics.sponsors.total, tab: "sponsors" },
+    { label: "Camisetas (kits)", value: metrics.entrada.kit.net, tab: "entrada" },
+    { label: "Rifa", value: metrics.rifa.net, tab: "orders" },
+    { label: "Ofertas", value: metrics.offerings.total, tab: "offerings" },
+    { label: "Pulseiras", value: metrics.entrada.pulseira.net, tab: "entrada" },
+  ];
+  const expenseBreakdown = [
+    { label: "Despesas gerais do evento", value: metrics.expenses.paid, tab: "expenses" },
+    { label: "Custo de fabricação (camisetas + pulseiras)", value: derived.fabricationCost, tab: "entrada" },
+    { label: "Taxas Mercado Pago (Rifa + Camisetas)", value: metrics.totals.feesMP },
+    { label: "Custo do prêmio da Rifa", value: derived.prizeCost },
+  ];
+  const profitBreakdown = [
+    { label: "Receita Líquida", value: metrics.totals.revenueNet, sign: "" as const },
+    { label: "(−) Gastos Totais", value: derived.totalExpenses, sign: "-" as const },
+    { label: "(=) Lucro Líquido", value: derived.netProfit, sign: "=" as const },
+  ];
+
   // % participação por categoria (visual apenas)
   const revenueBase = Math.max(
     1,
