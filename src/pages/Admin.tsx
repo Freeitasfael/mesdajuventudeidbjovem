@@ -1520,13 +1520,24 @@ const Admin = () => {
                         `YouTube: https://www.youtube.com/idbjovemminas\n\n` +
                         `Qualquer dúvida, estamos à disposição. Obrigado! 🙌`;
                       window.open(`https://wa.me/${phoneE164}?text=${encodeURIComponent(msg)}`, "_blank", "noopener,noreferrer");
+                      if (!detailOrder.notified_at) toggleNotified(detailOrder.id, false);
                     };
                     return (
-                      <Button variant="default" onClick={sendMsg} disabled={disabled} title={disabled ? "Telefone ou números indisponíveis" : "Abrir WhatsApp"}>
-                        Enviar confirmação (WhatsApp)
-                      </Button>
+                      <>
+                        <Button
+                          variant={detailOrder.notified_at ? "secondary" : "outline"}
+                          onClick={() => toggleNotified(detailOrder.id, !!detailOrder.notified_at)}
+                          title={detailOrder.notified_at ? `Avisado em ${fmtDate(detailOrder.notified_at)}` : "Marcar como avisado"}
+                        >
+                          {detailOrder.notified_at ? "✅ Avisado" : "Marcar como avisado"}
+                        </Button>
+                        <Button variant="default" onClick={sendMsg} disabled={disabled} title={disabled ? "Telefone ou números indisponíveis" : "Abrir WhatsApp"}>
+                          Enviar confirmação (WhatsApp)
+                        </Button>
+                      </>
                     );
                   })()}
+
                   {detailOrder && (
                     <Button variant="secondary" onClick={assignSellerToOrder}>
                       {detailOrder.seller_id || detailOrder.referral_label
