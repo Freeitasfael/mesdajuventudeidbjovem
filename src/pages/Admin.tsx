@@ -398,7 +398,7 @@ const Admin = () => {
           n.number.toString().padStart(3, "0"),
           buyer?.name ?? "—",
           buyer?.phone ?? "—",
-          seller?.name ?? "—",
+          seller?.ref_code ? seller.ref_code.toUpperCase() : "Sem código de indicação",
         ];
       });
 
