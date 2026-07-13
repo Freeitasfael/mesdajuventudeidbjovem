@@ -79,9 +79,14 @@ const Rifa = () => {
         if (row.key === "hero_stats" && row.value && typeof row.value === "object") {
           setStats(row.value as unknown as HeroStats);
         }
+        if (row.key === "raffle_sales_closed" && row.value === true) {
+          setSalesClosed(true);
+          setClosedModalOpen(true);
+        }
       }
       setHeroLoading(false);
     };
+
     loadSettings();
     // Failsafe: nunca deixe o hero preso em skeleton mais que 4s
     const failsafe = window.setTimeout(() => setHeroLoading(false), 4000);
