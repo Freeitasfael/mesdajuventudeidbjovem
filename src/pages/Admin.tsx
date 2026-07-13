@@ -85,7 +85,9 @@ interface OrderRow {
   seller_id: string | null;
   referral_label: string | null;
   payment_method: string | null;
+  notified_at: string | null;
 }
+
 
 interface PaymentRow {
   id: string;
@@ -776,6 +778,22 @@ const Admin = () => {
     setDetailNumbers((data ?? []).map((r) => r.number as number));
   };
 
+  const toggleNotified = async (orderId: string, currentlyNotified: boolean) => {
+    const nextValue = currentlyNotified ? null : new Date().toISOString();
+    const { error } = await supabase
+      .from("orders")
+      .update({ notified_at: nextValue })
+      .eq("id", orderId);
+    if (error) {
+      toast.error("Falha ao atualizar: " + error.message);
+      return;
+    }
+    setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, notified_at: nextValue } : o)));
+    setDetailOrder((prev) => (prev && prev.id === orderId ? { ...prev, notified_at: nextValue } : prev));
+    toast.success(currentlyNotified ? "Marcado como não avisado" : "Marcado como avisado ✅");
+  };
+
+
   const refundOrder = async () => {
     if (!detailOrder) return;
     if (
@@ -1286,8 +1304,10 @@ const Admin = () => {
                     <th className="px-4 py-3">Telefone</th>
                     <th className="px-4 py-3">Indicação</th>
                     <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3 text-center">Avisado</th>
                     <th className="px-4 py-3 text-right">Total (bruto)</th>
                     <th className="px-4 py-3 text-right">Líquido recebido</th>
+
                   </tr>
                 </thead>
                 <tbody>
@@ -1328,9 +1348,19 @@ const Admin = () => {
                         <td className="px-4 py-3">
                           <StatusBadge status={o.status} />
                         </td>
+                        <td className="px-4 py-3 text-center" onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            className="h-4 w-4 cursor-pointer accent-emerald-500"
+                            checked={!!o.notified_at}
+                            onChange={() => toggleNotified(o.id, !!o.notified_at)}
+                            title={o.notified_at ? `Avisado em ${fmtDate(o.notified_at)}` : "Marcar como avisado"}
+                          />
+                        </td>
                         <td className="px-4 py-3 text-right font-medium">
                           {fmtBRL(o.total_cents)}
                         </td>
+
                         <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
                           {isPaid(o.status) ? (
                             <NetValueCell grossCents={o.total_cents} method={o.payment_method} />
@@ -1344,7 +1374,7 @@ const Admin = () => {
                   })}
                   {filteredOrders.length === 0 && (
                     <tr>
-                      <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">
+                      <td colSpan={9} className="px-4 py-8 text-center text-muted-foreground">
                         Nenhum pedido nesse filtro.
                       </td>
                     </tr>
@@ -1490,13 +1520,24 @@ const Admin = () => {
                         `YouTube: https://www.youtube.com/idbjovemminas\n\n` +
                         `Qualquer dúvida, estamos à disposição. Obrigado! 🙌`;
                       window.open(`https://wa.me/${phoneE164}?text=${encodeURIComponent(msg)}`, "_blank", "noopener,noreferrer");
+                      if (!detailOrder.notified_at) toggleNotified(detailOrder.id, false);
                     };
                     return (
-                      <Button variant="default" onClick={sendMsg} disabled={disabled} title={disabled ? "Telefone ou números indisponíveis" : "Abrir WhatsApp"}>
-                        Enviar confirmação (WhatsApp)
-                      </Button>
+                      <>
+                        <Button
+                          variant={detailOrder.notified_at ? "secondary" : "outline"}
+                          onClick={() => toggleNotified(detailOrder.id, !!detailOrder.notified_at)}
+                          title={detailOrder.notified_at ? `Avisado em ${fmtDate(detailOrder.notified_at)}` : "Marcar como avisado"}
+                        >
+                          {detailOrder.notified_at ? "✅ Avisado" : "Marcar como avisado"}
+                        </Button>
+                        <Button variant="default" onClick={sendMsg} disabled={disabled} title={disabled ? "Telefone ou números indisponíveis" : "Abrir WhatsApp"}>
+                          Enviar confirmação (WhatsApp)
+                        </Button>
+                      </>
                     );
                   })()}
+
                   {detailOrder && (
                     <Button variant="secondary" onClick={assignSellerToOrder}>
                       {detailOrder.seller_id || detailOrder.referral_label

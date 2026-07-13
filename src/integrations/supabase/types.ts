@@ -447,6 +447,7 @@ export type Database = {
           created_at: string
           expires_at: string
           id: string
+          notified_at: string | null
           payment_method: string
           referral_label: string | null
           seller_id: string | null
@@ -459,6 +460,7 @@ export type Database = {
           created_at?: string
           expires_at: string
           id?: string
+          notified_at?: string | null
           payment_method?: string
           referral_label?: string | null
           seller_id?: string | null
@@ -471,6 +473,7 @@ export type Database = {
           created_at?: string
           expires_at?: string
           id?: string
+          notified_at?: string | null
           payment_method?: string
           referral_label?: string | null
           seller_id?: string | null
