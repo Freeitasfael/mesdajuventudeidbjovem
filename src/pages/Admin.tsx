@@ -500,8 +500,26 @@ const Admin = () => {
       if (row.key === "hero_stats" && row.value && typeof row.value === "object") {
         setHeroStats(row.value as typeof heroStats);
       }
+      if (row.key === "raffle_sales_closed") {
+        setSalesClosed(row.value === true);
+      }
     }
   };
+
+  const toggleSalesClosed = async (next: boolean) => {
+    setSavingSalesClosed(true);
+    const { error } = await supabase
+      .from("app_settings")
+      .upsert([{ key: "raffle_sales_closed", value: next as unknown as never }], { onConflict: "key" });
+    setSavingSalesClosed(false);
+    if (error) {
+      toast.error("Falha ao salvar: " + error.message);
+      return;
+    }
+    setSalesClosed(next);
+    toast.success(next ? "Vendas da rifa desativadas" : "Vendas da rifa reativadas");
+  };
+
 
   // Realtime: revalida stats e listas quando orders/payments mudarem
   useEffect(() => {
