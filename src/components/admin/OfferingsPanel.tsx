@@ -164,20 +164,20 @@ export function OfferingsPanel() {
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="p-4 border-emerald-500/30 bg-emerald-500/5">
           <p className="text-xs uppercase tracking-wide text-muted-foreground">Total arrecadado</p>
-          <p className="mt-1 text-2xl font-bold text-emerald-600 dark:text-emerald-400">{fmtBRL(total)}</p>
+          <p data-priv className="mt-1 text-2xl font-bold text-emerald-600 dark:text-emerald-400">{fmtBRL(total)}</p>
           <p className="mt-1 text-xs text-muted-foreground">{items.length} oferta(s)</p>
         </Card>
         <Card className="p-4">
           <p className="text-xs uppercase tracking-wide text-muted-foreground">Pix</p>
-          <p className="mt-1 text-2xl font-bold">{fmtBRL(countByMethod.pix)}</p>
+          <p data-priv className="mt-1 text-2xl font-bold">{fmtBRL(countByMethod.pix)}</p>
         </Card>
         <Card className="p-4">
           <p className="text-xs uppercase tracking-wide text-muted-foreground">Dinheiro</p>
-          <p className="mt-1 text-2xl font-bold">{fmtBRL(countByMethod.cash)}</p>
+          <p data-priv className="mt-1 text-2xl font-bold">{fmtBRL(countByMethod.cash)}</p>
         </Card>
         <Card className="p-4">
           <p className="text-xs uppercase tracking-wide text-muted-foreground">Cartão / Transferência / Outras</p>
-          <p className="mt-1 text-2xl font-bold">{fmtBRL(countByMethod.card + countByMethod.transfer + countByMethod.other)}</p>
+          <p data-priv className="mt-1 text-2xl font-bold">{fmtBRL(countByMethod.card + countByMethod.transfer + countByMethod.other)}</p>
         </Card>
       </div>
 
