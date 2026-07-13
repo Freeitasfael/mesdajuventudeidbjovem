@@ -56,7 +56,9 @@ const Rifa = () => {
           "price_per_number_cents",
           "hero_prizes",
           "hero_stats",
+          "raffle_sales_closed",
         ]);
+
 
       if (error) {
         console.log("[Rifa] settings error", error);
