@@ -85,7 +85,9 @@ interface OrderRow {
   seller_id: string | null;
   referral_label: string | null;
   payment_method: string | null;
+  notified_at: string | null;
 }
+
 
 interface PaymentRow {
   id: string;
