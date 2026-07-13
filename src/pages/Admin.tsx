@@ -2085,7 +2085,7 @@ const StatCard = ({ label, value, tone = "neutral", hint }: { label: string; val
           </TooltipProvider>
         ) : null}
       </div>
-      <p className={`mt-1 text-2xl font-bold ${toneCls}`}>{value}</p>
+      <p data-priv className={`mt-1 text-2xl font-bold ${toneCls}`}>{value}</p>
     </Card>
   );
 };
