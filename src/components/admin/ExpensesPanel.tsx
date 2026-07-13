@@ -374,7 +374,7 @@ export function ExpensesPanel() {
                   )}
                 </td>
                 <td className="px-4 py-3 text-xs text-muted-foreground max-w-xs truncate">{e.notes ?? "—"}</td>
-                <td className="px-4 py-3 text-right font-medium">{fmtBRL(e.amount_cents)}</td>
+                <td data-priv className="px-4 py-3 text-right font-medium">{fmtBRL(e.amount_cents)}</td>
                 <td className="px-4 py-3 text-right whitespace-nowrap">
                   {e.status === "scheduled" && (
                     <Button size="sm" variant="ghost" onClick={() => markAsPaid(e)} title="Marcar como pago">
