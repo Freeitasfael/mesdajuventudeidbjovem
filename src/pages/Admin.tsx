@@ -1630,7 +1630,7 @@ const Admin = () => {
                               <td className="px-4 py-3 font-mono text-xs">{r.ref_code}</td>
                               <td className="px-4 py-3 text-right">{r.total_orders}</td>
                               <td className="px-4 py-3 text-right">{r.total_numbers}</td>
-                              <td className="px-4 py-3 text-right font-medium">{fmtBRL(r.total_cents)}</td>
+                              <td data-priv className="px-4 py-3 text-right font-medium">{fmtBRL(r.total_cents)}</td>
                             </tr>
                           ))}
                         </tbody>
