@@ -1380,11 +1380,11 @@ const Admin = () => {
                             title={o.notified_at ? `Avisado em ${fmtDate(o.notified_at)}` : "Marcar como avisado"}
                           />
                         </td>
-                        <td className="px-4 py-3 text-right font-medium">
+                        <td data-priv className="px-4 py-3 text-right font-medium">
                           {fmtBRL(o.total_cents)}
                         </td>
 
-                        <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
+                        <td data-priv className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
                           {isPaid(o.status) ? (
                             <NetValueCell grossCents={o.total_cents} method={o.payment_method} />
                           ) : (
