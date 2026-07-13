@@ -233,14 +233,50 @@ const Rifa = () => {
 
       <SiteFooter />
 
-      <CheckoutBar pricePerNumber={pricePerNumber} />
+      {!salesClosed && <CheckoutBar pricePerNumber={pricePerNumber} />}
 
       <WhatsAppFab
-        bottomOffset={selected.length > 0 ? 96 : 0}
+        bottomOffset={!salesClosed && selected.length > 0 ? 96 : 0}
         message="Olá! Estou na página da Rifa IDB Jovem e gostaria de tirar uma dúvida antes de finalizar minha compra."
       />
+
+      <Dialog open={closedModalOpen} onOpenChange={setClosedModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <Radio className="h-5 w-5 text-red-500" />
+              Vendas da rifa encerradas
+            </DialogTitle>
+            <DialogDescription className="pt-2 text-base">
+              As vendas da rifa do <strong>Mês da Juventude</strong> foram encerradas.
+              O sorteio será realizado <strong>ao vivo</strong> no Instagram e YouTube da{" "}
+              <strong>IDB Jovem Minas</strong>. Acompanhe por lá para saber o resultado!
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-2 pt-2">
+            <Button asChild variant="outline" className="justify-start">
+              <a href="https://www.instagram.com/idbjovemminas" target="_blank" rel="noopener noreferrer">
+                <Instagram className="mr-2 h-5 w-5 text-pink-500" />
+                @idbjovemminas no Instagram
+              </a>
+            </Button>
+            <Button asChild variant="outline" className="justify-start">
+              <a href="https://www.youtube.com/idbjovemminas" target="_blank" rel="noopener noreferrer">
+                <Youtube className="mr-2 h-5 w-5 text-red-500" />
+                IDB Jovem Minas no YouTube
+              </a>
+            </Button>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setClosedModalOpen(false)} className="w-full">
+              Entendi
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 };
+
 
 export default Rifa;
