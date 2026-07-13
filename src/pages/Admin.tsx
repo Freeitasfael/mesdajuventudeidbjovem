@@ -1455,6 +1455,30 @@ const Admin = () => {
                   >
                     Fechar
                   </Button>
+                  {detailOrder && (() => {
+                    const buyer = buyers[detailOrder.buyer_id];
+                    const phone = buyer?.phone ? buyer.phone.replace(/\D/g, "") : "";
+                    const phoneE164 = phone ? (phone.startsWith("55") ? phone : `55${phone}`) : "";
+                    const disabled = !phoneE164 || detailNumbers.length === 0;
+                    const sendMsg = () => {
+                      const nums = [...detailNumbers].sort((a, b) => a - b).map((n) => n.toString().padStart(3, "0")).join(", ");
+                      const nome = (buyer?.name ?? "").split(" ")[0] || "";
+                      const msg =
+                        `Olá${nome ? ` ${nome}` : ""}! 🎉\n\n` +
+                        `Passando para confirmar que está tudo certo com a sua compra na Rifa da IDB Jovem Minas. Deus abençoe sua participação!\n\n` +
+                        `🎟️ Seus números (${detailNumbers.length}): ${nums}\n\n` +
+                        `📺 Acompanhe o sorteio ao vivo pelo nosso Instagram e YouTube:\n` +
+                        `Instagram: https://www.instagram.com/idbjovemminas\n` +
+                        `YouTube: https://www.youtube.com/idbjovemminas\n\n` +
+                        `Qualquer dúvida, estamos à disposição. Obrigado! 🙌`;
+                      window.open(`https://wa.me/${phoneE164}?text=${encodeURIComponent(msg)}`, "_blank", "noopener,noreferrer");
+                    };
+                    return (
+                      <Button variant="default" onClick={sendMsg} disabled={disabled} title={disabled ? "Telefone ou números indisponíveis" : "Abrir WhatsApp"}>
+                        Enviar confirmação (WhatsApp)
+                      </Button>
+                    );
+                  })()}
                   {detailOrder && (
                     <Button variant="secondary" onClick={assignSellerToOrder}>
                       {detailOrder.seller_id || detailOrder.referral_label
