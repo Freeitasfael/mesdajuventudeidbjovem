@@ -130,6 +130,9 @@ const Admin = () => {
   const [sellers, setSellers] = useState<SellerRow[]>([]);
   const [revalidatingId, setRevalidatingId] = useState<string | null>(null);
   const [realtimeOk, setRealtimeOk] = useState(false);
+  const [salesClosed, setSalesClosed] = useState<boolean>(false);
+  const [savingSalesClosed, setSavingSalesClosed] = useState(false);
+
 
   // Ranking de vendedores (apenas para o painel Vendedores)
   const [sellerRanking, setSellerRanking] = useState<Array<{
@@ -438,7 +441,9 @@ const Admin = () => {
           "price_per_number_cents",
           "hero_prizes",
           "hero_stats",
+          "raffle_sales_closed",
         ]),
+
     ]);
     if (s.data && Array.isArray(s.data) && s.data[0]) setStats(s.data[0] as Stats);
     if (o.data) {
@@ -495,8 +500,26 @@ const Admin = () => {
       if (row.key === "hero_stats" && row.value && typeof row.value === "object") {
         setHeroStats(row.value as typeof heroStats);
       }
+      if (row.key === "raffle_sales_closed") {
+        setSalesClosed(row.value === true);
+      }
     }
   };
+
+  const toggleSalesClosed = async (next: boolean) => {
+    setSavingSalesClosed(true);
+    const { error } = await supabase
+      .from("app_settings")
+      .upsert([{ key: "raffle_sales_closed", value: next as unknown as never }], { onConflict: "key" });
+    setSavingSalesClosed(false);
+    if (error) {
+      toast.error("Falha ao salvar: " + error.message);
+      return;
+    }
+    setSalesClosed(next);
+    toast.success(next ? "Vendas da rifa desativadas" : "Vendas da rifa reativadas");
+  };
+
 
   // Realtime: revalida stats e listas quando orders/payments mudarem
   useEffect(() => {
@@ -1077,6 +1100,32 @@ const Admin = () => {
 
           {/* ORDERS */}
           <TabsContent value="orders" className="mt-6 space-y-4">
+            {/* Status das vendas da rifa */}
+            <Card className={`p-4 border-2 ${salesClosed ? "border-red-500/60 bg-red-500/10" : "border-emerald-500/40 bg-emerald-500/5"}`}>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold uppercase tracking-wide">
+                    Status das vendas
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {salesClosed
+                      ? "As vendas da rifa estão DESATIVADAS. Compradores veem um aviso e não conseguem finalizar novas compras. Pedidos já pagos e números disponíveis não são alterados."
+                      : "As vendas da rifa estão ATIVAS. Compradores podem escolher números e finalizar pagamentos normalmente."}
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  disabled={savingSalesClosed}
+                  onClick={() => toggleSalesClosed(!salesClosed)}
+                  variant={salesClosed ? "default" : "destructive"}
+                  className="w-full sm:w-auto"
+                >
+                  {salesClosed ? "Reativar vendas" : "Desativar vendas"}
+                </Button>
+              </div>
+            </Card>
+
+
             {/* Configuração do Preço de Custo do prêmio (alimenta Lucro Líquido) */}
             <Card className="p-4 border-primary/30 bg-primary/5">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">

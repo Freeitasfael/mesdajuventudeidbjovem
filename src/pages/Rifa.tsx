@@ -9,9 +9,11 @@ import { HeroRifa, type Prize, type HeroStats } from "@/components/HeroRifa";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { Button } from "@/components/ui/button";
-import { Handshake, Sparkles, History, Search, ArrowRight } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Handshake, Sparkles, History, Search, ArrowRight, Instagram, Youtube, Radio } from "lucide-react";
 
 const REF_STORAGE_KEY = "raffle_ref_code";
+
 
 const Rifa = () => {
   const [searchParams] = useSearchParams();
@@ -21,7 +23,10 @@ const Rifa = () => {
   const [stats, setStats] = useState<HeroStats | null>(null);
   const [heroLoading, setHeroLoading] = useState(true);
   const [sellerName, setSellerName] = useState<string | null>(null);
+  const [salesClosed, setSalesClosed] = useState(false);
+  const [closedModalOpen, setClosedModalOpen] = useState(false);
   const { selected } = useSelection();
+
 
   // Capture ?ref=CODE and persist; lookup seller name
   useEffect(() => {
@@ -51,7 +56,9 @@ const Rifa = () => {
           "price_per_number_cents",
           "hero_prizes",
           "hero_stats",
+          "raffle_sales_closed",
         ]);
+
 
       if (error) {
         console.log("[Rifa] settings error", error);
@@ -72,9 +79,14 @@ const Rifa = () => {
         if (row.key === "hero_stats" && row.value && typeof row.value === "object") {
           setStats(row.value as unknown as HeroStats);
         }
+        if (row.key === "raffle_sales_closed" && row.value === true) {
+          setSalesClosed(true);
+          setClosedModalOpen(true);
+        }
       }
       setHeroLoading(false);
     };
+
     loadSettings();
     // Failsafe: nunca deixe o hero preso em skeleton mais que 4s
     const failsafe = window.setTimeout(() => setHeroLoading(false), 4000);
@@ -221,14 +233,50 @@ const Rifa = () => {
 
       <SiteFooter />
 
-      <CheckoutBar pricePerNumber={pricePerNumber} />
+      {!salesClosed && <CheckoutBar pricePerNumber={pricePerNumber} />}
 
       <WhatsAppFab
-        bottomOffset={selected.length > 0 ? 96 : 0}
+        bottomOffset={!salesClosed && selected.length > 0 ? 96 : 0}
         message="Olá! Estou na página da Rifa IDB Jovem e gostaria de tirar uma dúvida antes de finalizar minha compra."
       />
+
+      <Dialog open={closedModalOpen} onOpenChange={setClosedModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <Radio className="h-5 w-5 text-red-500" />
+              Vendas da rifa encerradas
+            </DialogTitle>
+            <DialogDescription className="pt-2 text-base">
+              As vendas da rifa do <strong>Mês da Juventude</strong> foram encerradas.
+              O sorteio será realizado <strong>ao vivo</strong> no Instagram e YouTube da{" "}
+              <strong>IDB Jovem Minas</strong>. Acompanhe por lá para saber o resultado!
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-2 pt-2">
+            <Button asChild variant="outline" className="justify-start">
+              <a href="https://www.instagram.com/idbjovemminas" target="_blank" rel="noopener noreferrer">
+                <Instagram className="mr-2 h-5 w-5 text-pink-500" />
+                @idbjovemminas no Instagram
+              </a>
+            </Button>
+            <Button asChild variant="outline" className="justify-start">
+              <a href="https://www.youtube.com/idbjovemminas" target="_blank" rel="noopener noreferrer">
+                <Youtube className="mr-2 h-5 w-5 text-red-500" />
+                IDB Jovem Minas no YouTube
+              </a>
+            </Button>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setClosedModalOpen(false)} className="w-full">
+              Entendi
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 };
+
 
 export default Rifa;
