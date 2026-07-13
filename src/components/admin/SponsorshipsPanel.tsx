@@ -260,15 +260,15 @@ export function SponsorshipsPanel() {
       <div className="grid gap-3 sm:grid-cols-3">
         <Card className="p-4">
           <p className="text-xs uppercase tracking-wide text-muted-foreground">Confirmado (dinheiro)</p>
-          <p className="mt-1 text-2xl font-bold text-emerald-600 dark:text-emerald-400">{fmtBRL(totals.confirmedCash)}</p>
+          <p data-priv className="mt-1 text-2xl font-bold text-emerald-600 dark:text-emerald-400">{fmtBRL(totals.confirmedCash)}</p>
         </Card>
         <Card className="p-4">
           <p className="text-xs uppercase tracking-wide text-muted-foreground">Confirmado (permuta)</p>
-          <p className="mt-1 text-2xl font-bold">{fmtBRL(totals.confirmedPermuta)}</p>
+          <p data-priv className="mt-1 text-2xl font-bold">{fmtBRL(totals.confirmedPermuta)}</p>
         </Card>
         <Card className="p-4">
           <p className="text-xs uppercase tracking-wide text-muted-foreground">Pendente</p>
-          <p className="mt-1 text-2xl font-bold text-amber-600 dark:text-amber-400">{fmtBRL(totals.pending)}</p>
+          <p data-priv className="mt-1 text-2xl font-bold text-amber-600 dark:text-amber-400">{fmtBRL(totals.pending)}</p>
         </Card>
       </div>
 

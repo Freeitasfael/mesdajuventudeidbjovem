@@ -961,7 +961,7 @@ function KpiCard({ label, value, tone = "neutral", hint }: { label: string; valu
   return (
     <Card className={`p-3 ${borderClass}`} title={hint}>
       <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</p>
-      <p className={`mt-1 text-lg font-bold ${toneClass}`}>{value}</p>
+      <p data-priv className={`mt-1 text-lg font-bold ${toneClass}`}>{value}</p>
       {hint && <p className="mt-1 text-[10px] text-muted-foreground leading-tight">{hint}</p>}
     </Card>
   );
