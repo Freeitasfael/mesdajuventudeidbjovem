@@ -486,7 +486,7 @@ const Admin = () => {
         .from("entrada_orders")
         .select("id, created_at, buyer_name, total_cents, status, mp_payment_id, payment_method")
         .order("created_at", { ascending: false })
-        .limit(100);
+        .limit(5000);
       if (sp.data) setShirtPayments(sp.data as typeof shirtPayments);
     } catch {}
     if (sl.data) setSellers(sl.data as SellerRow[]);
