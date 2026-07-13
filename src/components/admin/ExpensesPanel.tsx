@@ -319,9 +319,9 @@ export function ExpensesPanel() {
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-muted-foreground">
-          {items.length} gasto(s) · <strong className="text-foreground">{fmtBRL(totals.total)}</strong> total ·{" "}
-          <span className="text-emerald-600 dark:text-emerald-400">Pago: {fmtBRL(totals.paid)}</span> ·{" "}
-          <span className="text-amber-600 dark:text-amber-400">Agendado: {fmtBRL(totals.scheduled)}</span>
+          {items.length} gasto(s) · <strong data-priv className="text-foreground">{fmtBRL(totals.total)}</strong> total ·{" "}
+          <span data-priv className="text-emerald-600 dark:text-emerald-400">Pago: {fmtBRL(totals.paid)}</span> ·{" "}
+          <span data-priv className="text-amber-600 dark:text-amber-400">Agendado: {fmtBRL(totals.scheduled)}</span>
         </p>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={exportCSV} disabled={items.length === 0}>
