@@ -778,6 +778,22 @@ const Admin = () => {
     setDetailNumbers((data ?? []).map((r) => r.number as number));
   };
 
+  const toggleNotified = async (orderId: string, currentlyNotified: boolean) => {
+    const nextValue = currentlyNotified ? null : new Date().toISOString();
+    const { error } = await supabase
+      .from("orders")
+      .update({ notified_at: nextValue })
+      .eq("id", orderId);
+    if (error) {
+      toast.error("Falha ao atualizar: " + error.message);
+      return;
+    }
+    setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, notified_at: nextValue } : o)));
+    setDetailOrder((prev) => (prev && prev.id === orderId ? { ...prev, notified_at: nextValue } : prev));
+    toast.success(currentlyNotified ? "Marcado como não avisado" : "Marcado como avisado ✅");
+  };
+
+
   const refundOrder = async () => {
     if (!detailOrder) return;
     if (
