@@ -48,7 +48,8 @@ export function WhatsAppLink({ phone, message, iconOnly = false, className = "" 
       className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-emerald-600 hover:bg-emerald-500/15 dark:text-emerald-400 transition-colors ${className}`}
     >
       <MessageCircle className="h-3.5 w-3.5" />
-      <span className="whitespace-nowrap">{phone}</span>
+      <span className="whitespace-nowrap" data-priv>{phone}</span>
     </a>
+
   );
 }
