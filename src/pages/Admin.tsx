@@ -6,8 +6,9 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LogOut, Plus, Trash2, Copy, Trophy, Bell, Upload, Move, Image as ImageIcon, Eye, RefreshCw, RotateCw, Radio, Download, Users, Info } from "lucide-react";
+import { LogOut, Plus, Trash2, Copy, Trophy, Bell, Upload, Move, Image as ImageIcon, Eye, EyeOff, RefreshCw, RotateCw, Radio, Download, Users, Info } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useHidePrivacy } from "@/hooks/useHidePrivacy";
 
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -887,8 +888,10 @@ const Admin = () => {
     toast.success("Link copiado");
   };
 
+  const [hidePrivacy, setHidePrivacy] = useHidePrivacy();
+
   return (
-    <main className="min-h-screen bg-background">
+    <main className={`min-h-screen bg-background dashboard-privacy ${hidePrivacy ? "is-hidden" : ""}`}>
       <header className="border-b border-border bg-card">
         <div className="container flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:py-4">
           <div>
@@ -896,6 +899,25 @@ const Admin = () => {
             <p className="text-xs text-muted-foreground">Gerencie sua rifa</p>
           </div>
           <div className="flex flex-wrap gap-2">
+            <TooltipProvider delayDuration={100}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={hidePrivacy ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setHidePrivacy((v) => !v)}
+                    aria-label={hidePrivacy ? "Mostrar valores" : "Ocultar valores"}
+                    aria-pressed={hidePrivacy}
+                  >
+                    {hidePrivacy ? <EyeOff className="h-4 w-4 sm:mr-2" /> : <Eye className="h-4 w-4 sm:mr-2" />}
+                    <span className="hidden sm:inline">{hidePrivacy ? "Mostrar" : "Ocultar"}</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">
+                  {hidePrivacy ? "Clique para revelar os valores" : "Clique para ocultar valores (modo apresentação)"}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             <Button variant="outline" size="sm" asChild>
               <Link to="/revendedor">
                 <Users className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">Revendedor</span>
@@ -920,6 +942,7 @@ const Admin = () => {
           </div>
         </div>
       </header>
+
 
       <section className="container py-4 sm:py-6">
         <Tabs value={tab} onValueChange={setTab}>
