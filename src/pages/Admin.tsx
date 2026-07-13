@@ -245,14 +245,25 @@ const Admin = () => {
   const filteredOrders = useMemo(() => {
     const fromTs = orderDateFrom ? new Date(orderDateFrom + "T00:00:00").getTime() : null;
     const toTs = orderDateTo ? new Date(orderDateTo + "T23:59:59").getTime() : null;
+    const q = orderNumberSearch.replace(/\D/g, "");
+    const qNum = q ? parseInt(q, 10) : null;
     return orders.filter((o) => {
       if (orderStatusFilter !== "all" && o.status !== orderStatusFilter) return false;
       const ts = new Date(o.created_at).getTime();
       if (fromTs !== null && ts < fromTs) return false;
       if (toTs !== null && ts > toTs) return false;
+      if (q) {
+        const nums = ordersNumbersMap[o.id] ?? [];
+        const hit = nums.some((n) => {
+          if (qNum !== null && n === qNum) return true;
+          const padded = n.toString().padStart(3, "0");
+          return padded.includes(q) || n.toString().includes(q);
+        });
+        if (!hit) return false;
+      }
       return true;
     });
-  }, [orders, orderStatusFilter, orderDateFrom, orderDateTo]);
+  }, [orders, orderStatusFilter, orderDateFrom, orderDateTo, orderNumberSearch, ordersNumbersMap]);
 
   // KPIs da Rifa (aba "Rifa") — líquido considera taxa MP por método (PIX 0,99% · Cartão 4,99%)
   const rifaKpis = useMemo(() => {
