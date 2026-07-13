@@ -130,6 +130,9 @@ const Admin = () => {
   const [sellers, setSellers] = useState<SellerRow[]>([]);
   const [revalidatingId, setRevalidatingId] = useState<string | null>(null);
   const [realtimeOk, setRealtimeOk] = useState(false);
+  const [salesClosed, setSalesClosed] = useState<boolean>(false);
+  const [savingSalesClosed, setSavingSalesClosed] = useState(false);
+
 
   // Ranking de vendedores (apenas para o painel Vendedores)
   const [sellerRanking, setSellerRanking] = useState<Array<{
