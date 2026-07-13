@@ -90,8 +90,27 @@ const Rifa = () => {
     loadSettings();
     // Failsafe: nunca deixe o hero preso em skeleton mais que 4s
     const failsafe = window.setTimeout(() => setHeroLoading(false), 4000);
-    return () => window.clearTimeout(failsafe);
+
+    // Polling: detecta se admin encerrou as vendas enquanto o usuário está na página
+    const poll = window.setInterval(async () => {
+      const { data } = await supabase
+        .from("app_settings")
+        .select("value")
+        .eq("key", "raffle_sales_closed")
+        .maybeSingle();
+      const closed = data?.value === true;
+      setSalesClosed((prev) => {
+        if (closed && !prev) setClosedModalOpen(true);
+        return closed;
+      });
+    }, 15000);
+
+    return () => {
+      window.clearTimeout(failsafe);
+      window.clearInterval(poll);
+    };
   }, []);
+
 
   return (
     <main
