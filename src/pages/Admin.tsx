@@ -1445,9 +1445,9 @@ const Admin = () => {
                         </div>
                         <div>
                           <p className="text-xs uppercase text-muted-foreground">Total (bruto)</p>
-                          <p className="font-semibold">{fmtBRL(detailOrder.total_cents)}</p>
+                          <p data-priv className="font-semibold">{fmtBRL(detailOrder.total_cents)}</p>
                           {isPaid(detailOrder.status) && (
-                            <div className="mt-1 text-xs">
+                            <div data-priv className="mt-1 text-xs">
                               <span className="text-muted-foreground">Líquido: </span>
                               <NetValueCell grossCents={detailOrder.total_cents} method={detailOrder.payment_method} compact />
                             </div>
