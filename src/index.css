@@ -394,9 +394,11 @@ body {
 }
 
 
-/* Dashboard — modo privacidade (borra valores numéricos e legendas monetárias) */
+/* Admin — modo privacidade (borra valores numéricos e legendas monetárias) */
 .dashboard-privacy.is-hidden .tabular-nums,
-.dashboard-privacy.is-hidden .priv {
+.dashboard-privacy.is-hidden .priv,
+.dashboard-privacy.is-hidden [data-priv],
+.dashboard-privacy.is-hidden .priv-blur {
   position: relative;
   color: transparent !important;
   text-shadow: 0 0 10px hsl(var(--foreground) / 0.55);
@@ -418,7 +420,9 @@ body {
     background 0.28s ease;
 }
 .dashboard-privacy.is-hidden .tabular-nums:hover,
-.dashboard-privacy.is-hidden .priv:hover {
+.dashboard-privacy.is-hidden .priv:hover,
+.dashboard-privacy.is-hidden [data-priv]:hover,
+.dashboard-privacy.is-hidden .priv-blur:hover {
   color: inherit !important;
   text-shadow: none;
   background: transparent;
@@ -430,8 +434,11 @@ body {
 }
 @media (prefers-reduced-motion: reduce) {
   .dashboard-privacy.is-hidden .tabular-nums,
-  .dashboard-privacy.is-hidden .priv {
+  .dashboard-privacy.is-hidden .priv,
+  .dashboard-privacy.is-hidden [data-priv],
+  .dashboard-privacy.is-hidden .priv-blur {
     animation: none;
   }
 }
+
 
