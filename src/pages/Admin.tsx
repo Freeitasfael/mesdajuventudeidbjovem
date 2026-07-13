@@ -1348,9 +1348,19 @@ const Admin = () => {
                         <td className="px-4 py-3">
                           <StatusBadge status={o.status} />
                         </td>
+                        <td className="px-4 py-3 text-center" onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            className="h-4 w-4 cursor-pointer accent-emerald-500"
+                            checked={!!o.notified_at}
+                            onChange={() => toggleNotified(o.id, !!o.notified_at)}
+                            title={o.notified_at ? `Avisado em ${fmtDate(o.notified_at)}` : "Marcar como avisado"}
+                          />
+                        </td>
                         <td className="px-4 py-3 text-right font-medium">
                           {fmtBRL(o.total_cents)}
                         </td>
+
                         <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
                           {isPaid(o.status) ? (
                             <NetValueCell grossCents={o.total_cents} method={o.payment_method} />
