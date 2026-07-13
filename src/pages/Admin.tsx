@@ -1139,7 +1139,7 @@ const Admin = () => {
                           <td className="px-4 py-3 font-mono text-xs">{p.mp_payment_id ?? "—"}</td>
                           <td className="px-4 py-3 text-xs uppercase">{p.payment_method ?? "—"}</td>
                           <td className="px-4 py-3"><StatusBadge status={p.status} /></td>
-                          <td className="px-4 py-3 text-right font-medium">{fmtBRL(p.total_cents)}</td>
+                          <td data-priv className="px-4 py-3 text-right font-medium">{fmtBRL(p.total_cents)}</td>
                         </tr>
                       ))}
                       {shirtPayments.length === 0 && (
