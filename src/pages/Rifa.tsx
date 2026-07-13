@@ -9,9 +9,11 @@ import { HeroRifa, type Prize, type HeroStats } from "@/components/HeroRifa";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { Button } from "@/components/ui/button";
-import { Handshake, Sparkles, History, Search, ArrowRight } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Handshake, Sparkles, History, Search, ArrowRight, Instagram, Youtube, Radio } from "lucide-react";
 
 const REF_STORAGE_KEY = "raffle_ref_code";
+
 
 const Rifa = () => {
   const [searchParams] = useSearchParams();
