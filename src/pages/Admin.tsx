@@ -1417,7 +1417,7 @@ const Admin = () => {
                 }
               }}
             >
-              <DialogContent className="max-w-2xl">
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Detalhes do pedido</DialogTitle>
                 </DialogHeader>
@@ -1516,7 +1516,7 @@ const Admin = () => {
                     </div>
                   );
                 })()}
-                <DialogFooter className="gap-2 sm:gap-2">
+                <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end sm:gap-2 [&>button]:w-full sm:[&>button]:w-auto">
                   <Button
                     variant="outline"
                     onClick={() => {
