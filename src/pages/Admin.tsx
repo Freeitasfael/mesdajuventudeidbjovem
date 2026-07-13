@@ -1100,6 +1100,32 @@ const Admin = () => {
 
           {/* ORDERS */}
           <TabsContent value="orders" className="mt-6 space-y-4">
+            {/* Status das vendas da rifa */}
+            <Card className={`p-4 border-2 ${salesClosed ? "border-red-500/60 bg-red-500/10" : "border-emerald-500/40 bg-emerald-500/5"}`}>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold uppercase tracking-wide">
+                    Status das vendas
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {salesClosed
+                      ? "As vendas da rifa estão DESATIVADAS. Compradores veem um aviso e não conseguem finalizar novas compras. Pedidos já pagos e números disponíveis não são alterados."
+                      : "As vendas da rifa estão ATIVAS. Compradores podem escolher números e finalizar pagamentos normalmente."}
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  disabled={savingSalesClosed}
+                  onClick={() => toggleSalesClosed(!salesClosed)}
+                  variant={salesClosed ? "default" : "destructive"}
+                  className="w-full sm:w-auto"
+                >
+                  {salesClosed ? "Reativar vendas" : "Desativar vendas"}
+                </Button>
+              </div>
+            </Card>
+
+
             {/* Configuração do Preço de Custo do prêmio (alimenta Lucro Líquido) */}
             <Card className="p-4 border-primary/30 bg-primary/5">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
