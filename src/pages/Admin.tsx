@@ -1538,7 +1538,7 @@ const Admin = () => {
                         `Olá${nome ? ` ${nome}` : ""}! 🎉\n\n` +
                         `Passando para confirmar que está tudo certo com a sua compra na Rifa da IDB Jovem Minas. Deus abençoe sua participação!\n\n` +
                         `🎟️ Seus números (${detailNumbers.length}): ${nums}\n\n` +
-                        `📺 Acompanhe o sorteio ao vivo pelo nosso Instagram e YouTube:\n` +
+                        `📺 O sorteio será transmitido ao vivo às 20:00 pelo nosso Instagram e YouTube:\n` +
                         `Instagram: https://www.instagram.com/idbjovemminas\n` +
                         `YouTube: https://www.youtube.com/idbjovemminas\n\n` +
                         `Qualquer dúvida, estamos à disposição. Obrigado! 🙌`;
