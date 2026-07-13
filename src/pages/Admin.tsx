@@ -1086,7 +1086,7 @@ const Admin = () => {
                           <td className="px-4 py-3 font-mono text-xs">{p.order_id.slice(0, 8)}</td>
                           <td className="px-4 py-3 font-mono text-xs">{p.provider_payment_id ?? "—"}</td>
                           <td className="px-4 py-3"><StatusBadge status={p.status} /></td>
-                          <td className="px-4 py-3 text-right font-medium">{fmtBRL(p.amount_cents)}</td>
+                          <td data-priv className="px-4 py-3 text-right font-medium">{fmtBRL(p.amount_cents)}</td>
                           <td className="px-4 py-3 text-right">
                             <Button
                               variant="ghost"
@@ -1139,7 +1139,7 @@ const Admin = () => {
                           <td className="px-4 py-3 font-mono text-xs">{p.mp_payment_id ?? "—"}</td>
                           <td className="px-4 py-3 text-xs uppercase">{p.payment_method ?? "—"}</td>
                           <td className="px-4 py-3"><StatusBadge status={p.status} /></td>
-                          <td className="px-4 py-3 text-right font-medium">{fmtBRL(p.total_cents)}</td>
+                          <td data-priv className="px-4 py-3 text-right font-medium">{fmtBRL(p.total_cents)}</td>
                         </tr>
                       ))}
                       {shirtPayments.length === 0 && (
@@ -1380,11 +1380,11 @@ const Admin = () => {
                             title={o.notified_at ? `Avisado em ${fmtDate(o.notified_at)}` : "Marcar como avisado"}
                           />
                         </td>
-                        <td className="px-4 py-3 text-right font-medium">
+                        <td data-priv className="px-4 py-3 text-right font-medium">
                           {fmtBRL(o.total_cents)}
                         </td>
 
-                        <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
+                        <td data-priv className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
                           {isPaid(o.status) ? (
                             <NetValueCell grossCents={o.total_cents} method={o.payment_method} />
                           ) : (
@@ -1445,9 +1445,9 @@ const Admin = () => {
                         </div>
                         <div>
                           <p className="text-xs uppercase text-muted-foreground">Total (bruto)</p>
-                          <p className="font-semibold">{fmtBRL(detailOrder.total_cents)}</p>
+                          <p data-priv className="font-semibold">{fmtBRL(detailOrder.total_cents)}</p>
                           {isPaid(detailOrder.status) && (
-                            <div className="mt-1 text-xs">
+                            <div data-priv className="mt-1 text-xs">
                               <span className="text-muted-foreground">Líquido: </span>
                               <NetValueCell grossCents={detailOrder.total_cents} method={detailOrder.payment_method} compact />
                             </div>
@@ -1630,7 +1630,7 @@ const Admin = () => {
                               <td className="px-4 py-3 font-mono text-xs">{r.ref_code}</td>
                               <td className="px-4 py-3 text-right">{r.total_orders}</td>
                               <td className="px-4 py-3 text-right">{r.total_numbers}</td>
-                              <td className="px-4 py-3 text-right font-medium">{fmtBRL(r.total_cents)}</td>
+                              <td data-priv className="px-4 py-3 text-right font-medium">{fmtBRL(r.total_cents)}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -2085,7 +2085,7 @@ const StatCard = ({ label, value, tone = "neutral", hint }: { label: string; val
           </TooltipProvider>
         ) : null}
       </div>
-      <p className={`mt-1 text-2xl font-bold ${toneCls}`}>{value}</p>
+      <p data-priv className={`mt-1 text-2xl font-bold ${toneCls}`}>{value}</p>
     </Card>
   );
 };
