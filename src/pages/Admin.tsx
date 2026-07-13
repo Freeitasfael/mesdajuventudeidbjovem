@@ -194,6 +194,8 @@ const Admin = () => {
   const [orderStatusFilter, setOrderStatusFilter] = useState<"all" | "pending" | "paid" | "expired" | "cancelled" | "refunded">("all");
   const [orderDateFrom, setOrderDateFrom] = useState("");
   const [orderDateTo, setOrderDateTo] = useState("");
+  const [orderNumberSearch, setOrderNumberSearch] = useState("");
+  const [ordersNumbersMap, setOrdersNumbersMap] = useState<Record<string, number[]>>({});
 
   // Preço de custo (sincronizado via localStorage com EntradaPanel/DashboardConsolidado)
   const COST_STORAGE_KEY = "dashboard_costs_v1";
