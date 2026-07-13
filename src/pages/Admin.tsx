@@ -1156,10 +1156,20 @@ const Admin = () => {
 
 
 
-            <ManualFreeNumber onDone={loadAll} />
-
             <Card className="space-y-3 p-4">
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:flex lg:flex-wrap lg:items-end">
+                <div className="space-y-1 flex-1 min-w-[200px]">
+                  <Label className="text-xs" htmlFor="adNumSearch">Buscar por número</Label>
+                  <Input
+                    id="adNumSearch"
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="Ex: 07, 123"
+                    value={orderNumberSearch}
+                    onChange={(e) => setOrderNumberSearch(e.target.value)}
+                    className="w-full lg:w-56"
+                  />
+                </div>
                 <div className="space-y-1">
                   <Label className="text-xs">Status</Label>
                   <Select
@@ -1186,7 +1196,7 @@ const Admin = () => {
                   <Label className="text-xs" htmlFor="adTo">Até</Label>
                   <Input id="adTo" type="date" value={orderDateTo} onChange={(e) => setOrderDateTo(e.target.value)} className="w-full lg:w-44" />
                 </div>
-                <Button variant="outline" size="sm" onClick={() => { setOrderStatusFilter("all"); setOrderDateFrom(""); setOrderDateTo(""); }} className="w-full sm:w-auto">
+                <Button variant="outline" size="sm" onClick={() => { setOrderStatusFilter("all"); setOrderDateFrom(""); setOrderDateTo(""); setOrderNumberSearch(""); }} className="w-full sm:w-auto">
                   Limpar
                 </Button>
                 <Button size="sm" onClick={exportOrdersCsv} className="w-full sm:w-auto lg:ml-auto">
