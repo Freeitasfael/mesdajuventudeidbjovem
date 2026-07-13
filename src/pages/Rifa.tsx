@@ -259,27 +259,41 @@ const Rifa = () => {
         message="Olá! Estou na página da Rifa IDB Jovem e gostaria de tirar uma dúvida antes de finalizar minha compra."
       />
 
-      <Dialog open={closedModalOpen} onOpenChange={setClosedModalOpen}>
-        <DialogContent className="sm:max-w-md">
+      <Dialog
+        open={closedModalOpen}
+        onOpenChange={(o) => {
+          // Se as vendas estão encerradas, o aviso não pode ser fechado por clique fora
+          if (salesClosed && !o) return;
+          setClosedModalOpen(o);
+        }}
+      >
+        <DialogContent
+          className="sm:max-w-2xl border-4 border-red-500 bg-background"
+          onPointerDownOutside={(e) => salesClosed && e.preventDefault()}
+          onEscapeKeyDown={(e) => salesClosed && e.preventDefault()}
+        >
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-xl">
-              <Radio className="h-5 w-5 text-red-500" />
-              Vendas da rifa encerradas
+            <div className="mx-auto mb-2 flex h-16 w-16 items-center justify-center rounded-full bg-red-500/15 ring-4 ring-red-500/40 animate-pulse">
+              <Radio className="h-9 w-9 text-red-500" />
+            </div>
+            <DialogTitle className="text-center text-3xl font-extrabold text-red-500 sm:text-4xl">
+              VENDAS ENCERRADAS
             </DialogTitle>
-            <DialogDescription className="pt-2 text-base">
-              As vendas da rifa do <strong>Mês da Juventude</strong> foram encerradas.
-              O sorteio será realizado <strong>ao vivo</strong> no Instagram e YouTube da{" "}
+            <DialogDescription className="pt-3 text-center text-lg leading-relaxed">
+              As vendas da rifa do <strong>Mês da Juventude</strong> foram <strong>encerradas</strong>.
+              <br className="hidden sm:block" />
+              O sorteio será realizado <strong>AO VIVO</strong> no Instagram e YouTube da{" "}
               <strong>IDB Jovem Minas</strong>. Acompanhe por lá para saber o resultado!
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-2 pt-2">
-            <Button asChild variant="outline" className="justify-start">
+            <Button asChild variant="outline" size="lg" className="justify-start">
               <a href="https://www.instagram.com/idbjovemminas" target="_blank" rel="noopener noreferrer">
                 <Instagram className="mr-2 h-5 w-5 text-pink-500" />
                 @idbjovemminas no Instagram
               </a>
             </Button>
-            <Button asChild variant="outline" className="justify-start">
+            <Button asChild variant="outline" size="lg" className="justify-start">
               <a href="https://www.youtube.com/idbjovemminas" target="_blank" rel="noopener noreferrer">
                 <Youtube className="mr-2 h-5 w-5 text-red-500" />
                 IDB Jovem Minas no YouTube
@@ -287,7 +301,7 @@ const Rifa = () => {
             </Button>
           </div>
           <DialogFooter>
-            <Button onClick={() => setClosedModalOpen(false)} className="w-full">
+            <Button onClick={() => setClosedModalOpen(false)} size="lg" className="w-full">
               Entendi
             </Button>
           </DialogFooter>
@@ -296,6 +310,7 @@ const Rifa = () => {
     </main>
   );
 };
+
 
 
 export default Rifa;
