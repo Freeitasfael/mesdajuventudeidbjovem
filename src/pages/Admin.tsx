@@ -425,12 +425,12 @@ const Admin = () => {
   const loadAll = async () => {
     const [s, o, p, b, sl, st] = await Promise.all([
       supabase.rpc("admin_dashboard_stats"),
-      supabase.from("orders").select("*").order("created_at", { ascending: false }).limit(100),
+      supabase.from("orders").select("*").order("created_at", { ascending: false }).limit(5000),
       supabase
         .from("payments")
         .select("id, order_id, status, amount_cents, provider_payment_id, created_at, updated_at")
         .order("created_at", { ascending: false })
-        .limit(100),
+        .limit(5000),
       supabase.from("buyers").select("*"),
       supabase.from("sellers").select("*").order("created_at", { ascending: false }),
       supabase
