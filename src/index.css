@@ -419,14 +419,9 @@ body {
     text-shadow 0.28s ease,
     background 0.28s ease;
 }
-.dashboard-privacy.is-hidden .tabular-nums:hover,
-.dashboard-privacy.is-hidden .priv:hover,
-.dashboard-privacy.is-hidden [data-priv]:hover,
-.dashboard-privacy.is-hidden .priv-blur:hover {
-  color: inherit !important;
-  text-shadow: none;
-  background: transparent;
-  animation: none;
+.dashboard-privacy.is-hidden [data-priv] * {
+  color: transparent !important;
+  text-shadow: 0 0 10px hsl(var(--foreground) / 0.55);
 }
 @keyframes dashboardPrivacyShimmer {
   0%   { background-position: 100% 0; }
