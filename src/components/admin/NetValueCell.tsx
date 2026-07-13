@@ -33,7 +33,7 @@ export function NetValueCell({ grossCents, method, compact = false }: Props) {
     <TooltipProvider delayDuration={100}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <span className="inline-flex items-center gap-1 font-medium text-emerald-700 dark:text-emerald-400 cursor-help">
+          <span data-priv className="inline-flex items-center gap-1 font-medium text-emerald-700 dark:text-emerald-400 cursor-help">
             {fmtBRL(net)}
             {!compact && <Info className="h-3 w-3 opacity-60" />}
           </span>
@@ -42,7 +42,7 @@ export function NetValueCell({ grossCents, method, compact = false }: Props) {
           <div className="space-y-1">
             <div className="flex justify-between gap-4">
               <span className="text-muted-foreground">Valor bruto</span>
-              <span className="font-medium">{fmtBRL(grossCents)}</span>
+              <span data-priv className="font-medium">{fmtBRL(grossCents)}</span>
             </div>
             <div className="flex justify-between gap-4">
               <span className="text-muted-foreground">Pagamento</span>
@@ -54,11 +54,11 @@ export function NetValueCell({ grossCents, method, compact = false }: Props) {
             </div>
             <div className="flex justify-between gap-4">
               <span className="text-muted-foreground">Valor da taxa</span>
-              <span className="font-medium text-destructive">− {fmtBRL(fee)}</span>
+              <span data-priv className="font-medium text-destructive">− {fmtBRL(fee)}</span>
             </div>
             <div className="border-t border-border pt-1 mt-1 flex justify-between gap-4">
               <span className="text-muted-foreground">Valor líquido</span>
-              <span className="font-semibold text-emerald-700 dark:text-emerald-400">{fmtBRL(net)}</span>
+              <span data-priv className="font-semibold text-emerald-700 dark:text-emerald-400">{fmtBRL(net)}</span>
             </div>
           </div>
         </TooltipContent>
