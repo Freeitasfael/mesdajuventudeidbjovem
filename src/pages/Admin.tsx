@@ -194,6 +194,8 @@ const Admin = () => {
   const [orderStatusFilter, setOrderStatusFilter] = useState<"all" | "pending" | "paid" | "expired" | "cancelled" | "refunded">("all");
   const [orderDateFrom, setOrderDateFrom] = useState("");
   const [orderDateTo, setOrderDateTo] = useState("");
+  const [orderNumberSearch, setOrderNumberSearch] = useState("");
+  const [ordersNumbersMap, setOrdersNumbersMap] = useState<Record<string, number[]>>({});
 
   // Preço de custo (sincronizado via localStorage com EntradaPanel/DashboardConsolidado)
   const COST_STORAGE_KEY = "dashboard_costs_v1";
@@ -243,14 +245,25 @@ const Admin = () => {
   const filteredOrders = useMemo(() => {
     const fromTs = orderDateFrom ? new Date(orderDateFrom + "T00:00:00").getTime() : null;
     const toTs = orderDateTo ? new Date(orderDateTo + "T23:59:59").getTime() : null;
+    const q = orderNumberSearch.replace(/\D/g, "");
+    const qNum = q ? parseInt(q, 10) : null;
     return orders.filter((o) => {
       if (orderStatusFilter !== "all" && o.status !== orderStatusFilter) return false;
       const ts = new Date(o.created_at).getTime();
       if (fromTs !== null && ts < fromTs) return false;
       if (toTs !== null && ts > toTs) return false;
+      if (q) {
+        const nums = ordersNumbersMap[o.id] ?? [];
+        const hit = nums.some((n) => {
+          if (qNum !== null && n === qNum) return true;
+          const padded = n.toString().padStart(3, "0");
+          return padded.includes(q) || n.toString().includes(q);
+        });
+        if (!hit) return false;
+      }
       return true;
     });
-  }, [orders, orderStatusFilter, orderDateFrom, orderDateTo]);
+  }, [orders, orderStatusFilter, orderDateFrom, orderDateTo, orderNumberSearch, ordersNumbersMap]);
 
   // KPIs da Rifa (aba "Rifa") — líquido considera taxa MP por método (PIX 0,99% · Cartão 4,99%)
   const rifaKpis = useMemo(() => {
@@ -428,7 +441,27 @@ const Admin = () => {
         ]),
     ]);
     if (s.data && Array.isArray(s.data) && s.data[0]) setStats(s.data[0] as Stats);
-    if (o.data) setOrders(o.data as unknown as OrderRow[]);
+    if (o.data) {
+      const rows = o.data as unknown as OrderRow[];
+      setOrders(rows);
+      // Load numbers per order to enable number search
+      const ids = rows.map((r) => r.id);
+      if (ids.length > 0) {
+        const { data: onData } = await supabase
+          .from("order_numbers")
+          .select("order_id, number")
+          .in("order_id", ids);
+        const map: Record<string, number[]> = {};
+        for (const row of onData ?? []) {
+          const oid = (row as { order_id: string }).order_id;
+          const num = (row as { number: number }).number;
+          (map[oid] ??= []).push(num);
+        }
+        setOrdersNumbersMap(map);
+      } else {
+        setOrdersNumbersMap({});
+      }
+    }
     if (p.data) setPayments(p.data as PaymentRow[]);
     if (b.data) {
       const map: Record<string, BuyerRow> = {};
@@ -1123,10 +1156,20 @@ const Admin = () => {
 
 
 
-            <ManualFreeNumber onDone={loadAll} />
-
             <Card className="space-y-3 p-4">
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:flex lg:flex-wrap lg:items-end">
+                <div className="space-y-1 flex-1 min-w-[200px]">
+                  <Label className="text-xs" htmlFor="adNumSearch">Buscar por número</Label>
+                  <Input
+                    id="adNumSearch"
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="Ex: 07, 123"
+                    value={orderNumberSearch}
+                    onChange={(e) => setOrderNumberSearch(e.target.value)}
+                    className="w-full lg:w-56"
+                  />
+                </div>
                 <div className="space-y-1">
                   <Label className="text-xs">Status</Label>
                   <Select
@@ -1153,7 +1196,7 @@ const Admin = () => {
                   <Label className="text-xs" htmlFor="adTo">Até</Label>
                   <Input id="adTo" type="date" value={orderDateTo} onChange={(e) => setOrderDateTo(e.target.value)} className="w-full lg:w-44" />
                 </div>
-                <Button variant="outline" size="sm" onClick={() => { setOrderStatusFilter("all"); setOrderDateFrom(""); setOrderDateTo(""); }} className="w-full sm:w-auto">
+                <Button variant="outline" size="sm" onClick={() => { setOrderStatusFilter("all"); setOrderDateFrom(""); setOrderDateTo(""); setOrderNumberSearch(""); }} className="w-full sm:w-auto">
                   Limpar
                 </Button>
                 <Button size="sm" onClick={exportOrdersCsv} className="w-full sm:w-auto lg:ml-auto">
@@ -1909,52 +1952,6 @@ const StatusBadge = ({ status }: { status: string }) => {
   );
 };
 
-const ManualFreeNumber = ({ onDone }: { onDone: () => void }) => {
-  const [value, setValue] = useState("");
-  const [busy, setBusy] = useState(false);
-
-  const submit = async () => {
-    const n = parseInt(value, 10);
-    if (!Number.isFinite(n) || n < 0) {
-      toast.error("Informe um número válido");
-      return;
-    }
-    if (!confirm(`Liberar o número ${n}? Pedido pendente associado será cancelado.`))
-      return;
-    setBusy(true);
-    const { error } = await supabase.rpc("admin_free_number", { _number: n });
-    setBusy(false);
-    if (error) {
-      toast.error(error.message ?? "Falha ao liberar número");
-      return;
-    }
-    toast.success(`Número ${n} liberado com sucesso.`);
-    setValue("");
-    onDone();
-  };
-
-  return (
-    <Card className="p-4">
-      <p className="mb-2 text-sm font-semibold">Liberar número manualmente</p>
-      <p className="mb-3 text-xs text-muted-foreground">
-        Use em casos excepcionais — reverte a reserva e cancela o pedido pendente vinculado.
-      </p>
-      <div className="flex flex-col gap-2 sm:flex-row">
-        <Input
-          type="number"
-          inputMode="numeric"
-          placeholder="Ex: 042"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          className="sm:max-w-[160px]"
-        />
-        <Button onClick={submit} disabled={busy || !value} variant="destructive">
-          {busy ? "Liberando…" : "Liberar número"}
-        </Button>
-      </div>
-    </Card>
-  );
-};
 
 const RESET_PASSWORD = "IDBJOVEM";
 
