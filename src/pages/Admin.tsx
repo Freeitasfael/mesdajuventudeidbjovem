@@ -441,7 +441,27 @@ const Admin = () => {
         ]),
     ]);
     if (s.data && Array.isArray(s.data) && s.data[0]) setStats(s.data[0] as Stats);
-    if (o.data) setOrders(o.data as unknown as OrderRow[]);
+    if (o.data) {
+      const rows = o.data as unknown as OrderRow[];
+      setOrders(rows);
+      // Load numbers per order to enable number search
+      const ids = rows.map((r) => r.id);
+      if (ids.length > 0) {
+        const { data: onData } = await supabase
+          .from("order_numbers")
+          .select("order_id, number")
+          .in("order_id", ids);
+        const map: Record<string, number[]> = {};
+        for (const row of onData ?? []) {
+          const oid = (row as { order_id: string }).order_id;
+          const num = (row as { number: number }).number;
+          (map[oid] ??= []).push(num);
+        }
+        setOrdersNumbersMap(map);
+      } else {
+        setOrdersNumbersMap({});
+      }
+    }
     if (p.data) setPayments(p.data as PaymentRow[]);
     if (b.data) {
       const map: Record<string, BuyerRow> = {};
