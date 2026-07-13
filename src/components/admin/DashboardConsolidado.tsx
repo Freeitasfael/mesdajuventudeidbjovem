@@ -91,12 +91,7 @@ export function DashboardConsolidado({ rifaStatus, onNavigate }: { rifaStatus?: 
   const [activeAlerts, setActiveAlerts] = useState<number | null>(null);
   const [production, setProduction] = useState<{ total_cost_cents: number; units_produced: number } | null>(null);
   const [shirtsSold, setShirtsSold] = useState<number>(0);
-  const [hideValues, setHideValues] = useState<boolean>(() => {
-    try { return localStorage.getItem("dashboard_hide_values") === "1"; } catch { return false; }
-  });
-  useEffect(() => {
-    try { localStorage.setItem("dashboard_hide_values", hideValues ? "1" : "0"); } catch { /* noop */ }
-  }, [hideValues]);
+  const [hideValues, setHideValues] = useHidePrivacy();
 
   const [costCamiseta, setCostCamiseta] = useState<number>(() => {
     try { const s = JSON.parse(localStorage.getItem(COST_STORAGE_KEY) || "{}"); return Number(s.camiseta) || DEFAULT_COST_CAMISETA; } catch { return DEFAULT_COST_CAMISETA; }
