@@ -507,6 +507,23 @@ const Admin = () => {
   };
 
   const toggleSalesClosed = async (next: boolean) => {
+    if (next) {
+      // Verifica quantas pessoas estão com compra em andamento (reserva ativa)
+      const { count, error: cErr } = await supabase
+        .from("orders")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "pending")
+        .gt("expires_at", new Date().toISOString());
+      if (cErr) {
+        toast.error("Falha ao verificar compras em andamento: " + cErr.message);
+        return;
+      }
+      const pend = count ?? 0;
+      const msg = pend > 0
+        ? `Existem ${pend} compra(s) em andamento agora (reservas ativas).\n\nAo desativar, novos compradores verão o aviso de encerramento imediatamente. As reservas em andamento continuam válidas até expirarem ou serem pagas.\n\nDeseja realmente desativar as vendas?`
+        : "Nenhuma compra em andamento no momento.\n\nDeseja realmente desativar as vendas?";
+      if (!window.confirm(msg)) return;
+    }
     setSavingSalesClosed(true);
     const { error } = await supabase
       .from("app_settings")
@@ -519,6 +536,7 @@ const Admin = () => {
     setSalesClosed(next);
     toast.success(next ? "Vendas da rifa desativadas" : "Vendas da rifa reativadas");
   };
+
 
 
   // Realtime: revalida stats e listas quando orders/payments mudarem
