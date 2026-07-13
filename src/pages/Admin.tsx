@@ -441,7 +441,9 @@ const Admin = () => {
           "price_per_number_cents",
           "hero_prizes",
           "hero_stats",
+          "raffle_sales_closed",
         ]),
+
     ]);
     if (s.data && Array.isArray(s.data) && s.data[0]) setStats(s.data[0] as Stats);
     if (o.data) {
