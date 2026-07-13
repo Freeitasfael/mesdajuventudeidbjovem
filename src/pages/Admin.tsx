@@ -1086,7 +1086,7 @@ const Admin = () => {
                           <td className="px-4 py-3 font-mono text-xs">{p.order_id.slice(0, 8)}</td>
                           <td className="px-4 py-3 font-mono text-xs">{p.provider_payment_id ?? "—"}</td>
                           <td className="px-4 py-3"><StatusBadge status={p.status} /></td>
-                          <td className="px-4 py-3 text-right font-medium">{fmtBRL(p.amount_cents)}</td>
+                          <td data-priv className="px-4 py-3 text-right font-medium">{fmtBRL(p.amount_cents)}</td>
                           <td className="px-4 py-3 text-right">
                             <Button
                               variant="ghost"
