@@ -209,10 +209,26 @@ const Rifa = () => {
 
           <div
             id="rifa-grid"
-            className="rounded-3xl border bg-white/[0.03] px-4 pt-4 pb-4 shadow-2xl backdrop-blur-md scroll-mt-6 sm:px-6 sm:pt-6 sm:pb-5"
+            className="relative rounded-3xl border bg-white/[0.03] px-4 pt-4 pb-4 shadow-2xl backdrop-blur-md scroll-mt-6 sm:px-6 sm:pt-6 sm:pb-5"
             style={{ borderColor: "hsl(var(--hero-gold) / 0.25)" }}
           >
-            <RaffleGrid />
+            <div aria-hidden={salesClosed || undefined} className={salesClosed ? "pointer-events-none select-none opacity-40" : ""}>
+              <RaffleGrid />
+            </div>
+            {salesClosed && (
+              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 rounded-3xl bg-black/75 p-6 text-center backdrop-blur-sm">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-500/15 ring-4 ring-red-500/40 animate-pulse">
+                  <Radio className="h-9 w-9 text-red-500" />
+                </div>
+                <h3 className="text-2xl font-extrabold text-red-500 sm:text-3xl">VENDAS ENCERRADAS</h3>
+                <p className="max-w-md text-sm text-white/80 sm:text-base">
+                  Não é mais possível escolher números. Acompanhe o sorteio AO VIVO no Instagram e YouTube da IDB Jovem Minas.
+                </p>
+                <Button onClick={() => setClosedModalOpen(true)} size="lg" className="rounded-full font-bold">
+                  Ver detalhes
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </section>
