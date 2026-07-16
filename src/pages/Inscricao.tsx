@@ -352,6 +352,23 @@ export default function Inscricao() {
                   <br />
                   Osvaldo Rezende · Uberlândia – MG
                 </p>
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                    "CDL Uberlândia, Av. Belo Horizonte, 1290 - Osvaldo Rezende, Uberlândia - MG",
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition hover:brightness-110"
+                  style={{
+                    borderColor: "hsl(var(--hero-gold) / 0.5)",
+                    color: gold,
+                    backgroundColor: "hsl(var(--hero-gold) / 0.08)",
+                  }}
+                >
+                  <MapPin className="h-3.5 w-3.5" />
+                  Abrir no Google Maps
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </a>
               </div>
             </div>
           </div>
