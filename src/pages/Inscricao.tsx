@@ -343,12 +343,12 @@ export default function Inscricao() {
                   Local
                 </p>
                 <p className="text-base font-semibold">
-                  Portão 6 do Estádio Parque do Sabiá
+                  CDL Uberlândia
                 </p>
                 <p className="mt-1 text-sm text-white/75">
-                  Av. Anselmo Alves dos Santos, nº 600
+                  Av. Belo Horizonte, 1290
                   <br />
-                  Uberlândia – MG · CEP 38408-150
+                  Osvaldo Rezende · Uberlândia – MG
                 </p>
               </div>
             </div>
