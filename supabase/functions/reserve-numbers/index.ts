@@ -68,6 +68,26 @@ Deno.serve(async (req) => {
       auth: { persistSession: false },
     });
 
+    // Bloqueio: vendas encerradas
+    const { data: closedRow } = await admin
+      .from("app_settings")
+      .select("value")
+      .eq("key", "raffle_sales_closed")
+      .maybeSingle();
+    if (closedRow?.value === true) {
+      console.log("[reserve-numbers] sales closed");
+      return new Response(
+        JSON.stringify({
+          error: "sales_closed",
+          message: "As vendas da rifa foram encerradas.",
+        }),
+        {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
     // Price per number
     const { data: priceRow, error: priceErr } = await admin
       .from("app_settings")
