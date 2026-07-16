@@ -365,6 +365,12 @@ export default function Inscricao() {
                 src={cdlPhoto1.url}
                 alt="CDL Uberlândia - fachada"
                 loading="lazy"
+                decoding="async"
+                // @ts-expect-error - atributo válido no HTML
+                fetchpriority="low"
+                width={800}
+                height={600}
+                sizes="(min-width: 640px) 50vw, 100vw"
                 className="h-56 w-full rounded-2xl border object-cover sm:h-64"
                 style={{ borderColor: "hsl(var(--hero-gold) / 0.3)" }}
               />
@@ -372,6 +378,12 @@ export default function Inscricao() {
                 src={cdlPhoto2.url}
                 alt="CDL Uberlândia - entrada"
                 loading="lazy"
+                decoding="async"
+                // @ts-expect-error - atributo válido no HTML
+                fetchpriority="low"
+                width={800}
+                height={600}
+                sizes="(min-width: 640px) 50vw, 100vw"
                 className="h-56 w-full rounded-2xl border object-cover sm:h-64"
                 style={{ borderColor: "hsl(var(--hero-gold) / 0.3)" }}
               />
