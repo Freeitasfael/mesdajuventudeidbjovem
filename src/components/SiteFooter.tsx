@@ -31,7 +31,7 @@ export const SiteFooter = () => {
           <div className="mt-5 flex items-center gap-3">
             {[
               { href: "https://instagram.com/idbjovemminas", label: "Instagram @idbjovemminas", Icon: Instagram },
-              { href: "https://youtube.com", label: "YouTube", Icon: Youtube },
+              { href: "https://youtube.com/idbjovemminas", label: "YouTube @idbjovemminas", Icon: Youtube },
               { href: "https://wa.me/", label: "WhatsApp", Icon: MessageCircle },
             ].map(({ href, label, Icon }) => (
               <a
