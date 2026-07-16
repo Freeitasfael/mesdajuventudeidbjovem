@@ -298,7 +298,7 @@ const Rifa = () => {
             <DialogDescription className="pt-3 text-center text-lg leading-relaxed">
               As vendas da rifa do <strong>Mês da Juventude</strong> foram <strong>encerradas</strong>.
               <br className="hidden sm:block" />
-              O sorteio será realizado <strong>AO VIVO</strong> no Instagram e YouTube da{" "}
+              O sorteio foi realizado <strong>AO VIVO</strong> no Instagram e YouTube da{" "}
               <strong>IDB Jovem Minas</strong>. Acompanhe por lá para saber o resultado!
             </DialogDescription>
           </DialogHeader>
