@@ -20,6 +20,8 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import logoIdb from "@/assets/idb-jovem-logo.png";
+import cdlPhoto1 from "@/assets/cdl-uberlandia-1.png.asset.json";
+import cdlPhoto2 from "@/assets/cdl-uberlandia-2.png.asset.json";
 
 const SYMPLA_URL =
   "https://www.sympla.com.br/evento/congresso-de-jovens-estacoes-2026/3472910?share_id=whatsapp";
@@ -351,6 +353,28 @@ export default function Inscricao() {
                   Osvaldo Rezende · Uberlândia – MG
                 </p>
               </div>
+            </div>
+          </div>
+
+          <div className="mt-8">
+            <p className="text-xs font-bold uppercase tracking-widest text-white/60">
+              Fotos do local
+            </p>
+            <div className="mt-3 grid gap-4 sm:grid-cols-2">
+              <img
+                src={cdlPhoto1.url}
+                alt="CDL Uberlândia - fachada"
+                loading="lazy"
+                className="h-56 w-full rounded-2xl border object-cover sm:h-64"
+                style={{ borderColor: "hsl(var(--hero-gold) / 0.3)" }}
+              />
+              <img
+                src={cdlPhoto2.url}
+                alt="CDL Uberlândia - entrada"
+                loading="lazy"
+                className="h-56 w-full rounded-2xl border object-cover sm:h-64"
+                style={{ borderColor: "hsl(var(--hero-gold) / 0.3)" }}
+              />
             </div>
           </div>
         </div>
